@@ -11,8 +11,8 @@ function initializeDatabase() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
   const sheetsConfig = {
-    // Added Name, LOB, and Workflow to the database
-    'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes'],
+    // Added Name, LOB, and Workflow to the database, and Interval Activity to the end
+    'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes', 'Interval Activity'],
     'Index_CaseIDs': ['Case ID', 'Type Logged', 'Date Logged', 'Agent'],
     'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef']
   };
@@ -110,7 +110,8 @@ function submitCases(formObject) {
     
     const shiftType = formObject.shiftType;
     const caseType = formObject.caseType;
-    const rawText = formObject.caseIdsText;
+    const intervalActivity = formObject.intervalActivity || 'Normal Production';
+    const rawText = formObject.caseIdsText || '';
 
     let rawIds = rawText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
     let uniqueIds = [...new Set(rawIds)];
@@ -150,8 +151,8 @@ function submitCases(formObject) {
     let auditNotes = flaggedCount > 0 ? "⚠️ " + auditReasons.join(' | ') : "Clean";
 
     let rawRowNumber = rawSheet.getLastRow() + 1;
-    // Writes LOB, Workflow, and Name into the raw sheet
-    rawSheet.appendRow([timestamp, dateStr, intervalStr, ldap, userProfile.name, site, userProfile.lob, userProfile.workflow, shiftType, caseType, totalCount, validCount, flaggedCount, uniqueIds.join(', '), auditNotes]);
+    // Writes LOB, Workflow, and Name into the raw sheet, appended Interval Activity at the end
+    rawSheet.appendRow([timestamp, dateStr, intervalStr, ldap, userProfile.name, site, userProfile.lob, userProfile.workflow, shiftType, caseType, totalCount, validCount, flaggedCount, uniqueIds.join(', '), auditNotes, intervalActivity]);
 
     let indexDataToAppend = uniqueIds.map(id => [id, caseType, dateStr, ldap]);
     if (indexDataToAppend.length > 0) {
@@ -269,7 +270,39 @@ function resolveAudit(auditRow, rawRowRef, resolution) {
     lock.releaseLock();
   }
 }
-// 7. Fetch Data for Interval View
+
+// 7. Fetch User's Submissions for "My Submissions" Tab
+function getMySubmissions(dateStr) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const rawSheet = ss.getSheetByName('Raw_Cases');
+  const userProfile = getUserProfile();
+  const ldap = userProfile.ldap;
+  let submissions = [];
+
+  if (rawSheet && rawSheet.getLastRow() > 1) {
+    const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues();
+
+    rawData.forEach(r => {
+      let rowDateStr = (r[1] instanceof Date) ? Utilities.formatDate(r[1], Session.getScriptTimeZone(), "M/d/yyyy") : String(r[1]);
+
+      // r[3] is Agent LDAP
+      if (rowDateStr === dateStr && r[3] === ldap) {
+        submissions.push({
+          interval: r[2],               // Col C
+          activity: r[15] || 'Normal Production', // Col P
+          caseType: r[9],               // Col J
+          validCount: r[11],            // Col L
+          caseIds: r[13]                // Col N
+        });
+      }
+    });
+  }
+
+  // Sort submissions by interval chronologically if needed, simple string match usually works for "h:00 a"
+  return submissions;
+}
+
+// 8. Fetch Data for Interval View
 function getIntervalData(dateStr, intervalHourStr) {
   // dateStr format expected: "9/15/2026"
   // intervalHourStr format expected: "16:00" (24-hour format string)
@@ -378,7 +411,7 @@ function getIntervalData(dateStr, intervalHourStr) {
   
   // 3. Process Overtime & Live Metrics from 'Raw_Cases'
   if (rawSheet && rawSheet.getLastRow() > 1) {
-    const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 15).getValues(); 
+    const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues();
     // Format target hour to match Raw_Cases "h:00 a" format (e.g. "4:00 PM")
     let targetDateObj = new Date();
     targetDateObj.setHours(targetHour, 0, 0, 0);
@@ -392,6 +425,7 @@ function getIntervalData(dateStr, intervalHourStr) {
         const site = r[5];
         const isOvertime = r[8] === "Overtime";
         const validCases = Number(r[11]) || 0;
+        const intervalActivity = r[15] || 'Normal Production';
         
         // If OT agent isn't on the shift list, add them dynamically regardless of their Channel
         if (!agentsInInterval[ldap] && isOvertime) {
@@ -401,17 +435,47 @@ function getIntervalData(dateStr, intervalHourStr) {
             eos: "OT",
             site: site,
             isOT: true,
-            casesLogged: 0
+            casesLogged: 0,
+            activityLogged: intervalActivity
           };
         }
         
         // Add metrics if they are in the list
         if (agentsInInterval[ldap]) {
           agentsInInterval[ldap].casesLogged += validCases;
+          agentsInInterval[ldap].activityLogged = intervalActivity; // Track the activity they submitted
         }
       }
     });
   }
   
-  return Object.values(agentsInInterval).sort((a, b) => a.ldap.localeCompare(b.ldap));
+  // 4. Compute Status
+  const results = Object.values(agentsInInterval).sort((a, b) => a.ldap.localeCompare(b.ldap));
+
+  results.forEach(agent => {
+    let computedStatus = "";
+    let sosHour = -1;
+    let eosHour = -1;
+
+    if (agent.sos !== "OT") {
+      sosHour = parseInt(agent.sos.split(':')[0], 10);
+      eosHour = parseInt(agent.eos.split(':')[0], 10);
+    }
+
+    if (agent.activityLogged === 'Coaching/Training') {
+      computedStatus = "on Coaching/Training";
+    } else if (agent.activityLogged === 'Break/Lunch' && agent.casesLogged >= 3) {
+      computedStatus = "Break - 3";
+    } else if (agent.casesLogged >= 7) {
+      computedStatus = "Assigned - 7";
+    } else if (!agent.isOT && targetHour === sosHour) {
+      computedStatus = "SKIP SOS";
+    } else if (!agent.isOT && targetHour === (eosHour - 1)) {
+      computedStatus = "SKIP - EOS";
+    }
+
+    agent.computedStatus = computedStatus;
+  });
+
+  return results;
 }
