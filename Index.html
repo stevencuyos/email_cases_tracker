@@ -359,7 +359,7 @@
     function formatCaseIdsAsLinks(idsString) {
       if (!idsString) return '';
       return idsString.split(',').map(id => {
-        let cleanId = id.trim();
+        let cleanId = escAttr(id.trim());
         // Added whitespace-nowrap to the class list below:
         return `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="text-blue-600 hover:underline hover:text-blue-800 whitespace-nowrap">${cleanId}</a>`;
       }).join(', ');
@@ -383,14 +383,19 @@
       const avatarHTML = getMomaImgClass(profile.ldap, 'w-10 h-10 rounded-full border border-gray-200 object-cover', 100);
       
       // Stop pulsing, inject data & avatar
+      const safeName = escAttr(profile.name);
+      const safeSite = escAttr(profile.site);
+      const safeLob = escAttr(profile.lob);
+      const safeWorkflow = escAttr(profile.workflow);
+
       chip.classList.remove('animate-pulse');
       chip.classList.remove('py-1.5', 'px-3'); 
       chip.classList.add('pr-4', 'pl-1', 'py-1'); 
       chip.innerHTML = `
         ${avatarHTML}
         <div class="flex flex-col ml-2">
-          <span class="text-sm font-medium text-gray-800 leading-tight">${profile.name}</span>
-          <span class="text-[10px] text-gray-500 uppercase tracking-wide">${profile.site} • ${profile.lob} ${profile.workflow ? `(${profile.workflow})` : ''}</span>
+          <span class="text-sm font-medium text-gray-800 leading-tight">${safeName}</span>
+          <span class="text-[10px] text-gray-500 uppercase tracking-wide">${safeSite} • ${safeLob} ${safeWorkflow ? `(${safeWorkflow})` : ''}</span>
         </div>
       `;
 
@@ -645,12 +650,19 @@
 
       google.script.run
         .withSuccessHandler(renderMySubmissions)
-        .withFailureHandler(err => showToast("Failed to load submissions.", 'error'))
+        .withFailureHandler(err => {
+          document.getElementById('mySubmissionsTableBody').innerHTML =
+            '<tr><td colspan="5" class="p-8 text-center text-red-400">Failed to load submissions: ' +
+            (err && err.message ? escAttr(err.message) : 'Unknown error') +
+            '</td></tr>';
+          showToast("Failed to load submissions.", 'error');
+        })
         .getMySubmissions(formattedDate, targetLdap);
     }
 
     function renderMySubmissions(data) {
       const tbody = document.getElementById('mySubmissionsTableBody');
+      try {
       if (data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No submissions found for this date.</td></tr>';
         return;
@@ -669,6 +681,9 @@
           </td>
         </tr>
       `).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-400">Render error: ' + escAttr(e.message) + '</td></tr>';
+      }
     }
 
     // Handle Approve/Reject Action
