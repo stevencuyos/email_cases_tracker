@@ -141,6 +141,15 @@ function getUserProfile() {
   return profile;
 }
 
+// Throws unless the current user is a manager. Call at the top of any manager-only function.
+function requireManagerOrThrow() {
+  const profile = getUserProfile();
+  if (!profile.isManager) {
+    throw new Error("Access denied: manager permissions required.");
+  }
+  return profile;
+}
+
 // 4. Process Submission with LockService (Concurrency Control)
 function submitCases(formObject) {
   const lock = LockService.getScriptLock();
@@ -235,6 +244,7 @@ function submitCases(formObject) {
 // 5. Fetch Dashboard Data
 function getDashboardData() {
   try {
+    requireManagerOrThrow();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const auditSheet = ss.getSheetByName('Audit Queue');
     const rawSheet = ss.getSheetByName('Raw_Cases');
@@ -295,6 +305,11 @@ function getDashboardData() {
 
 // 6. Resolve Soft Audits (Approve/Reject)
 function resolveAudit(auditRow, rawRowRef, resolution) {
+  const profile = getUserProfile();
+  if (!profile.isManager) {
+    return { success: false, error: "Access denied: manager permissions required." };
+  }
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -410,6 +425,7 @@ function getAllAgents() {
 // 9. Fetch Data for Interval View
 function getIntervalData(dateStr, intervalHourStr) {
   try {
+    requireManagerOrThrow();
     // dateStr format expected: "9/15/2026"
     // intervalHourStr format expected: "16:00" (24-hour format string)
     
