@@ -1,837 +1,614 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Case Tracking Portal</title>
-  
-  <!-- Google Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <style>
-    body { font-family: 'Roboto', sans-serif; background-color: #f8f9fa; }
-    .google-blue { background-color: #1a73e8; }
-    .google-blue-text { color: #1a73e8; }
-    .nav-active { border-bottom: 3px solid #1a73e8; color: #1a73e8; font-weight: 500; }
-    .nav-inactive { color: #5f6368; font-weight: 400; }
-    .nav-inactive:hover { background-color: #f1f3f4; }
-    textarea::-webkit-scrollbar { width: 8px; }
-    textarea::-webkit-scrollbar-thumb { background-color: #dadce0; border-radius: 4px; }
+/**
+ * CRITICAL CONFIGURATION:
+ * This script MUST be deployed with:
+ * - Execute as: "User accessing the web app"
+ * - Who has access: "Anyone within [Your Organization]"
+ */
+
+// --- UTILITIES ---
+
+// Helper function to securely log errors to a dedicated tab without crashing the script
+function logError(functionName, errorMessage, userLdap) {
+  try {
+    const lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let errorSheet = ss.getSheetByName('Error_Logs');
+    if (!errorSheet) {
+      errorSheet = ss.insertSheet('Error_Logs');
+      errorSheet.appendRow(['Timestamp', 'Function', 'User', 'Error Message']);
+      errorSheet.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#fce8e6");
+      errorSheet.setFrozenRows(1);
+    }
+    errorSheet.appendRow([new Date(), functionName, userLdap || 'Unknown', errorMessage]);
+    lock.releaseLock();
+  } catch (e) {
+    console.error("Failed to write to Error_Logs tab: " + e);
+  }
+}
+
+// Ultra-fast date string converter to replace slow Utilities.formatDate calls in loops
+// Converts a JS Date object to "M/d/yyyy" format using local timezone context
+function toDateStringFast(dateObj) {
+  if (!(dateObj instanceof Date)) {
+    // If it's already a string, attempt a naive cleanup
+    return String(dateObj).split('T')[0]; 
+  }
+  return (dateObj.getMonth() + 1) + '/' + dateObj.getDate() + '/' + dateObj.getFullYear();
+}
+
+// --- MAIN APPLICATION LOGIC ---
+
+// 1. Serve the Web App Interface
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('Case Tracking Portal')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+// 2. Auto-Initialize the Database Structure
+function initializeDatabase() {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    /* NEW: Smooth reveal animation for the Manager Nav */
-    @keyframes fadeSlideDown {
-      0% { opacity: 0; transform: translateY(-10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    .manager-reveal {
-      animation: fadeSlideDown 0.5s ease-out forwards;
-    }
-  </style>
-</head>
-<body class="text-gray-800 antialiased min-h-screen flex flex-col items-center">
+    const sheetsConfig = {
+      'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes', 'Interval Activity'],
+      'Index_CaseIDs': ['Case ID', 'Type Logged', 'Date Logged', 'Agent'],
+      'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef'],
+      'Error_Logs': ['Timestamp', 'Function', 'User', 'Error Message']
+    };
 
-  <!-- Global Header -->
-  <header class="w-full bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-    <div class="h-1 w-full bg-[#fbbc04]"></div> <!-- Google Yellow Accent -->
-    <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+    for (const [sheetName, headers] of Object.entries(sheetsConfig)) {
+      let sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        sheet = ss.insertSheet(sheetName);
+        sheet.appendRow(headers);
+        sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f3f3f3");
+        sheet.setFrozenRows(1);
+      }
+    }
+  } catch (e) {
+    console.error("Initialization error: " + e);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 3. Fetch User Profile from Masterlist Tab (With Cache)
+function getUserProfile() {
+  const email = Session.getActiveUser().getEmail();
+  const currentLdap = email ? email.split('@')[0] : 'unknown_agent';
+  
+  const cache = CacheService.getUserCache();
+  const cachedProfile = cache.get('userProfile_' + currentLdap);
+  if (cachedProfile) {
+    return JSON.parse(cachedProfile);
+  }
+  
+  let profile = {
+    ldap: currentLdap,
+    name: currentLdap,
+    site: 'Unknown',
+    lob: '',
+    workflow: '',
+    role: 'Agent',
+    isManager: false
+  };
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const masterSheet = ss.getSheetByName('Masterlist');
+    
+    if (masterSheet && masterSheet.getLastRow() > 1) {
+      // Fetch from Col A (1) all the way to Col AS (45)
+      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 45).getValues();
       
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-blue-600 text-3xl">track_changes</span>
-        <h1 class="text-xl font-normal text-gray-700">Case Tracker</h1>
-      </div>
-
-      <!-- Identity Chip -->
-      <div id="identityChip" class="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 animate-pulse">
-        <span class="text-sm text-gray-500">Loading profile...</span>
-      </div>
-
-    </div>
-
-    <!-- Shared/Manager Navigation -->
-    <div id="managerNav" class="max-w-5xl mx-auto px-6 flex gap-2">
-      <button onclick="switchTab('submissionView')" id="tab-submissionView" class="px-4 py-3 text-sm nav-active transition-colors">
-        Submit Cases
-      </button>
-      <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" class="px-4 py-3 text-sm nav-inactive rounded-t-md transition-colors flex items-center gap-1">
-        My Submissions
-      </button>
-      <div id="managerOnlyTabs" class="flex gap-2 hidden">
-        <button onclick="switchTab('dashboardView')" id="tab-dashboardView" class="px-4 py-3 text-sm nav-inactive rounded-t-md transition-colors flex items-center gap-1">
-          Manager Dashboard
-        </button>
-        <button onclick="switchTab('intervalView')" id="tab-intervalView" class="px-4 py-3 text-sm nav-inactive rounded-t-md transition-colors flex items-center gap-1">
-          Interval View
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content Area -->
-  <main class="w-full px-4 py-8 relative flex flex-col items-center">
-
-    <!-- VIEW 1: Submission Form -->
-    <div id="submissionView" class="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-300">
-      <div class="p-8 pb-6 border-b border-gray-100">
-        <h2 class="text-2xl font-normal mb-1">Log Your Interval</h2>
-        <p class="text-sm text-gray-500">Paste your Case IDs separated by commas or new lines. Duplicates will be automatically audited.</p>
-      </div>
-
-      <form id="trackerForm" onsubmit="handleFormSubmit(event)" class="p-8 pt-6 space-y-8">
-        
-        <!-- Shift Type -->
-        <div>
-          <h3 class="text-sm font-medium mb-3 text-gray-700">Is this Regular Shift or OT? <span class="text-red-500">*</span></h3>
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Regular Shift" required class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Regular Shift</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Overtime" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Overtime</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Interval Activity -->
-        <div>
-          <h3 class="text-sm font-medium mb-3 text-gray-700">Activity for this interval? <span class="text-red-500">*</span></h3>
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Normal Production</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Break/Lunch</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Coaching/Training</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Case Type -->
-        <div>
-          <h3 class="text-sm font-medium mb-3 text-gray-700">Email Cases type <span class="text-red-500">*</span></h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Regular Email (Take Next)" required class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Regular (Take Next)</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Reopened Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Reopened Cases</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Telus Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Telus Cases</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Manual Assignment" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Manual Assignment</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Cimba Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Cimba Cases</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Bulk Case IDs -->
-        <div>
-          <h3 class="text-sm font-medium mb-2 text-gray-700">Tracked Case IDs <span class="text-red-500">*</span></h3>
-          <textarea id="caseIds" rows="5" required placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-y shadow-inner"></textarea>
-        </div>
-
-        <!-- Action Footer -->
-        <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-          <button type="button" onclick="document.getElementById('trackerForm').reset()" class="text-sm font-medium text-gray-500 hover:text-gray-800 px-4 py-2 rounded transition">
-            Clear form
-          </button>
-          <button type="submit" id="submitBtn" class="google-blue text-white font-medium text-sm px-6 py-2.5 rounded shadow hover:bg-[#1557b0] transition flex items-center gap-2">
-            <span>Submit Cases</span>
-            <span id="spinner" class="material-symbols-outlined animate-spin hidden text-[20px]">progress_activity</span>
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- VIEW: My Submissions / Agent Submissions -->
-    <div id="mySubmissionsView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <div>
-            <h2 id="mySubmissionsTitle" class="text-xl font-normal text-gray-800 flex items-center gap-2">
-              <span class="material-symbols-outlined text-blue-500">list_alt</span>
-              My Submissions
-            </h2>
-            <p id="mySubmissionsDesc" class="text-sm text-gray-500 mt-1">View your tracked cases per interval for the selected date.</p>
-          </div>
-          <div class="flex items-center gap-4">
-            <div id="managerLdapSearch" class="hidden relative">
-              <input type="text" id="targetAgentLdap" list="agentList" onchange="loadMySubmissions()" placeholder="Agent LDAP" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 w-36">
-              <datalist id="agentList"></datalist>
-            </div>
-            <input type="date" id="mySubmissionsDate" onchange="loadMySubmissions()" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
-            <button onclick="loadMySubmissions()" class="text-gray-500 hover:text-blue-600 transition" title="Refresh Data">
-              <span class="material-symbols-outlined">refresh</span>
-            </button>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium border-b border-gray-200">Interval</th>
-                <th class="p-4 font-medium border-b border-gray-200">Activity</th>
-                <th class="p-4 font-medium border-b border-gray-200">Case Type</th>
-                <th class="p-4 font-medium border-b border-gray-200 text-center">Valid Count</th>
-                <th class="p-4 font-medium border-b border-gray-200 min-w-[250px]">Case IDs</th>
-              </tr>
-            </thead>
-            <tbody id="mySubmissionsTableBody" class="text-sm divide-y divide-gray-100">
-              <tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW 2: Manager Dashboard -->
-    <div id="dashboardView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12">
+      let isManager = false;
       
-      <!-- Section 1: Audit Queue -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-red-50/30">
-          <div>
-            <h2 class="text-xl font-normal text-gray-800 flex items-center gap-2">
-              <span class="material-symbols-outlined text-red-500">gavel</span>
-              Action Required: Audit Queue
-            </h2>
-            <p class="text-sm text-gray-500 mt-1">Review flagged duplicate submissions.</p>
-          </div>
-          <button onclick="loadDashboard()" class="text-gray-500 hover:text-blue-600 transition" title="Refresh Data">
-            <span class="material-symbols-outlined">refresh</span>
-          </button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium border-b border-gray-200">Agent</th>
-                <th class="p-4 font-medium border-b border-gray-200">Time / Type</th>
-                <th class="p-4 font-medium border-b border-gray-200 min-w-[180px]">Flagged IDs</th>
-                <th class="p-4 font-medium border-b border-gray-200">Reason</th>
-                <th class="p-4 font-medium border-b border-gray-200 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="auditTableBody" class="text-sm divide-y divide-gray-100">
-              <tr><td colspan="5" class="p-8 text-center text-gray-400">Loading audits...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      for (let i = 0; i < masterData.length; i++) {
+        const rowLdap = masterData[i][0]; // Col A (LDAP)
+        const rowSup = masterData[i][28]; // Col AC (Supervisor LDAP)
+        const rowMgr = masterData[i][36]; // Col AK (Manager LDAP)
 
-      <!-- Section 2: Today's Metrics -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="p-6 border-b border-gray-100">
-          <h2 class="text-xl font-normal text-gray-800 flex items-center gap-2">
-            <span class="material-symbols-outlined text-green-600">bar_chart</span>
-            Today's Live Metrics
-          </h2>
-          <p class="text-sm text-gray-500 mt-1">Valid tracked cases per agent for the current day.</p>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium border-b border-gray-200">Agent</th>
-                <th class="p-4 font-medium border-b border-gray-200 text-center">Valid Cases</th>
-                <th class="p-4 font-medium border-b border-gray-200 text-center">Pending Flags</th>
-              </tr>
-            </thead>
-            <tbody id="metricsTableBody" class="text-sm divide-y divide-gray-100">
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        // Dynamic Manager Auth: If user is listed as a Sup or Mgr for ANY agent, grant access
+        if (!isManager && (rowSup === currentLdap || rowMgr === currentLdap)) {
+          isManager = true;
+        }
 
-    <!-- VIEW 3: Interval Management -->
-    <div id="intervalView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        
-        <!-- Controls Header -->
-        <div class="p-6 border-b border-gray-100 flex flex-wrap gap-4 items-end bg-blue-50/30">
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Select Date</label>
-            <input type="date" id="intervalDate" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Select Interval Hour</label>
-            <select id="intervalHour" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 min-w-[120px]">
-              <option value="0:00">12:00 AM</option>
-              <option value="1:00">1:00 AM</option>
-              <option value="2:00">2:00 AM</option>
-              <option value="3:00">3:00 AM</option>
-              <option value="4:00">4:00 AM</option>
-              <option value="5:00">5:00 AM</option>
-              <option value="6:00">6:00 AM</option>
-              <option value="7:00">7:00 AM</option>
-              <option value="8:00">8:00 AM</option>
-              <option value="9:00">9:00 AM</option>
-              <option value="10:00">10:00 AM</option>
-              <option value="11:00">11:00 AM</option>
-              <option value="12:00">12:00 PM</option>
-              <option value="13:00">1:00 PM</option>
-              <option value="14:00">2:00 PM</option>
-              <option value="15:00">3:00 PM</option>
-              <option value="16:00" selected>4:00 PM</option>
-              <option value="17:00">5:00 PM</option>
-              <option value="18:00">6:00 PM</option>
-              <option value="19:00">7:00 PM</option>
-              <option value="20:00">8:00 PM</option>
-              <option value="21:00">9:00 PM</option>
-              <option value="22:00">10:00 PM</option>
-              <option value="23:00">11:00 PM</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="loadIntervalData()" class="bg-white border border-gray-300 text-gray-700 font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition flex items-center gap-2">
-              Load Interval
-            </button>
-            <button onclick="copyIntervalReport()" id="copyReportBtn" class="bg-[#1a73e8] border border-[#1a73e8] text-white font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-2 hidden">
-              <span class="material-symbols-outlined text-[18px]">content_copy</span>
-              Copy Report
-            </button>
-          </div>
-        </div>
-
-        <!-- Interval Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-800 text-white text-xs tracking-wider">
-                <th class="p-3 font-medium">LDAP</th>
-                <th class="p-3 font-medium text-center">SOS</th>
-                <th class="p-3 font-medium text-center">EOS</th>
-                <th class="p-3 font-medium text-center">Site</th>
-                <th class="p-3 font-medium text-center">Status</th>
-                <th class="p-3 font-medium text-center">Cases Logged</th>
-              </tr>
-            </thead>
-            <tbody id="intervalTableBody" class="text-sm divide-y divide-gray-200">
-              <tr><td colspan="6" class="p-8 text-center text-gray-400">Select a date and time to load the interval.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Notification Toast -->
-  <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded shadow-lg transition-opacity duration-300 opacity-0 hidden flex items-center gap-3 z-50">
-    <span id="toastIcon" class="material-symbols-outlined">info</span>
-    <span id="toastMessage" class="text-sm">Message</span>
-  </div>
-
-  <!-- JavaScript -->
-  <script>
-    // --- AVATAR HELPERS (Moved to global scope) ---
-    function escAttr(str) {
-      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Grab their personal demographic details
+        if (rowLdap && rowLdap.toString().toLowerCase() === currentLdap.toLowerCase()) {
+          profile.name = masterData[i][1] || currentLdap; // Col B (Name)
+          profile.lob = masterData[i][21] || '';          // Col V (LOB)
+          profile.workflow = masterData[i][22] || '';     // Col W (Workflow)
+          profile.site = masterData[i][44] || 'Unknown';  // Col AS (Site)
+        }
+      }
+      
+      profile.isManager = isManager;
+      if (isManager) profile.role = 'Leadership';
     }
+    
+    // Store in cache for 1 hour (3600 seconds)
+    cache.put('userProfile_' + currentLdap, JSON.stringify(profile), 3600);
+    
+  } catch (e) {
+    logError('getUserProfile', e.toString(), currentLdap);
+  }
+  
+  return profile;
+}
 
-    function getMomaImgClass(ldap, cls, size) {
-      size = size || 100;
-      var sLdap = escAttr(ldap);
-      var p = 'https://moma-teams-photos.corp.google.com/photos/' + sLdap + '?sz=' + size;
-      var f = p + '&type=SECURITY&type=SILHOUETTE';
-      return '<img src="' + p + '" class="' + cls + '" onerror="this.onerror=null;this.src=\'' + f + '\';">';
-    }
-    function formatCaseIdsAsLinks(idsString) {
-      if (!idsString) return '';
-      return idsString.split(',').map(id => {
-        let cleanId = escAttr(id.trim());
-        // Added whitespace-nowrap to the class list below:
-        return `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="text-blue-600 hover:underline hover:text-blue-800 whitespace-nowrap">${cleanId}</a>`;
-      }).join(', ');
-    }
-    // ----------------------------------------------
+// Throws unless the current user is a manager. Call at the top of any manager-only function.
+function requireManagerOrThrow() {
+  const profile = getUserProfile();
+  if (!profile.isManager) {
+    throw new Error("Access denied: manager permissions required.");
+  }
+  return profile;
+}
 
-    // 1. App Initialization (Run on load)
-    document.addEventListener("DOMContentLoaded", function() {
-      // Call backend to get role and LDAP
-      google.script.run
-        .withSuccessHandler(initializeUserUI)
-        .withFailureHandler(function(err){ console.error("Failed to load profile", err); })
-        .getUserProfile();
+// 4. Process Submission with LockService (Concurrency Control)
+function submitCases(formObject) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+  } catch (e) {
+    return { success: false, error: "System is busy processing other submissions. Please try again in a few seconds." };
+  }
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss.getSheetByName('Raw_Cases')) initializeDatabase();
+
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+    const indexSheet = ss.getSheetByName('Index_CaseIDs');
+    const auditSheet = ss.getSheetByName('Audit Queue');
+
+    const timestamp = new Date();
+    const dateStr = Utilities.formatDate(timestamp, Session.getScriptTimeZone(), "M/d/yyyy");
+    const intervalStr = Utilities.formatDate(timestamp, Session.getScriptTimeZone(), "h:00 a");
+    
+    const userProfile = getUserProfile();
+    const ldap = userProfile.ldap;
+    const site = userProfile.site; 
+    
+    const shiftType = formObject.shiftType;
+    const caseType = formObject.caseType;
+    const intervalActivity = formObject.intervalActivity || 'Normal Production';
+    const rawText = formObject.caseIdsText || '';
+
+    let rawIds = rawText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
+    let uniqueIds = [...new Set(rawIds)];
+    let validIds = [];
+    let flaggedIds = [];
+    let auditReasons = [];
+
+    const indexData = indexSheet.getLastRow() > 1 ? indexSheet.getRange(2, 1, indexSheet.getLastRow() - 1, 4).getValues() : [];
+
+    uniqueIds.forEach(id => {
+      let isFlagged = false;
+      let reason = "";
+      let history = indexData.filter(row => row[0] == id);
+
+      if (caseType === 'Regular Email (Take Next)' && history.length > 0) {
+        isFlagged = true;
+        reason = "Previously logged in system";
+      } else if (caseType === 'Reopened Cases') {
+        let todayHistory = history.filter(row => row[2] == dateStr && row[1] === 'Reopened Cases' && row[3] === ldap);
+        if (todayHistory.length > 0) {
+          isFlagged = true;
+          reason = "Already reopened today";
+        }
+      }
+
+      if (isFlagged) {
+        flaggedIds.push(id);
+        auditReasons.push(`${id}: ${reason}`);
+      } else {
+        validIds.push(id);
+      }
     });
 
-    // 2. Setup UI based on profile
-    function initializeUserUI(profile) {
-      const chip = document.getElementById('identityChip');
-      
-      // Generate the avatar HTML using the helper function
-      const avatarHTML = getMomaImgClass(profile.ldap, 'w-10 h-10 rounded-full border border-gray-200 object-cover', 100);
-      
-      // Stop pulsing, inject data & avatar
-      const safeName = escAttr(profile.name);
-      const safeSite = escAttr(profile.site);
-      const safeLob = escAttr(profile.lob);
-      const safeWorkflow = escAttr(profile.workflow);
+    let totalCount = uniqueIds.length;
+    let validCount = validIds.length;
+    let flaggedCount = flaggedIds.length;
+    let auditNotes = flaggedCount > 0 ? "⚠️ " + auditReasons.join(' | ') : "Clean";
 
-      chip.classList.remove('animate-pulse');
-      chip.classList.remove('py-1.5', 'px-3'); 
-      chip.classList.add('pr-4', 'pl-1', 'py-1'); 
-      chip.innerHTML = `
-        ${avatarHTML}
-        <div class="flex flex-col ml-2">
-          <span class="text-sm font-medium text-gray-800 leading-tight">${safeName}</span>
-          <span class="text-[10px] text-gray-500 uppercase tracking-wide">${safeSite} • ${safeLob} ${safeWorkflow ? `(${safeWorkflow})` : ''}</span>
-        </div>
-      `;
+    let rawRowNumber = rawSheet.getLastRow() + 1;
+    // Writes LOB, Workflow, and Name into the raw sheet, appended Interval Activity at the end
+    rawSheet.appendRow([timestamp, dateStr, intervalStr, ldap, userProfile.name, site, userProfile.lob, userProfile.workflow, shiftType, caseType, totalCount, validCount, flaggedCount, uniqueIds.join(', '), auditNotes, intervalActivity]);
 
-      // Manager Setup
-      if (profile.isManager) {
-        document.getElementById('managerOnlyTabs').classList.remove('hidden');
-        
-        // Update My Submissions to Agent Submissions
-        document.getElementById('tab-mySubmissionsView').innerHTML = `Agent Submissions`;
-        document.getElementById('mySubmissionsTitle').innerHTML = `
-          <span class="material-symbols-outlined text-blue-500">manage_search</span>
-          Agent Submissions
-        `;
-        document.getElementById('mySubmissionsDesc').innerText = "View tracked cases per interval for any agent.";
-        
-        const searchContainer = document.getElementById('managerLdapSearch');
-        const searchInput = document.getElementById('targetAgentLdap');
-        searchContainer.classList.remove('hidden');
-        searchInput.value = profile.ldap; // Default to themselves
-        
-        // Load Agents for autocomplete
-        google.script.run
-          .withSuccessHandler(function(agents) {
-             const dataList = document.getElementById('agentList');
-             dataList.innerHTML = agents.map(agent => `<option value="${agent}">`).join('');
-          })
-          .getAllAgents();
-      }
-      
-      // Set default date for my submissions
-      if(!document.getElementById('mySubmissionsDate').value) {
-        document.getElementById('mySubmissionsDate').valueAsDate = new Date();
-      }
+    let indexDataToAppend = uniqueIds.map(id => [id, caseType, dateStr, ldap]);
+    if (indexDataToAppend.length > 0) {
+      indexSheet.getRange(indexSheet.getLastRow() + 1, 1, indexDataToAppend.length, 4).setValues(indexDataToAppend);
     }
 
-    // 3. Tab Switching Logic
-    function switchTab(viewId) {
-      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView'].forEach(id => {
-        let el = document.getElementById(id);
-        let tabEl = document.getElementById('tab-' + id);
-        if (el) el.classList.add('hidden');
-        if (tabEl) tabEl.className = "px-4 py-3 text-sm nav-inactive rounded-t-md transition-colors flex items-center gap-1";
+    if (flaggedCount > 0) {
+      auditSheet.appendRow(["🔴 PENDING", timestamp, ldap, site, caseType, totalCount, flaggedIds.join(', '), auditNotes, "", rawRowNumber]);
+    }
+    
+    return { success: true, valid: validCount, flagged: flaggedCount };
+    
+  } catch (error) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('submitCases', error.toString(), user);
+    return { success: false, error: "System encountered an error processing your cases. Please try again." };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 5. Fetch Dashboard Data
+function getDashboardData() {
+  try {
+    requireManagerOrThrow();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auditSheet = ss.getSheetByName('Audit Queue');
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+
+    // A. Get Pending Audits
+    let audits = [];
+    if (auditSheet && auditSheet.getLastRow() > 1) {
+      // FIXED: Now fetching 10 columns instead of 9 to grab the shifted RawRowRef
+      const auditData = auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 10).getValues();
+      audits = auditData.map((r, i) => ({
+        row: i + 2, 
+        status: r[0],
+        timestamp: (r[1] instanceof Date) ? Utilities.formatDate(r[1], Session.getScriptTimeZone(), "h:mm a") : String(r[1]),
+        agent: r[2],
+        site: r[3],
+        caseType: r[4],
+        totalLogged: r[5],
+        flaggedIds: r[6],
+        reason: r[7],
+        rawRowRef: r[9] // FIXED: Shifted from index 8 to index 9 (Column J)
+      })).filter(a => String(a.status).includes('PENDING'));
+    }
+
+    // B. Get Today's Metrics (Grouped by Agent)
+    let metrics = {};
+    if (rawSheet && rawSheet.getLastRow() > 1) {
+      const todayStr = toDateStringFast(new Date());
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 15).getValues(); 
+
+      rawData.forEach(r => {
+        let rowDateStr = toDateStringFast(r[1]);
+
+        if (rowDateStr === todayStr) { 
+          const agent = r[3];
+          const site = r[5]; 
+          const valid = Number(r[11]) || 0; 
+          const flagged = Number(r[12]) || 0; 
+          
+          if (!metrics[agent]) {
+            metrics[agent] = { agent: agent, site: site, totalValid: 0, totalFlagged: 0 };
+          }
+          metrics[agent].totalValid += valid;
+          metrics[agent].totalFlagged += flagged;
+        }
       });
-      
-      let viewEl = document.getElementById(viewId);
-      let tabViewEl = document.getElementById('tab-' + viewId);
-      if (viewEl) viewEl.classList.remove('hidden');
-      if (tabViewEl) tabViewEl.className = "px-4 py-3 text-sm nav-active transition-colors flex items-center gap-1";
-      
-      if(viewId === 'dashboardView') loadDashboard();
-      if(viewId === 'mySubmissionsView') loadMySubmissions();
-      if(viewId === 'intervalView' && !document.getElementById('intervalDate').value) {
-         // Auto-fill today's date if empty
-         document.getElementById('intervalDate').valueAsDate = new Date();
-      }
     }
 
-    // 4. Form Submission Logic
-    function handleActivityChange() {
-      const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
-      const caseIdsTextarea = document.getElementById('caseIds');
-      
-      if (activity === 'Coaching/Training') {
-        caseIdsTextarea.disabled = true;
-        caseIdsTextarea.required = false;
-        caseIdsTextarea.classList.add('bg-gray-100', 'cursor-not-allowed');
-        caseIdsTextarea.value = '';
-      } else {
-        caseIdsTextarea.disabled = false;
-        caseIdsTextarea.required = true;
-        caseIdsTextarea.classList.remove('bg-gray-100', 'cursor-not-allowed');
-      }
-    }
+    return {
+      audits: audits,
+      metrics: Object.values(metrics).sort((a, b) => b.totalValid - a.totalValid) 
+    };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getDashboardData', e.toString(), user);
+    throw new Error("Failed to load dashboard data. Please try refreshing."); // Throws to the frontend withFailureHandler
+  }
+}
 
-    function handleFormSubmit(event) {
-      event.preventDefault();
+// 6. Resolve Soft Audits (Approve/Reject)
+function resolveAudit(auditRow, rawRowRef, resolution) {
+  const profile = getUserProfile();
+  if (!profile.isManager) {
+    return { success: false, error: "Access denied: manager permissions required." };
+  }
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auditSheet = ss.getSheetByName('Audit Queue');
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+
+    if (resolution === 'Approve') {
+      auditSheet.getRange(auditRow, 1).setValue("🟢 APPROVED");
+      auditSheet.getRange(auditRow, 9).setValue("Approved");
+
+      // Fetch Valid (Col 12) and Flagged (Col 13)
+      const validCount = rawSheet.getRange(rawRowRef, 12).getValue();
+      const flaggedCount = rawSheet.getRange(rawRowRef, 13).getValue();
+
+      rawSheet.getRange(rawRowRef, 12).setValue(validCount + flaggedCount); // Update Valid
+      rawSheet.getRange(rawRowRef, 13).setValue(0); // Zero out Flagged
+      rawSheet.getRange(rawRowRef, 15).setValue("✅ Resolved by Manager"); // Audit Notes
+
+    } else {
+      auditSheet.getRange(auditRow, 1).setValue("⚫ REJECTED");
+      auditSheet.getRange(auditRow, 9).setValue("Rejected");
       
-      const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
-      const caseIdsText = document.getElementById('caseIds').value;
+      // FIXED: We must zero out the flagged count on Reject so it drops off the pending metrics!
+      rawSheet.getRange(rawRowRef, 13).setValue(0); 
       
-      if (activity === 'Break/Lunch') {
-        let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
-        let uniqueIds = [...new Set(rawIds)];
-        if (uniqueIds.length < 3) {
-          showToast("You must track at least 3 case IDs during a Break/Lunch interval.", 'warning');
-          return;
+      rawSheet.getRange(rawRowRef, 15).setValue("❌ Rejected by Manager (Duplicate/Fraud)");
+    }
+    return { success: true };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('resolveAudit', e.toString(), user);
+    return { success: false, error: "Failed to resolve audit. Please check your connection and try again." };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 7. Fetch User's Submissions for "My Submissions" Tab
+function getMySubmissions(dateStr, targetLdap) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+    const userProfile = getUserProfile();
+    
+    // If targetLdap is provided and the user is a manager, use it. Otherwise default to their own ldap.
+    const queryLdap = (userProfile.isManager && targetLdap) ? targetLdap.toLowerCase() : userProfile.ldap.toLowerCase();
+    
+    let submissions = [];
+
+    if (rawSheet && rawSheet.getLastRow() > 1) {
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues();
+      
+      rawData.forEach(r => {
+        let rowDateStr = toDateStringFast(r[1]);
+        
+        // r[3] is Agent LDAP
+        if (rowDateStr === dateStr && r[3] && r[3].toString().toLowerCase() === queryLdap) {
+          submissions.push({
+            interval: r[2],               // Col C
+            activity: r[15] || 'Normal Production', // Col P
+            caseType: r[9],               // Col J
+            validCount: r[11],            // Col L
+            caseIds: r[13]                // Col N
+          });
+        }
+      });
+    }
+    
+    // Sort submissions by interval chronologically if needed, simple string match usually works for "h:00 a"
+    return submissions;
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getMySubmissions', e.toString(), user);
+    throw new Error("Unable to fetch submissions data. Check network and retry.");
+  }
+}
+
+// 8. Fetch All Agent LDAPs for Autocomplete (With Cache)
+function getAllAgents() {
+  try {
+    const cache = CacheService.getScriptCache();
+    const cachedAgents = cache.get('allAgentsList');
+    if (cachedAgents) {
+      return JSON.parse(cachedAgents);
+    }
+  
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const masterSheet = ss.getSheetByName('Masterlist');
+    let agents = new Set();
+    
+    if (masterSheet && masterSheet.getLastRow() > 1) {
+      // Col A is LDAP
+      const data = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 1).getValues();
+      data.forEach(row => {
+        const ldap = row[0] ? row[0].toString().trim().toLowerCase() : '';
+        if (ldap) agents.add(ldap);
+      });
+    }
+    
+    let sortedAgents = Array.from(agents).sort();
+    // Cache for 4 hours
+    cache.put('allAgentsList', JSON.stringify(sortedAgents), 14400);
+    return sortedAgents;
+    
+  } catch(e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getAllAgents', e.toString(), user);
+    return [];
+  }
+}
+
+// 9. Fetch Data for Interval View
+function getIntervalData(dateStr, intervalHourStr) {
+  try {
+    requireManagerOrThrow();
+    // dateStr format expected: "9/15/2026"
+    // intervalHourStr format expected: "16:00" (24-hour format string)
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const shiftSheet = ss.getSheetByName('Agent Shifts');
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+    const masterSheet = ss.getSheetByName('Masterlist'); 
+    
+    let targetHour = parseInt(intervalHourStr.split(':')[0], 10);
+    let agentsInInterval = {};
+    
+    // 1. Build a whitelist of "Email" Channel Agents from the Masterlist (With Cache)
+    const cache = CacheService.getScriptCache();
+    let emailAgentsList = cache.get('emailAgentsList');
+    let emailAgents = new Set();
+    
+    if (emailAgentsList) {
+      emailAgents = new Set(JSON.parse(emailAgentsList));
+    } else if (masterSheet && masterSheet.getLastRow() > 1) {
+      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 24).getValues();
+      for (let i = 0; i < masterData.length; i++) {
+        const ldap = masterData[i][0] ? masterData[i][0].toString().toLowerCase() : '';
+        const channel = masterData[i][23] ? masterData[i][23].toString().toLowerCase() : ''; 
+        
+        if (channel === 'email') {
+          emailAgents.add(ldap);
         }
       }
+      cache.put('emailAgentsList', JSON.stringify(Array.from(emailAgents)), 14400);
+    }
 
-      const btn = document.getElementById('submitBtn');
-      const spinner = document.getElementById('spinner');
+    // 2. Process Regular Shifts from 'Agent Shifts'
+    if (shiftSheet && shiftSheet.getLastRow() > 2) {
+      const shiftData = shiftSheet.getDataRange().getValues();
+      const headers = shiftData[1]; // Row 2 holds the actual dates
       
-      // UI: Loading state
-      btn.disabled = true;
-      btn.classList.add('opacity-75', 'cursor-not-allowed');
-      spinner.classList.remove('hidden');
-
-      const payload = {
-        shiftType: document.querySelector('input[name="shiftType"]:checked').value,
-        caseType: document.querySelector('input[name="caseType"]:checked') ? document.querySelector('input[name="caseType"]:checked').value : 'N/A',
-        intervalActivity: activity,
-        caseIdsText: caseIdsText
-      };
-
-      // Send to Backend
-      google.script.run
-        .withSuccessHandler(function(response) {
-          resetButton(btn, spinner);
+      // Find matching date column (Starts checking from Col I / Index 8)
+      let dateColIdx = -1;
+      for (let c = 8; c < headers.length; c++) {
+        let cellDate = headers[c];
+        let formattedCellDate = "";
+        try {
+          if (cellDate instanceof Date) {
+            formattedCellDate = toDateStringFast(cellDate);
+          } else if (cellDate) {
+             formattedCellDate = toDateStringFast(new Date(cellDate));
+          }
+        } catch(e) {}
+        
+        if (formattedCellDate === dateStr) {
+          dateColIdx = c;
+          break;
+        }
+      }
+      
+      if (dateColIdx !== -1) {
+        // Loop through agents starting from Row 3
+        for (let r = 2; r < shiftData.length; r++) {
+          const ldap = shiftData[r][0] ? shiftData[r][0].toString() : '';
           
-          if (response.success) {
-            if (response.flagged > 0) {
-              showToast(`Warning: ${response.flagged} duplicate(s) flagged. ${response.valid} valid cases logged.`, 'warning');
-            } else {
-              showToast(`Success! ${response.valid} cases securely logged.`, 'success');
+          // NEW FILTER: Skip agent if they are not in the Email channel (unless they do OT later)
+          if (!emailAgents.has(ldap.toLowerCase())) {
+            continue; 
+          }
+
+          const site = shiftData[r][4]; // Col E
+          const shiftVal = shiftData[r][dateColIdx]; 
+          
+          if (shiftVal && shiftVal !== "OFF" && shiftVal !== "VL" && shiftVal !== "LOA" && shiftVal !== "AWOL") {
+            let startHour = -1;
+            
+            if (shiftVal instanceof Date) {
+              startHour = shiftVal.getHours();
+            } else if (typeof shiftVal === 'string' && shiftVal.includes(':')) {
+              startHour = parseInt(shiftVal.split(':')[0], 10);
+            } else if (typeof shiftVal === 'number') {
+              startHour = Math.round(shiftVal * 24); // Convert decimal time
             }
-            document.getElementById('trackerForm').reset();
-          } else {
-            showToast(response.error, 'error');
+            
+            if (startHour !== -1) {
+              let endHour = startHour + 9;
+              let isOnShift = false;
+              
+              // Handle shifts crossing midnight
+              if (endHour <= 24) {
+                isOnShift = (targetHour >= startHour && targetHour < endHour);
+              } else {
+                isOnShift = (targetHour >= startHour || targetHour < (endHour - 24));
+              }
+              
+              if (isOnShift) {
+                let formattedSOS = startHour + ":00";
+                let eosActual = endHour > 24 ? endHour - 24 : endHour;
+                let formattedEOS = eosActual + ":00";
+                
+                agentsInInterval[ldap] = {
+                  ldap: ldap,
+                  sos: formattedSOS,
+                  eos: formattedEOS,
+                  site: site,
+                  isOT: false,
+                  casesLogged: 0
+                };
+              }
+            }
           }
-        })
-        .withFailureHandler(function(error) {
-          resetButton(btn, spinner);
-          showToast("Network error. Please try again.", 'error');
-        })
-        .submitCases(payload);
-    }
-
-    function resetButton(btn, spinner) {
-      btn.disabled = false;
-      btn.classList.remove('opacity-75', 'cursor-not-allowed');
-      spinner.classList.add('hidden');
-    }
-
-    function showToast(message, type) {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toastMessage');
-      const toastIcon = document.getElementById('toastIcon');
-
-      toastMsg.textContent = message;
-      
-      if (type === 'success') {
-        toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 transition-opacity duration-300";
-        toastIcon.textContent = "check_circle";
-      } else if (type === 'warning') {
-        toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-amber-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 transition-opacity duration-300";
-        toastIcon.textContent = "warning";
-      } else {
-        toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 transition-opacity duration-300";
-        toastIcon.textContent = "error";
-      }
-
-      toast.classList.remove('hidden', 'opacity-0');
-      
-      setTimeout(() => {
-        toast.classList.add('opacity-0');
-        setTimeout(() => toast.classList.add('hidden'), 300);
-      }, 6000);
-    }
-
-    // --- DASHBOARD LOGIC ---
-
-    // Load data when tab is clicked
-    function loadDashboard() {
-      document.getElementById('auditTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
-      document.getElementById('metricsTableBody').innerHTML = '<tr><td colspan="3" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
-      
-      google.script.run
-        .withSuccessHandler(renderDashboard)
-        .withFailureHandler(err => showToast("Failed to load dashboard data.", 'error'))
-        .getDashboardData();
-    }
-
-    // Render the tables
-    function renderDashboard(data) {
-      const auditTbody = document.getElementById('auditTableBody');
-      const metricsTbody = document.getElementById('metricsTableBody');
-      
-      // 1. Render Audit Queue
-      if (data.audits.length === 0) {
-        auditTbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">🎉 No pending audits! Queue is clean.</td></tr>';
-      } else {
-        auditTbody.innerHTML = data.audits.map(a => `
-          <tr class="hover:bg-gray-50 transition" id="audit-row-${a.row}">
-            <td class="p-4">
-              <div class="flex items-center gap-3">
-                ${getMomaImgClass(a.agent, 'w-8 h-8 rounded-full border border-gray-200 object-cover', 80)}
-                <div class="flex flex-col">
-                  <span class="font-medium text-gray-800">${a.agent}</span>
-                  <span class="text-[10px] text-gray-500 uppercase">${a.site}</span>
-                </div>
-              </div>
-            </td>
-            <td class="p-4">
-              <div class="flex flex-col">
-                <span class="text-gray-800">${a.timestamp}</span>
-                <span class="text-xs text-gray-500">${a.caseType}</span>
-              </div>
-            </td>
-            <td class="p-4 align-top">
-              <div class="font-mono text-xs bg-red-50/50 rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
-                ${formatCaseIdsAsLinks(a.flaggedIds)}
-              </div>
-            </td>
-            <td class="p-4 text-xs text-gray-600">${a.reason}</td>
-            <td class="p-4 text-right">
-              <div class="flex items-center justify-end gap-2">
-                <button onclick="handleAudit(${a.row}, ${a.rawRowRef}, 'Approve')" class="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded transition" title="Approve">
-                  <span class="material-symbols-outlined text-[20px]">check</span>
-                </button>
-                <button onclick="handleAudit(${a.row}, ${a.rawRowRef}, 'Reject')" class="text-red-600 bg-red-50 hover:bg-red-100 p-1.5 rounded transition" title="Reject">
-                  <span class="material-symbols-outlined text-[20px]">close</span>
-                </button>
-              </div>
-            </td>
-          </tr>
-        `).join('');
-      }
-
-      // 2. Render Metrics
-      if (data.metrics.length === 0) {
-        metricsTbody.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-gray-400">No cases logged today yet.</td></tr>';
-      } else {
-        metricsTbody.innerHTML = data.metrics.map(m => `
-          <tr class="hover:bg-gray-50 transition">
-            <td class="p-4">
-              <div class="flex items-center gap-3">
-                ${getMomaImgClass(m.agent, 'w-8 h-8 rounded-full border border-gray-200 object-cover', 80)}
-                <div class="flex flex-col">
-                  <span class="font-medium text-gray-800">${m.agent}</span>
-                  <span class="text-[10px] text-gray-500 uppercase">${m.site}</span>
-                </div>
-              </div>
-            </td>
-            <td class="p-4 text-center font-medium text-lg ${m.totalValid > 0 ? 'text-green-600' : 'text-gray-400'}">${m.totalValid}</td>
-            <td class="p-4 text-center font-medium ${m.totalFlagged > 0 ? 'text-amber-500' : 'text-gray-300'}">${m.totalFlagged}</td>
-          </tr>
-        `).join('');
+        }
       }
     }
-
-    // --- MY SUBMISSIONS LOGIC ---
-    function loadMySubmissions() {
-      document.getElementById('mySubmissionsTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>';
-      const dateVal = document.getElementById('mySubmissionsDate').value;
-      const targetLdap = document.getElementById('targetAgentLdap').value.trim();
+    
+    // 3. Process Overtime & Live Metrics from 'Raw_Cases'
+    if (rawSheet && rawSheet.getLastRow() > 1) {
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues(); 
+      // Format target hour to match Raw_Cases "h:00 a" format (e.g. "4:00 PM").
+      // We still use Utilities here because it runs exactly once per function call, not in a loop.
+      let targetDateObj = new Date();
+      targetDateObj.setHours(targetHour, 0, 0, 0);
+      const intervalLabel = Utilities.formatDate(targetDateObj, Session.getScriptTimeZone(), "h:00 a");
       
-      if (!dateVal) return showToast("Please select a date", "warning");
-
-      // Convert HTML YYYY-MM-DD to Apps Script M/d/yyyy
-      const [year, month, day] = dateVal.split('-');
-      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
-
-      google.script.run
-        .withSuccessHandler(renderMySubmissions)
-        .withFailureHandler(err => {
-          document.getElementById('mySubmissionsTableBody').innerHTML =
-            '<tr><td colspan="5" class="p-8 text-center text-red-400">Failed to load submissions: ' +
-            (err && err.message ? escAttr(err.message) : 'Unknown error') +
-            '</td></tr>';
-          showToast("Failed to load submissions.", 'error');
-        })
-        .getMySubmissions(formattedDate, targetLdap);
-    }
-
-    function renderMySubmissions(data) {
-      const tbody = document.getElementById('mySubmissionsTableBody');
-      try {
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No submissions found for this date.</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = data.map(sub => `
-        <tr class="hover:bg-gray-50 transition">
-          <td class="p-4 whitespace-nowrap text-gray-800">${sub.interval}</td>
-          <td class="p-4 text-gray-600">${sub.activity}</td>
-          <td class="p-4 text-gray-600">${sub.caseType}</td>
-          <td class="p-4 text-center font-medium ${sub.validCount > 0 ? 'text-green-600' : 'text-gray-400'}">${sub.validCount}</td>
-          <td class="p-4 align-top">
-             <div class="font-mono text-xs bg-gray-50 border border-gray-200 rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
-               ${formatCaseIdsAsLinks(sub.caseIds)}
-             </div>
-          </td>
-        </tr>
-      `).join('');
-      } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-400">Render error: ' + escAttr(e.message) + '</td></tr>';
-      }
-    }
-
-    // Handle Approve/Reject Action
-    function handleAudit(auditRow, rawRowRef, resolution) {
-      // Optimistically hide the row so the UI feels instant
-      const rowEl = document.getElementById(`audit-row-${auditRow}`);
-      if (rowEl) rowEl.style.opacity = '0.5';
-      
-      google.script.run
-        .withSuccessHandler(res => {
-          if (res.success) {
-            showToast(`Successfully ${resolution.toLowerCase()}d cases.`, 'success');
-            loadDashboard(); // Reload to refresh metrics
-          } else {
-            showToast(res.error, 'error');
-            if (rowEl) rowEl.style.opacity = '1'; // Revert if failed
+      rawData.forEach(r => {
+        let rowDateStr = toDateStringFast(r[1]);
+        
+        if (rowDateStr === dateStr && r[2] === intervalLabel) {
+          const ldap = r[3];
+          const site = r[5];
+          const isOvertime = r[8] === "Overtime";
+          const validCases = Number(r[11]) || 0;
+          const intervalActivity = r[15] || 'Normal Production';
+          
+          // If OT agent isn't on the shift list, add them dynamically regardless of their Channel
+          if (!agentsInInterval[ldap] && isOvertime) {
+            agentsInInterval[ldap] = {
+              ldap: ldap,
+              sos: "OT",
+              eos: "OT",
+              site: site,
+              isOT: true,
+              casesLogged: 0,
+              activityLogged: intervalActivity
+            };
           }
-        })
-        .withFailureHandler(err => {
-          showToast("Network error.", 'error');
-          if (rowEl) rowEl.style.opacity = '1';
-        })
-        .resolveAudit(auditRow, rawRowRef, resolution);
-    }
-    // --- INTERVAL VIEW LOGIC ---
-    function loadIntervalData() {
-      const dateVal = document.getElementById('intervalDate').value;
-      const timeVal = document.getElementById('intervalHour').value;
-      
-      if (!dateVal) return showToast("Please select a date", "warning");
-      
-      // Convert HTML YYYY-MM-DD to Apps Script M/d/yyyy
-      const [year, month, day] = dateVal.split('-');
-      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
-
-      document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading schedule...</td></tr>';
-      
-      google.script.run
-        .withSuccessHandler(renderIntervalTable)
-        .withFailureHandler(err => showToast("Error loading interval.", "error"))
-        .getIntervalData(formattedDate, timeVal);
-    }
-
-    function renderIntervalTable(agents) {
-      const tbody = document.getElementById('intervalTableBody');
-      const copyBtn = document.getElementById('copyReportBtn'); // Grabs the button
-      
-      if (agents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">No agents scheduled for this interval.</td></tr>';
-        copyBtn.classList.add('hidden'); // Hide if empty
-        return;
-      }
-      
-      copyBtn.classList.remove('hidden'); // Unhide if data exists
-      
-      tbody.innerHTML = agents.map(a => `
-        <tr class="hover:bg-gray-50 transition ${a.isOT ? 'bg-amber-50/30' : ''}">
-          <td class="p-3">
-            <div class="flex items-center gap-2">
-              ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200', 50)}
-              <span class="font-medium text-blue-600">${a.ldap}</span>
-              ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
-            </div>
-          </td>
-          <td class="p-3 text-center text-gray-600">${a.sos}</td>
-          <td class="p-3 text-center text-gray-600">${a.eos}</td>
-          <td class="p-3 text-center text-gray-600">${a.site}</td>
-          <td class="p-3 text-center">
-            <!-- Dynamic Status Dropdown -->
-            <select onchange="updateStatusColor(this)" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors bg-white text-gray-700">
-              <option value="" class="bg-white text-gray-800" ${a.computedStatus === '' ? 'selected' : ''}></option>
-              <option value="Assigned - 7" class="bg-white text-gray-800" ${a.computedStatus === 'Assigned - 7' ? 'selected' : ''}>Assigned - 7</option>
-              <option value="Break - 3" class="bg-white text-gray-800" ${a.computedStatus === 'Break - 3' ? 'selected' : ''}>Break - 3</option>
-              <option value="VL/SL" class="bg-white text-gray-800" ${a.computedStatus === 'VL/SL' ? 'selected' : ''}>VL/SL</option>
-              <option value="on Live Channel" class="bg-white text-gray-800" ${a.computedStatus === 'on Live Channel' ? 'selected' : ''}>on Live Channel</option>
-              <option value="SKIP - EOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP - EOS' ? 'selected' : ''}>SKIP - EOS</option>
-              <option value="SKIP SOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP SOS' ? 'selected' : ''}>SKIP SOS</option>
-              <option value="Absent" class="bg-white text-gray-800" ${a.computedStatus === 'Absent' ? 'selected' : ''}>Absent</option>
-              <option value="on Coaching/Training" class="bg-white text-gray-800" ${a.computedStatus === 'on Coaching/Training' ? 'selected' : ''}>on Coaching/Training</option>
-              <option value="Closing Reopens" class="bg-white text-gray-800" ${a.computedStatus === 'Closing Reopens' ? 'selected' : ''}>Closing Reopens</option>
-            </select>
-          </td>
-          <td class="p-3 text-center font-medium ${a.casesLogged > 0 ? 'text-green-600' : 'text-gray-400'}">${a.casesLogged}</td>
-        </tr>
-      `).join('');
-      
-      // Update colors for dynamically selected statuses
-      const selects = tbody.querySelectorAll('select');
-      selects.forEach(select => updateStatusColor(select));
-    }
-    // --- STATUS DROPDOWN COLOR HELPER ---
-    function updateStatusColor(selectElement) {
-      const val = selectElement.value;
-      // Reset classes
-      selectElement.className = "text-xs p-1.5 border border-gray-200 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors ";
-      
-      // Apply Google Sheets Chip Colors
-      if (val === 'Assigned - 7') selectElement.classList.add('bg-[#1e8e3e]', 'text-white');
-      else if (val === 'Break - 3') selectElement.classList.add('bg-[#f29900]', 'text-white');
-      else if (val === 'VL/SL') selectElement.classList.add('bg-[#d2e3fc]', 'text-gray-800'); // Light Blue
-      else if (val === 'on Live Channel') selectElement.classList.add('bg-[#f3e8fd]', 'text-purple-900'); // Light Purple
-      else if (val === 'SKIP - EOS') selectElement.classList.add('bg-[#cbf0f8]', 'text-teal-900'); // Light Teal
-      else if (val === 'SKIP SOS') selectElement.classList.add('bg-[#fce8e6]', 'text-red-900'); // Light Pink
-      else if (val === 'Absent') selectElement.classList.add('bg-[#d93025]', 'text-white');
-      else if (val === 'on Coaching/Training') selectElement.classList.add('bg-[#681da8]', 'text-white');
-      else if (val === 'Closing Reopens') selectElement.classList.add('bg-[#5d4037]', 'text-white');
-      else selectElement.classList.add('bg-white', 'text-gray-700');
-    }
-
-    // --- COPY REPORT LOGIC ---
-    function copyIntervalReport() {
-      const dateVal = document.getElementById('intervalDate').value;
-      const timeSelect = document.getElementById('intervalHour');
-      const timeVal = timeSelect.options[timeSelect.selectedIndex].text;
-      
-      const tbody = document.getElementById('intervalTableBody');
-      const rows = tbody.querySelectorAll('tr');
-      
-      // Build the text using Tab spacing (\t) so it pastes perfectly into Sheets/Chat
-      let reportText = `Interval Report: ${dateVal} | ${timeVal}\n\n`;
-      reportText += `LDAP\tSOS\tEOS\tSite\tStatus\tCases Logged\n`; 
-
-      rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if(cells.length === 6) {
-          // Clean up the LDAP text (removes the visual 'OT' tag if present)
-          const ldap = cells[0].innerText.replace('OT', '').trim(); 
-          const sos = cells[1].innerText.trim();
-          const eos = cells[2].innerText.trim();
-          const site = cells[3].innerText.trim();
           
-          // Grab the live selected value from the dropdown box!
-          const statusSelect = cells[4].querySelector('select');
-          const status = statusSelect ? statusSelect.value : '';
-          
-          const cases = cells[5].innerText.trim();
-          
-          reportText += `${ldap}\t${sos}\t${eos}\t${site}\t${status}\t${cases}\n`;
+          // Add metrics if they are in the list
+          if (agentsInInterval[ldap]) {
+            agentsInInterval[ldap].casesLogged += validCases;
+            agentsInInterval[ldap].activityLogged = intervalActivity; // Track the activity they submitted
+          }
         }
       });
-
-      // Write to the user's clipboard
-      navigator.clipboard.writeText(reportText).then(() => {
-        showToast("Report copied to clipboard!", "success");
-      }).catch(err => {
-        showToast("Failed to copy. Please copy manually.", "error");
-      });
     }
-  </script>
-</body>
-</html>
+    
+    // 4. Compute Status
+    const results = Object.values(agentsInInterval).sort((a, b) => a.ldap.localeCompare(b.ldap));
+    
+    results.forEach(agent => {
+      let computedStatus = "";
+      let sosHour = -1;
+      let eosHour = -1;
+      
+      if (agent.sos !== "OT") {
+        sosHour = parseInt(agent.sos.split(':')[0], 10);
+        eosHour = parseInt(agent.eos.split(':')[0], 10);
+      }
+      
+      if (agent.activityLogged === 'Coaching/Training') {
+        computedStatus = "on Coaching/Training";
+      } else if (agent.activityLogged === 'Break/Lunch' && agent.casesLogged >= 3) {
+        computedStatus = "Break - 3";
+      } else if (agent.casesLogged >= 7) {
+        computedStatus = "Assigned - 7";
+      } else if (!agent.isOT && targetHour === sosHour) {
+        computedStatus = "SKIP SOS";
+      } else if (!agent.isOT && targetHour === (eosHour - 1)) {
+        computedStatus = "SKIP - EOS";
+      }
+      
+      agent.computedStatus = computedStatus;
+    });
+
+    return results;
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getIntervalData', e.toString(), user);
+    throw new Error("Unable to fetch interval schedule. Please try again.");
+  }
+}
