@@ -272,11 +272,14 @@ function resolveAudit(auditRow, rawRowRef, resolution) {
 }
 
 // 7. Fetch User's Submissions for "My Submissions" Tab
-function getMySubmissions(dateStr) {
+function getMySubmissions(dateStr, targetLdap) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const rawSheet = ss.getSheetByName('Raw_Cases');
   const userProfile = getUserProfile();
-  const ldap = userProfile.ldap;
+
+  // If targetLdap is provided and the user is a manager, use it. Otherwise default to their own ldap.
+  const queryLdap = (userProfile.isManager && targetLdap) ? targetLdap.toLowerCase() : userProfile.ldap.toLowerCase();
+
   let submissions = [];
 
   if (rawSheet && rawSheet.getLastRow() > 1) {
@@ -286,7 +289,7 @@ function getMySubmissions(dateStr) {
       let rowDateStr = (r[1] instanceof Date) ? Utilities.formatDate(r[1], Session.getScriptTimeZone(), "M/d/yyyy") : String(r[1]);
 
       // r[3] is Agent LDAP
-      if (rowDateStr === dateStr && r[3] === ldap) {
+      if (rowDateStr === dateStr && r[3].toString().toLowerCase() === queryLdap) {
         submissions.push({
           interval: r[2],               // Col C
           activity: r[15] || 'Normal Production', // Col P
@@ -302,7 +305,24 @@ function getMySubmissions(dateStr) {
   return submissions;
 }
 
-// 8. Fetch Data for Interval View
+// 8. Fetch All Agent LDAPs for Autocomplete
+function getAllAgents() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const masterSheet = ss.getSheetByName('Masterlist');
+  let agents = new Set();
+
+  if (masterSheet && masterSheet.getLastRow() > 1) {
+    // Col A is LDAP
+    const data = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 1).getValues();
+    data.forEach(row => {
+      const ldap = row[0] ? row[0].toString().trim().toLowerCase() : '';
+      if (ldap) agents.add(ldap);
+    });
+  }
+  return Array.from(agents).sort();
+}
+
+// 9. Fetch Data for Interval View
 function getIntervalData(dateStr, intervalHourStr) {
   // dateStr format expected: "9/15/2026"
   // intervalHourStr format expected: "16:00" (24-hour format string)

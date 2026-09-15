@@ -162,18 +162,22 @@
       </form>
     </div>
 
-    <!-- VIEW: My Submissions -->
+    <!-- VIEW: My Submissions / Agent Submissions -->
     <div id="mySubmissionsView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12">
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <div>
-            <h2 class="text-xl font-normal text-gray-800 flex items-center gap-2">
+            <h2 id="mySubmissionsTitle" class="text-xl font-normal text-gray-800 flex items-center gap-2">
               <span class="material-symbols-outlined text-blue-500">list_alt</span>
               My Submissions
             </h2>
-            <p class="text-sm text-gray-500 mt-1">View your tracked cases per interval for the selected date.</p>
+            <p id="mySubmissionsDesc" class="text-sm text-gray-500 mt-1">View your tracked cases per interval for the selected date.</p>
           </div>
           <div class="flex items-center gap-4">
+            <div id="managerLdapSearch" class="hidden relative">
+              <input type="text" id="targetAgentLdap" list="agentList" onchange="loadMySubmissions()" placeholder="Agent LDAP" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 w-36">
+              <datalist id="agentList"></datalist>
+            </div>
             <input type="date" id="mySubmissionsDate" onchange="loadMySubmissions()" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
             <button onclick="loadMySubmissions()" class="text-gray-500 hover:text-blue-600 transition" title="Refresh Data">
               <span class="material-symbols-outlined">refresh</span>
@@ -390,10 +394,32 @@
         </div>
       `;
 
-      // Unhide manager specific tabs
+      // Manager Setup
       if (profile.isManager) {
         document.getElementById('managerOnlyTabs').classList.remove('hidden');
+
+        // Update My Submissions to Agent Submissions
+        document.getElementById('tab-mySubmissionsView').innerHTML = `Agent Submissions`;
+        document.getElementById('mySubmissionsTitle').innerHTML = `
+          <span class="material-symbols-outlined text-blue-500">manage_search</span>
+          Agent Submissions
+        `;
+        document.getElementById('mySubmissionsDesc').innerText = "View tracked cases per interval for any agent.";
+
+        const searchContainer = document.getElementById('managerLdapSearch');
+        const searchInput = document.getElementById('targetAgentLdap');
+        searchContainer.classList.remove('hidden');
+        searchInput.value = profile.ldap; // Default to themselves
+
+        // Load Agents for autocomplete
+        google.script.run
+          .withSuccessHandler(function(agents) {
+             const dataList = document.getElementById('agentList');
+             dataList.innerHTML = agents.map(agent => `<option value="${agent}">`).join('');
+          })
+          .getAllAgents();
       }
+
       // Set default date for my submissions
       if(!document.getElementById('mySubmissionsDate').value) {
         document.getElementById('mySubmissionsDate').valueAsDate = new Date();
@@ -609,6 +635,8 @@
     function loadMySubmissions() {
       document.getElementById('mySubmissionsTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>';
       const dateVal = document.getElementById('mySubmissionsDate').value;
+      const targetLdap = document.getElementById('targetAgentLdap').value.trim();
+
       if (!dateVal) return showToast("Please select a date", "warning");
 
       // Convert HTML YYYY-MM-DD to Apps Script M/d/yyyy
@@ -618,7 +646,7 @@
       google.script.run
         .withSuccessHandler(renderMySubmissions)
         .withFailureHandler(err => showToast("Failed to load submissions.", 'error'))
-        .getMySubmissions(formattedDate);
+        .getMySubmissions(formattedDate, targetLdap);
     }
 
     function renderMySubmissions(data) {
