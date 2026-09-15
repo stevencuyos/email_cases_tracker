@@ -8,24 +8,52 @@ function doGet() {
 
 // 2. Auto-Initialize the Database Structure
 function initializeDatabase() {
+  const cache = CacheService.getScriptCache();
+  if (cache.get('db_initialized')) return;
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
   const sheetsConfig = {
     // Added Name, LOB, and Workflow to the database
     'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes'],
     'Index_CaseIDs': ['Case ID', 'Type Logged', 'Date Logged', 'Agent'],
-    'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef']
+    'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef'],
+    'Error_Logs': ['Timestamp', 'User', 'Context', 'Error Message', 'Stack Trace']
   };
 
+  let allSheetsExist = true;
   for (const [sheetName, headers] of Object.entries(sheetsConfig)) {
     let sheet = ss.getSheetByName(sheetName);
     if (!sheet) {
+      allSheetsExist = false;
       sheet = ss.insertSheet(sheetName);
       sheet.appendRow(headers);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f3f3f3");
       sheet.setFrozenRows(1);
       console.log(`Created missing tab: ${sheetName}`);
     }
+  }
+
+  if (allSheetsExist) {
+    cache.put('db_initialized', 'true', 21600); // 6 hours
+  }
+}
+
+// 2.5 Log Error
+function logError(context, error) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Error_Logs');
+    if (sheet) {
+      const timestamp = new Date();
+      const user = Session.getActiveUser().getEmail() || 'Unknown';
+      const errorMessage = error.toString();
+      const stack = error.stack || 'No stack trace';
+      sheet.appendRow([timestamp, user, context, errorMessage, stack]);
+    }
+    console.error(`[${context}] Error: ${error.toString()}`);
+  } catch (e) {
+    console.error("Failed to log error: " + e.toString());
   }
 }
 
@@ -34,6 +62,16 @@ function getUserProfile() {
   const email = Session.getActiveUser().getEmail();
   const currentLdap = email ? email.split('@')[0] : 'unknown_agent';
   
+  const cache = CacheService.getUserCache();
+  const cachedProfile = cache.get('profile_' + currentLdap);
+  if (cachedProfile) {
+    try {
+      return JSON.parse(cachedProfile);
+    } catch (e) {
+      // Ignore parse error and refetch
+    }
+  }
+
   let profile = {
     ldap: currentLdap,
     name: currentLdap,
@@ -75,9 +113,12 @@ function getUserProfile() {
       
       profile.isManager = isManager;
       if (isManager) profile.role = 'Leadership';
+
+      // Cache the profile for 6 hours
+      cache.put('profile_' + currentLdap, JSON.stringify(profile), 21600);
     }
   } catch (e) {
-    console.error("Error fetching user profile: " + e);
+    logError('getUserProfile', e);
   }
   
   return profile;
@@ -85,7 +126,7 @@ function getUserProfile() {
 
 // 4. Process Submission with LockService (Concurrency Control)
 function submitCases(formObject) {
-  const lock = LockService.getScriptLock();
+  const lock = LockService.getDocumentLock();
   try {
     lock.waitLock(15000);
   } catch (e) {
@@ -170,7 +211,8 @@ function submitCases(formObject) {
     return { success: true, valid: validCount, flagged: flaggedCount };
     
   } catch (error) {
-    return { success: false, error: error.toString() };
+    logError('submitCases', error);
+    return { success: false, error: "An unexpected error occurred while submitting cases. Our team has been notified." };
   } finally {
     lock.releaseLock();
   }
@@ -178,68 +220,76 @@ function submitCases(formObject) {
 
 // 5. Fetch Dashboard Data
 function getDashboardData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const auditSheet = ss.getSheetByName('Audit Queue');
-  const rawSheet = ss.getSheetByName('Raw_Cases');
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auditSheet = ss.getSheetByName('Audit Queue');
+    const rawSheet = ss.getSheetByName('Raw_Cases');
 
-  // A. Get Pending Audits
-  let audits = [];
-  if (auditSheet.getLastRow() > 1) {
-    // FIXED: Now fetching 10 columns instead of 9 to grab the shifted RawRowRef
-    const auditData = auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 10).getValues();
-    audits = auditData.map((r, i) => ({
-      row: i + 2, 
-      status: r[0],
-      timestamp: Utilities.formatDate(new Date(r[1]), Session.getScriptTimeZone(), "h:mm a"),
-      agent: r[2],
-      site: r[3],
-      caseType: r[4],
-      totalLogged: r[5],
-      flaggedIds: r[6],
-      reason: r[7],
-      rawRowRef: r[9] // FIXED: Shifted from index 8 to index 9 (Column J)
-    })).filter(a => a.status.includes('PENDING'));
-  }
+    // A. Get Pending Audits
+    let audits = [];
+    if (auditSheet.getLastRow() > 1) {
+      // FIXED: Now fetching 10 columns instead of 9 to grab the shifted RawRowRef
+      const auditData = auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 10).getValues();
+      audits = auditData.map((r, i) => ({
+        row: i + 2,
+        status: r[0],
+        timestamp: Utilities.formatDate(new Date(r[1]), Session.getScriptTimeZone(), "h:mm a"),
+        agent: r[2],
+        site: r[3],
+        caseType: r[4],
+        totalLogged: r[5],
+        flaggedIds: r[6],
+        reason: r[7],
+        rawRowRef: r[9] // FIXED: Shifted from index 8 to index 9 (Column J)
+      })).filter(a => a.status.includes('PENDING'));
+    }
 
-  // B. Get Today's Metrics (Grouped by Agent)
-  let metrics = {};
-  if (rawSheet.getLastRow() > 1) {
-    const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "M/d/yyyy");
-    const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 15).getValues(); 
+    // B. Get Today's Metrics (Grouped by Agent)
+    let metrics = {};
+    if (rawSheet.getLastRow() > 1) {
+      const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "M/d/yyyy");
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 15).getValues();
 
-    rawData.forEach(r => {
-      // FIXED: Safely convert Google Sheets Date objects back to text for matching
-      let rowDateStr = "";
-      if (r[1] instanceof Date) {
-        rowDateStr = Utilities.formatDate(r[1], Session.getScriptTimeZone(), "M/d/yyyy");
-      } else {
-        rowDateStr = String(r[1]);
-      }
-
-      if (rowDateStr === todayStr) { 
-        const agent = r[3];
-        const site = r[5]; 
-        const valid = Number(r[11]) || 0; 
-        const flagged = Number(r[12]) || 0; 
-        
-        if (!metrics[agent]) {
-          metrics[agent] = { agent: agent, site: site, totalValid: 0, totalFlagged: 0 };
+      rawData.forEach(r => {
+        // FIXED: Safely convert Google Sheets Date objects back to text for matching
+        let rowDateStr = "";
+        if (r[1] instanceof Date) {
+          rowDateStr = Utilities.formatDate(r[1], Session.getScriptTimeZone(), "M/d/yyyy");
+        } else {
+          rowDateStr = String(r[1]);
         }
-        metrics[agent].totalValid += valid;
-        metrics[agent].totalFlagged += flagged;
-      }
-    });
-  }
 
-  return {
-    audits: audits,
-    metrics: Object.values(metrics).sort((a, b) => b.totalValid - a.totalValid) 
-  };
+        if (rowDateStr === todayStr) {
+          const agent = r[3];
+          const site = r[5];
+          const valid = Number(r[11]) || 0;
+          const flagged = Number(r[12]) || 0;
+
+          if (!metrics[agent]) {
+            metrics[agent] = { agent: agent, site: site, totalValid: 0, totalFlagged: 0 };
+          }
+          metrics[agent].totalValid += valid;
+          metrics[agent].totalFlagged += flagged;
+        }
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        audits: audits,
+        metrics: Object.values(metrics).sort((a, b) => b.totalValid - a.totalValid)
+      }
+    };
+  } catch (error) {
+    logError('getDashboardData', error);
+    return { success: false, error: "An unexpected error occurred while fetching dashboard data." };
+  }
 }
 
 // 6. Resolve Soft Audits (Approve/Reject)
 function resolveAudit(auditRow, rawRowRef, resolution) {
-  const lock = LockService.getScriptLock();
+  const lock = LockService.getDocumentLock();
   try {
     lock.waitLock(10000);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -269,36 +319,52 @@ function resolveAudit(auditRow, rawRowRef, resolution) {
     }
     return { success: true };
   } catch (e) {
-    return { success: false, error: e.toString() };
+    logError('resolveAudit', e);
+    return { success: false, error: "An unexpected error occurred while resolving audit." };
   } finally {
     lock.releaseLock();
   }
 }
 // 7. Fetch Data for Interval View
 function getIntervalData(dateStr, intervalHourStr) {
-  // dateStr format expected: "9/15/2026"
-  // intervalHourStr format expected: "16:00" (24-hour format string)
-  
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const shiftSheet = ss.getSheetByName('Agent Shifts');
-  const rawSheet = ss.getSheetByName('Raw_Cases');
-  const masterSheet = ss.getSheetByName('Masterlist'); 
-  
-  let targetHour = parseInt(intervalHourStr.split(':')[0], 10);
-  let agentsInInterval = {};
+  try {
+    // dateStr format expected: "9/15/2026"
+    // intervalHourStr format expected: "16:00" (24-hour format string)
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const shiftSheet = ss.getSheetByName('Agent Shifts');
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+    const masterSheet = ss.getSheetByName('Masterlist');
+
+    let targetHour = parseInt(intervalHourStr.split(':')[0], 10);
+    let agentsInInterval = {};
   
   // NEW: 1. Build a whitelist of "Email" Channel Agents from the Masterlist
   let emailAgents = new Set();
-  if (masterSheet && masterSheet.getLastRow() > 1) {
-    // Fetch columns A through X (index 0 to 23). Col X is Channel.
-    const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 24).getValues();
-    for (let i = 0; i < masterData.length; i++) {
-      const ldap = masterData[i][0] ? masterData[i][0].toString().toLowerCase() : '';
-      const channel = masterData[i][23] ? masterData[i][23].toString().toLowerCase() : ''; 
-      
-      if (channel === 'email') {
-        emailAgents.add(ldap);
+  const scriptCache = CacheService.getScriptCache();
+  const cachedAgents = scriptCache.get('emailAgents');
+
+  if (cachedAgents) {
+    try {
+      emailAgents = new Set(JSON.parse(cachedAgents));
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  if (emailAgents.size === 0) {
+    if (masterSheet && masterSheet.getLastRow() > 1) {
+      // Fetch columns A through X (index 0 to 23). Col X is Channel.
+      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 24).getValues();
+      for (let i = 0; i < masterData.length; i++) {
+        const ldap = masterData[i][0] ? masterData[i][0].toString().toLowerCase() : '';
+        const channel = masterData[i][23] ? masterData[i][23].toString().toLowerCase() : '';
+
+        if (channel === 'email') {
+          emailAgents.add(ldap);
+        }
       }
+      scriptCache.put('emailAgents', JSON.stringify(Array.from(emailAgents)), 21600); // 6 hours
     }
   }
 
@@ -418,5 +484,12 @@ function getIntervalData(dateStr, intervalHourStr) {
     });
   }
   
-  return Object.values(agentsInInterval).sort((a, b) => a.ldap.localeCompare(b.ldap));
+  return {
+    success: true,
+    data: Object.values(agentsInInterval).sort((a, b) => a.ldap.localeCompare(b.ldap))
+  };
+  } catch (error) {
+    logError('getIntervalData', error);
+    return { success: false, error: "An unexpected error occurred while loading interval data." };
+  }
 }

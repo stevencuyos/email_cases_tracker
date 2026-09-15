@@ -435,8 +435,16 @@
       document.getElementById('metricsTableBody').innerHTML = '<tr><td colspan="3" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
       
       google.script.run
-        .withSuccessHandler(renderDashboard)
-        .withFailureHandler(err => showToast("Failed to load dashboard data.", 'error'))
+        .withSuccessHandler(response => {
+          if (response.success) {
+            renderDashboard(response.data);
+          } else {
+            showToast(response.error, 'error');
+            document.getElementById('auditTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-400">Failed to load data.</td></tr>';
+            document.getElementById('metricsTableBody').innerHTML = '<tr><td colspan="3" class="p-8 text-center text-red-400">Failed to load data.</td></tr>';
+          }
+        })
+        .withFailureHandler(err => showToast("Network error while loading dashboard.", 'error'))
         .getDashboardData();
     }
 
@@ -544,8 +552,15 @@
       document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading schedule...</td></tr>';
       
       google.script.run
-        .withSuccessHandler(renderIntervalTable)
-        .withFailureHandler(err => showToast("Error loading interval.", "error"))
+        .withSuccessHandler(response => {
+          if (response.success) {
+            renderIntervalTable(response.data);
+          } else {
+            showToast(response.error, "error");
+            document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-400">Failed to load schedule.</td></tr>';
+          }
+        })
+        .withFailureHandler(err => showToast("Network error loading interval.", "error"))
         .getIntervalData(formattedDate, timeVal);
     }
 
