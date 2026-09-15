@@ -125,14 +125,19 @@ function submitCases(formObject) {
       let reason = "";
       let history = indexData.filter(row => row[0] == id);
 
-      if (caseType === 'Regular Email (Take Next)' && history.length > 0) {
-        isFlagged = true;
-        reason = "Previously logged in system";
-      } else if (caseType === 'Reopened Cases') {
+      // RULE 1: Reopened Cases have their own specific criteria
+      if (caseType === 'Reopened Cases') {
         let todayHistory = history.filter(row => row[2] == dateStr && row[1] === 'Reopened Cases' && row[3] === ldap);
         if (todayHistory.length > 0) {
           isFlagged = true;
-          reason = "Already reopened today";
+          reason = "Already reopened today by this agent";
+        }
+      } 
+      // RULE 2: Regular Email, Manual Assignment, Telus, and Cimba are bound to Global Uniqueness
+      else {
+        if (history.length > 0) {
+          isFlagged = true;
+          reason = `Case ID already logged previously under type: [${history[0][1]}]`;
         }
       }
 
