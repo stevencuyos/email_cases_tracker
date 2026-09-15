@@ -397,7 +397,7 @@
       // Manager Setup
       if (profile.isManager) {
         document.getElementById('managerOnlyTabs').classList.remove('hidden');
-
+        
         // Update My Submissions to Agent Submissions
         document.getElementById('tab-mySubmissionsView').innerHTML = `Agent Submissions`;
         document.getElementById('mySubmissionsTitle').innerHTML = `
@@ -405,12 +405,12 @@
           Agent Submissions
         `;
         document.getElementById('mySubmissionsDesc').innerText = "View tracked cases per interval for any agent.";
-
+        
         const searchContainer = document.getElementById('managerLdapSearch');
         const searchInput = document.getElementById('targetAgentLdap');
         searchContainer.classList.remove('hidden');
         searchInput.value = profile.ldap; // Default to themselves
-
+        
         // Load Agents for autocomplete
         google.script.run
           .withSuccessHandler(function(agents) {
@@ -419,7 +419,7 @@
           })
           .getAllAgents();
       }
-
+      
       // Set default date for my submissions
       if(!document.getElementById('mySubmissionsDate').value) {
         document.getElementById('mySubmissionsDate').valueAsDate = new Date();
@@ -452,7 +452,7 @@
     function handleActivityChange() {
       const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
       const caseIdsTextarea = document.getElementById('caseIds');
-
+      
       if (activity === 'Coaching/Training') {
         caseIdsTextarea.disabled = true;
         caseIdsTextarea.required = false;
@@ -470,7 +470,7 @@
       
       const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
       const caseIdsText = document.getElementById('caseIds').value;
-
+      
       if (activity === 'Break/Lunch') {
         let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
         let uniqueIds = [...new Set(rawIds)];
@@ -636,7 +636,7 @@
       document.getElementById('mySubmissionsTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>';
       const dateVal = document.getElementById('mySubmissionsDate').value;
       const targetLdap = document.getElementById('targetAgentLdap').value.trim();
-
+      
       if (!dateVal) return showToast("Please select a date", "warning");
 
       // Convert HTML YYYY-MM-DD to Apps Script M/d/yyyy
@@ -655,7 +655,7 @@
         tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No submissions found for this date.</td></tr>';
         return;
       }
-
+      
       tbody.innerHTML = data.map(sub => `
         <tr class="hover:bg-gray-50 transition">
           <td class="p-4 whitespace-nowrap text-gray-800">${sub.interval}</td>
@@ -754,7 +754,7 @@
           <td class="p-3 text-center font-medium ${a.casesLogged > 0 ? 'text-green-600' : 'text-gray-400'}">${a.casesLogged}</td>
         </tr>
       `).join('');
-
+      
       // Update colors for dynamically selected statuses
       const selects = tbody.querySelectorAll('select');
       selects.forEach(select => updateStatusColor(select));
