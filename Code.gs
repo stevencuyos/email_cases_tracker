@@ -32,7 +32,7 @@ function logError(functionName, errorMessage, userLdap) {
 function toDateStringFast(dateObj) {
   if (!(dateObj instanceof Date)) {
     // If it's already a string, attempt a naive cleanup
-    return String(dateObj).split('T')[0];
+    return String(dateObj).split('T')[0]; 
   }
   return (dateObj.getMonth() + 1) + '/' + dateObj.getDate() + '/' + dateObj.getFullYear();
 }
@@ -53,7 +53,7 @@ function initializeDatabase() {
   try {
     lock.waitLock(10000);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-
+    
     const sheetsConfig = {
       'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes', 'Interval Activity'],
       'Index_CaseIDs': ['Case ID', 'Type Logged', 'Date Logged', 'Agent'],
@@ -87,7 +87,7 @@ function getUserProfile() {
   if (cachedProfile) {
     return JSON.parse(cachedProfile);
   }
-
+  
   let profile = {
     ldap: currentLdap,
     name: currentLdap,
@@ -130,10 +130,10 @@ function getUserProfile() {
       profile.isManager = isManager;
       if (isManager) profile.role = 'Leadership';
     }
-
+    
     // Store in cache for 1 hour (3600 seconds)
     cache.put('userProfile_' + currentLdap, JSON.stringify(profile), 3600);
-
+    
   } catch (e) {
     logError('getUserProfile', e.toString(), currentLdap);
   }
@@ -184,19 +184,14 @@ function submitCases(formObject) {
       let reason = "";
       let history = indexData.filter(row => row[0] == id);
 
-      // RULE 1: Reopened Cases have their own specific criteria
-      if (caseType === 'Reopened Cases') {
+      if (caseType === 'Regular Email (Take Next)' && history.length > 0) {
+        isFlagged = true;
+        reason = "Previously logged in system";
+      } else if (caseType === 'Reopened Cases') {
         let todayHistory = history.filter(row => row[2] == dateStr && row[1] === 'Reopened Cases' && row[3] === ldap);
         if (todayHistory.length > 0) {
           isFlagged = true;
-          reason = "Already reopened today by this agent";
-        }
-      } 
-      // RULE 2: Regular Email, Manual Assignment, Telus, and Cimba are bound to Global Uniqueness
-      else {
-        if (history.length > 0) {
-          isFlagged = true;
-          reason = `Case ID already logged previously under type: [${history[0][1]}]`;
+          reason = "Already reopened today";
         }
       }
 
@@ -250,7 +245,7 @@ function getDashboardData() {
       // FIXED: Now fetching 10 columns instead of 9 to grab the shifted RawRowRef
       const auditData = auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 10).getValues();
       audits = auditData.map((r, i) => ({
-        row: i + 2,
+        row: i + 2, 
         status: r[0],
         timestamp: (r[1] instanceof Date) ? Utilities.formatDate(r[1], Session.getScriptTimeZone(), "h:mm a") : String(r[1]),
         agent: r[2],
@@ -267,17 +262,17 @@ function getDashboardData() {
     let metrics = {};
     if (rawSheet && rawSheet.getLastRow() > 1) {
       const todayStr = toDateStringFast(new Date());
-      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 15).getValues();
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 15).getValues(); 
 
       rawData.forEach(r => {
         let rowDateStr = toDateStringFast(r[1]);
 
-        if (rowDateStr === todayStr) {
+        if (rowDateStr === todayStr) { 
           const agent = r[3];
-          const site = r[5];
-          const valid = Number(r[11]) || 0;
-          const flagged = Number(r[12]) || 0;
-
+          const site = r[5]; 
+          const valid = Number(r[11]) || 0; 
+          const flagged = Number(r[12]) || 0; 
+          
           if (!metrics[agent]) {
             metrics[agent] = { agent: agent, site: site, totalValid: 0, totalFlagged: 0 };
           }
@@ -289,7 +284,7 @@ function getDashboardData() {
 
     return {
       audits: audits,
-      metrics: Object.values(metrics).sort((a, b) => b.totalValid - a.totalValid)
+      metrics: Object.values(metrics).sort((a, b) => b.totalValid - a.totalValid) 
     };
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
@@ -344,18 +339,18 @@ function getMySubmissions(dateStr, targetLdap) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const rawSheet = ss.getSheetByName('Raw_Cases');
     const userProfile = getUserProfile();
-
+    
     // If targetLdap is provided and the user is a manager, use it. Otherwise default to their own ldap.
     const queryLdap = (userProfile.isManager && targetLdap) ? targetLdap.toLowerCase() : userProfile.ldap.toLowerCase();
-
+    
     let submissions = [];
 
     if (rawSheet && rawSheet.getLastRow() > 1) {
       const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues();
-
+      
       rawData.forEach(r => {
         let rowDateStr = toDateStringFast(r[1]);
-
+        
         // r[3] is Agent LDAP
         if (rowDateStr === dateStr && r[3] && r[3].toString().toLowerCase() === queryLdap) {
           submissions.push({
@@ -368,7 +363,7 @@ function getMySubmissions(dateStr, targetLdap) {
         }
       });
     }
-
+    
     // Sort submissions by interval chronologically if needed, simple string match usually works for "h:00 a"
     return submissions;
   } catch (e) {
@@ -386,11 +381,11 @@ function getAllAgents() {
     if (cachedAgents) {
       return JSON.parse(cachedAgents);
     }
-
+  
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const masterSheet = ss.getSheetByName('Masterlist');
     let agents = new Set();
-
+    
     if (masterSheet && masterSheet.getLastRow() > 1) {
       // Col A is LDAP
       const data = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 1).getValues();
@@ -399,12 +394,12 @@ function getAllAgents() {
         if (ldap) agents.add(ldap);
       });
     }
-
+    
     let sortedAgents = Array.from(agents).sort();
     // Cache for 4 hours
     cache.put('allAgentsList', JSON.stringify(sortedAgents), 14400);
     return sortedAgents;
-
+    
   } catch(e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
     logError('getAllAgents', e.toString(), user);
@@ -417,28 +412,28 @@ function getIntervalData(dateStr, intervalHourStr) {
   try {
     // dateStr format expected: "9/15/2026"
     // intervalHourStr format expected: "16:00" (24-hour format string)
-
+    
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const shiftSheet = ss.getSheetByName('Agent Shifts');
     const rawSheet = ss.getSheetByName('Raw_Cases');
-    const masterSheet = ss.getSheetByName('Masterlist');
-
+    const masterSheet = ss.getSheetByName('Masterlist'); 
+    
     let targetHour = parseInt(intervalHourStr.split(':')[0], 10);
     let agentsInInterval = {};
-
+    
     // 1. Build a whitelist of "Email" Channel Agents from the Masterlist (With Cache)
     const cache = CacheService.getScriptCache();
     let emailAgentsList = cache.get('emailAgentsList');
     let emailAgents = new Set();
-
+    
     if (emailAgentsList) {
       emailAgents = new Set(JSON.parse(emailAgentsList));
     } else if (masterSheet && masterSheet.getLastRow() > 1) {
       const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 24).getValues();
       for (let i = 0; i < masterData.length; i++) {
         const ldap = masterData[i][0] ? masterData[i][0].toString().toLowerCase() : '';
-        const channel = masterData[i][23] ? masterData[i][23].toString().toLowerCase() : '';
-
+        const channel = masterData[i][23] ? masterData[i][23].toString().toLowerCase() : ''; 
+        
         if (channel === 'email') {
           emailAgents.add(ldap);
         }
@@ -450,7 +445,7 @@ function getIntervalData(dateStr, intervalHourStr) {
     if (shiftSheet && shiftSheet.getLastRow() > 2) {
       const shiftData = shiftSheet.getDataRange().getValues();
       const headers = shiftData[1]; // Row 2 holds the actual dates
-
+      
       // Find matching date column (Starts checking from Col I / Index 8)
       let dateColIdx = -1;
       for (let c = 8; c < headers.length; c++) {
@@ -469,7 +464,7 @@ function getIntervalData(dateStr, intervalHourStr) {
           break;
         }
       }
-
+      
       if (dateColIdx !== -1) {
         // Loop through agents starting from Row 3
         for (let r = 2; r < shiftData.length; r++) {
@@ -477,11 +472,11 @@ function getIntervalData(dateStr, intervalHourStr) {
           
           // NEW FILTER: Skip agent if they are not in the Email channel (unless they do OT later)
           if (!emailAgents.has(ldap.toLowerCase())) {
-            continue;
+            continue; 
           }
 
           const site = shiftData[r][4]; // Col E
-          const shiftVal = shiftData[r][dateColIdx];
+          const shiftVal = shiftData[r][dateColIdx]; 
           
           if (shiftVal && shiftVal !== "OFF" && shiftVal !== "VL" && shiftVal !== "LOA" && shiftVal !== "AWOL") {
             let startHour = -1;
@@ -504,12 +499,12 @@ function getIntervalData(dateStr, intervalHourStr) {
               } else {
                 isOnShift = (targetHour >= startHour || targetHour < (endHour - 24));
               }
-
+              
               if (isOnShift) {
                 let formattedSOS = startHour + ":00";
                 let eosActual = endHour > 24 ? endHour - 24 : endHour;
                 let formattedEOS = eosActual + ":00";
-
+                
                 agentsInInterval[ldap] = {
                   ldap: ldap,
                   sos: formattedSOS,
@@ -527,7 +522,7 @@ function getIntervalData(dateStr, intervalHourStr) {
     
     // 3. Process Overtime & Live Metrics from 'Raw_Cases'
     if (rawSheet && rawSheet.getLastRow() > 1) {
-      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues();
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues(); 
       // Format target hour to match Raw_Cases "h:00 a" format (e.g. "4:00 PM").
       // We still use Utilities here because it runs exactly once per function call, not in a loop.
       let targetDateObj = new Date();
@@ -543,7 +538,7 @@ function getIntervalData(dateStr, intervalHourStr) {
           const isOvertime = r[8] === "Overtime";
           const validCases = Number(r[11]) || 0;
           const intervalActivity = r[15] || 'Normal Production';
-
+          
           // If OT agent isn't on the shift list, add them dynamically regardless of their Channel
           if (!agentsInInterval[ldap] && isOvertime) {
             agentsInInterval[ldap] = {
@@ -556,7 +551,7 @@ function getIntervalData(dateStr, intervalHourStr) {
               activityLogged: intervalActivity
             };
           }
-
+          
           // Add metrics if they are in the list
           if (agentsInInterval[ldap]) {
             agentsInInterval[ldap].casesLogged += validCases;
@@ -565,20 +560,20 @@ function getIntervalData(dateStr, intervalHourStr) {
         }
       });
     }
-
+    
     // 4. Compute Status
     const results = Object.values(agentsInInterval).sort((a, b) => a.ldap.localeCompare(b.ldap));
-
+    
     results.forEach(agent => {
       let computedStatus = "";
       let sosHour = -1;
       let eosHour = -1;
-
+      
       if (agent.sos !== "OT") {
         sosHour = parseInt(agent.sos.split(':')[0], 10);
         eosHour = parseInt(agent.eos.split(':')[0], 10);
       }
-
+      
       if (agent.activityLogged === 'Coaching/Training') {
         computedStatus = "on Coaching/Training";
       } else if (agent.activityLogged === 'Break/Lunch' && agent.casesLogged >= 3) {
@@ -590,7 +585,7 @@ function getIntervalData(dateStr, intervalHourStr) {
       } else if (!agent.isOT && targetHour === (eosHour - 1)) {
         computedStatus = "SKIP - EOS";
       }
-
+      
       agent.computedStatus = computedStatus;
     });
 
