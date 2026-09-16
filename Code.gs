@@ -109,21 +109,27 @@ function getUserProfile() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const masterSheet = ss.getSheetByName('Masterlist');
     
+    let isManager = false;
+
+    // 1. Check Roster Tab for Manager Auth (Column B)
+    const rosterSheet = ss.getSheetByName('Roster');
+    if (rosterSheet && rosterSheet.getLastRow() > 1) {
+      const rosterData = rosterSheet.getRange(2, 2, rosterSheet.getLastRow() - 1, 1).getValues(); // Col B
+      for (let i = 0; i < rosterData.length; i++) {
+        if (rosterData[i][0] && rosterData[i][0].toString().toLowerCase() === currentLdap.toLowerCase()) {
+          isManager = true;
+          break;
+        }
+      }
+    }
+
+    // 2. Fetch demographic details from Masterlist Tab
     if (masterSheet && masterSheet.getLastRow() > 1) {
       // Fetch from Col A (1) all the way to Col AS (45)
       const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 45).getValues();
       
-      let isManager = false;
-      
       for (let i = 0; i < masterData.length; i++) {
         const rowLdap = masterData[i][0]; // Col A (LDAP)
-        const rowSup = masterData[i][28]; // Col AC (Supervisor LDAP)
-        const rowMgr = masterData[i][36]; // Col AK (Manager LDAP)
-
-        // Dynamic Manager Auth: If user is listed as a Sup or Mgr for ANY agent, grant access
-        if (!isManager && (rowSup === currentLdap || rowMgr === currentLdap)) {
-          isManager = true;
-        }
 
         // Grab their personal demographic details
         if (rowLdap && rowLdap.toString().toLowerCase() === currentLdap.toLowerCase()) {
@@ -131,13 +137,14 @@ function getUserProfile() {
           profile.lob = masterData[i][21] || '';          // Col V (LOB)
           profile.workflow = masterData[i][22] || '';     // Col W (Workflow)
           profile.site = masterData[i][44] || 'Unknown';  // Col AS (Site)
+          break; // Found demographic details, no need to keep scanning
         }
       }
-      
-      profile.isManager = isManager;
-      if (isManager) profile.role = 'Leadership';
     }
     
+    profile.isManager = isManager;
+    if (isManager) profile.role = 'Leadership';
+
     // Store in cache for 1 hour (3600 seconds)
     cache.put('userProfile_' + currentLdap, JSON.stringify(profile), 3600);
     
@@ -494,7 +501,7 @@ function getAllAgents() {
 }
 
 // --- 10. Fetch Analytics Data ---
-function getAnalyticsData(daysToFetch = 7) {
+function getAnalyticsData(startDateStr, endDateStr) {
   try {
     requireManagerOrThrow();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -504,10 +511,26 @@ function getAnalyticsData(daysToFetch = 7) {
     const now = new Date();
     const todayStr = toDateStringFast(now);
 
-    // Create cutoff date based on requested range (00:00:00 of the target day)
-    const cutoffDate = new Date();
-    cutoffDate.setDate(now.getDate() - (daysToFetch - 1));
-    cutoffDate.setHours(0, 0, 0, 0);
+    let start = new Date();
+    start.setDate(start.getDate() - 6); // default to 7 days
+    start.setHours(0, 0, 0, 0);
+
+    let end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    if (startDateStr) {
+       let sParts = startDateStr.split('-');
+       if (sParts.length === 3) {
+           start = new Date(sParts[0], sParts[1] - 1, sParts[2], 0, 0, 0, 0);
+       }
+    }
+
+    if (endDateStr) {
+       let eParts = endDateStr.split('-');
+       if (eParts.length === 3) {
+           end = new Date(eParts[0], eParts[1] - 1, eParts[2], 23, 59, 59, 999);
+       }
+    }
 
     let data = {
       kpis: {
@@ -547,8 +570,8 @@ function getAnalyticsData(daysToFetch = 7) {
     rawData.forEach(r => {
       const rowDateObj = (r[RAW_COLS.DATE] instanceof Date) ? r[RAW_COLS.DATE] : new Date(r[RAW_COLS.DATE]);
 
-      // Only process data within the cutoff range
-      if (rowDateObj < cutoffDate) return;
+      // Only process data within the date range
+      if (rowDateObj < start || rowDateObj > end) return;
 
       const rowDateStr = toDateStringFast(rowDateObj);
       const rowInterval = (r[RAW_COLS.INTERVAL] instanceof Date) ? Utilities.formatDate(r[RAW_COLS.INTERVAL], Session.getScriptTimeZone(), "h:00 a") : r[RAW_COLS.INTERVAL];
