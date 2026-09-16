@@ -175,12 +175,13 @@
           </div>
           <div class="flex items-center gap-4">
             <div id="managerLdapSearch" class="hidden relative">
-              <input type="text" id="targetAgentLdap" list="agentList" onchange="loadMySubmissions()" placeholder="Agent LDAP" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 w-36">
+              <input type="text" id="targetAgentLdap" list="agentList" placeholder="Agent LDAP" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 w-36">
               <datalist id="agentList"></datalist>
             </div>
-            <input type="date" id="mySubmissionsDate" onchange="loadMySubmissions()" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
-            <button onclick="loadMySubmissions()" class="text-gray-500 hover:text-blue-600 transition" title="Refresh Data">
-              <span class="material-symbols-outlined">refresh</span>
+            <input type="date" id="mySubmissionsDate" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
+            <button onclick="loadMySubmissions()" id="mySubmissionsSearchBtn" class="bg-[#1a73e8] text-white text-sm font-medium px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-1">
+              <span class="material-symbols-outlined text-[18px]">search</span>
+              Search
             </button>
           </div>
         </div>
@@ -637,20 +638,51 @@
     }
 
     // --- MY SUBMISSIONS LOGIC ---
+    let mySubmissionsRequestId = 0;
+    let mySubmissionsInFlight = false;
+
+    function setMySubmissionsLoading(isLoading) {
+      mySubmissionsInFlight = isLoading;
+      const dateInput = document.getElementById('mySubmissionsDate');
+      const ldapInput = document.getElementById('targetAgentLdap');
+      const searchBtn = document.getElementById('mySubmissionsSearchBtn');
+      if (dateInput) dateInput.disabled = isLoading;
+      if (ldapInput) ldapInput.disabled = isLoading;
+      if (searchBtn) {
+        searchBtn.disabled = isLoading;
+        searchBtn.classList.toggle('opacity-60', isLoading);
+        searchBtn.classList.toggle('cursor-not-allowed', isLoading);
+      }
+    }
+
     function loadMySubmissions() {
-      document.getElementById('mySubmissionsTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>';
+      if (mySubmissionsInFlight) return; // ignore rapid re-clicks
+
       const dateVal = document.getElementById('mySubmissionsDate').value;
       const targetLdap = document.getElementById('targetAgentLdap').value.trim();
-      
+
       if (!dateVal) return showToast("Please select a date", "warning");
+
+      document.getElementById('mySubmissionsTableBody').innerHTML =
+        '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>';
 
       // Convert HTML YYYY-MM-DD to Apps Script M/d/yyyy
       const [year, month, day] = dateVal.split('-');
       const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
 
+      const thisRequestId = ++mySubmissionsRequestId;
+      setMySubmissionsLoading(true);
+
       google.script.run
-        .withSuccessHandler(renderMySubmissions)
-        .withFailureHandler(err => {
+        .withSuccessHandler(function(data) {
+          console.log('RAW DATA FROM SERVER:', JSON.stringify(data));
+          if (thisRequestId !== mySubmissionsRequestId) return; // stale response, ignore
+          setMySubmissionsLoading(false);
+          renderMySubmissions(data);
+        })
+        .withFailureHandler(function(err) {
+          if (thisRequestId !== mySubmissionsRequestId) return; // stale response, ignore
+          setMySubmissionsLoading(false);
           document.getElementById('mySubmissionsTableBody').innerHTML =
             '<tr><td colspan="5" class="p-8 text-center text-red-400">Failed to load submissions: ' +
             (err && err.message ? escAttr(err.message) : 'Unknown error') +
@@ -663,24 +695,31 @@
     function renderMySubmissions(data) {
       const tbody = document.getElementById('mySubmissionsTableBody');
       try {
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No submissions found for this date.</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = data.map(sub => `
+        if (!Array.isArray(data) || data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No submissions found for this date.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map(function(sub) {
+          const interval = sub && sub.interval != null ? sub.interval : '';
+          const activity = sub && sub.activity != null ? sub.activity : '';
+          const caseType = sub && sub.caseType != null ? sub.caseType : '';
+          const validCount = sub && sub.validCount != null ? sub.validCount : 0;
+          const caseIds = sub && sub.caseIds != null ? sub.caseIds : '';
+          return `
         <tr class="hover:bg-gray-50 transition">
-          <td class="p-4 whitespace-nowrap text-gray-800">${sub.interval}</td>
-          <td class="p-4 text-gray-600">${sub.activity}</td>
-          <td class="p-4 text-gray-600">${sub.caseType}</td>
-          <td class="p-4 text-center font-medium ${sub.validCount > 0 ? 'text-green-600' : 'text-gray-400'}">${sub.validCount}</td>
+          <td class="p-4 whitespace-nowrap text-gray-800">${escAttr(interval)}</td>
+          <td class="p-4 text-gray-600">${escAttr(activity)}</td>
+          <td class="p-4 text-gray-600">${escAttr(caseType)}</td>
+          <td class="p-4 text-center font-medium ${validCount > 0 ? 'text-green-600' : 'text-gray-400'}">${validCount}</td>
           <td class="p-4 align-top">
              <div class="font-mono text-xs bg-gray-50 border border-gray-200 rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
-               ${formatCaseIdsAsLinks(sub.caseIds)}
+               ${formatCaseIdsAsLinks(caseIds)}
              </div>
           </td>
         </tr>
-      `).join('');
+      `;
+        }).join('');
       } catch (e) {
         tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-400">Render error: ' + escAttr(e.message) + '</td></tr>';
       }
