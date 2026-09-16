@@ -90,28 +90,38 @@
         <!-- Shift Type -->
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700">Is this Regular Shift or OT? <span class="text-red-500">*</span></h3>
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Regular Shift</span>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Regular Shift</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Overtime</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Overtime</span>
+              </div>
             </label>
           </div>
-          <div id="otTypeContainer" class="hidden mt-3 ml-7 space-y-2">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="otType" value="Pre-Shift OT" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-700">Pre-Shift</span>
+          <div id="otTypeContainer" class="hidden mt-3 grid grid-cols-3 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="otType" value="Pre-Shift OT" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Pre-Shift</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="otType" value="Post-Shift OT" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-700">Post-Shift</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="otType" value="Post-Shift OT" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Post-Shift</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="otType" value="RD OT" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-700">RD OT</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="otType" value="RD OT" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">RD OT</span>
+              </div>
             </label>
           </div>
         </div>
@@ -119,18 +129,24 @@
         <!-- Interval Activity -->
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700">Activity for this interval? <span class="text-red-500">*</span></h3>
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Normal Production</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Normal Production</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Break/Lunch</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Break/Lunch</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Coaching/Training</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Coaching/Training</span>
+              </div>
             </label>
           </div>
         </div>
@@ -139,25 +155,35 @@
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700">Email Cases type <span class="text-red-500">*</span></h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Regular Email (Take Next)" required class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Regular (Take Next)</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Regular (Take Next)</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Reopened Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Reopened Cases</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Reopened Cases</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Telus Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Telus Cases</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Telus Cases</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Manual Assignment" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Manual Assignment</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Manual Assignment</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Cimba Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Cimba Cases</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Cimba Cases</span>
+              </div>
             </label>
           </div>
         </div>
@@ -413,6 +439,60 @@ function refreshAccess() {
         .clearAccessCache();
     }
 
+    // --- LOCAL STORAGE HELPERS ---
+    function saveSelections() {
+      const shiftType = document.querySelector('input[name="shiftType"]:checked');
+      if (shiftType) localStorage.setItem('savedShiftType', shiftType.value);
+
+      const otType = document.querySelector('input[name="otType"]:checked');
+      if (otType) {
+        localStorage.setItem('savedOtType', otType.value);
+      } else {
+        localStorage.removeItem('savedOtType'); // Clear if none selected or not OT
+      }
+
+      const intervalActivity = document.querySelector('input[name="intervalActivity"]:checked');
+      if (intervalActivity) localStorage.setItem('savedIntervalActivity', intervalActivity.value);
+
+      const caseType = document.querySelector('input[name="caseType"]:checked');
+      if (caseType) localStorage.setItem('savedCaseType', caseType.value);
+    }
+
+    function loadSelections() {
+      const savedShiftType = localStorage.getItem('savedShiftType');
+      if (savedShiftType) {
+        const input = document.querySelector(`input[name="shiftType"][value="${savedShiftType}"]`);
+        if (input) {
+          input.checked = true;
+          handleShiftTypeChange(); // Triggers UI update
+        }
+      }
+
+      // Load OT type if shift type was Overtime
+      if (savedShiftType === 'Overtime') {
+        const savedOtType = localStorage.getItem('savedOtType');
+        if (savedOtType) {
+          const input = document.querySelector(`input[name="otType"][value="${savedOtType}"]`);
+          if (input) input.checked = true;
+        }
+      }
+
+      const savedIntervalActivity = localStorage.getItem('savedIntervalActivity');
+      if (savedIntervalActivity) {
+        const input = document.querySelector(`input[name="intervalActivity"][value="${savedIntervalActivity}"]`);
+        if (input) {
+          input.checked = true;
+          handleActivityChange(); // Triggers UI update
+        }
+      }
+
+      const savedCaseType = localStorage.getItem('savedCaseType');
+      if (savedCaseType) {
+        const input = document.querySelector(`input[name="caseType"][value="${savedCaseType}"]`);
+        if (input) input.checked = true;
+      }
+    }
+
     // 1. App Initialization (Run on load)
     document.addEventListener("DOMContentLoaded", function() {
       // Call backend to get role and LDAP
@@ -420,6 +500,9 @@ function refreshAccess() {
         .withSuccessHandler(initializeUserUI)
         .withFailureHandler(function(err){ console.error("Failed to load profile", err); })
         .getUserProfile();
+
+      // Load user preferences from local storage
+      loadSelections();
     });
 
     // 2. Setup UI based on profile
@@ -539,6 +622,19 @@ function refreshAccess() {
       const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
       const caseIdsText = document.getElementById('caseIds').value;
       
+      // Strict Frontend Case ID Validation
+      if (activity !== 'Coaching/Training' && caseIdsText.trim() !== '') {
+        let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
+        const CASE_ID_PATTERN = /^\d-\d{7,14}$/;
+        let invalidIds = rawIds.filter(id => !CASE_ID_PATTERN.test(id));
+
+        if (invalidIds.length > 0) {
+          document.getElementById('caseIds').focus();
+          showToast(`Invalid Case ID format detected: ${invalidIds.slice(0, 3).join(', ')}${invalidIds.length > 3 ? '...' : ''}. Format must be like 1-12345678`, 'error');
+          return;
+        }
+      }
+
       if (activity === 'Break/Lunch') {
         let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
         let uniqueIds = [...new Set(rawIds)];
