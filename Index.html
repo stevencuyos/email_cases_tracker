@@ -44,9 +44,14 @@
         <h1 class="text-xl font-normal text-gray-700">Case Tracker</h1>
       </div>
 
-      <!-- Identity Chip -->
-      <div id="identityChip" class="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 animate-pulse">
-        <span class="text-sm text-gray-500">Loading profile...</span>
+      <div class="flex items-center gap-3">
+        <button onclick="refreshAccess()" title="Refresh my access/role" class="text-gray-400 hover:text-blue-600 transition p-1">
+          <span class="material-symbols-outlined text-[20px]">sync</span>
+        </button>
+        <!-- Identity Chip -->
+        <div id="identityChip" class="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 animate-pulse">
+          <span class="text-sm text-gray-500">Loading profile...</span>
+        </div>
       </div>
 
     </div>
@@ -87,12 +92,26 @@
           <h3 class="text-sm font-medium mb-3 text-gray-700">Is this Regular Shift or OT? <span class="text-red-500">*</span></h3>
           <div class="space-y-3">
             <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Regular Shift" required class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+              <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
               <span class="text-sm text-gray-800">Regular Shift</span>
             </label>
             <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Overtime" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+              <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
               <span class="text-sm text-gray-800">Overtime</span>
+            </label>
+          </div>
+          <div id="otTypeContainer" class="hidden mt-3 ml-7 space-y-2">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="otType" value="Pre-Shift OT" class="w-4 h-4 text-blue-600">
+              <span class="text-sm text-gray-700">Pre-Shift</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="otType" value="Post-Shift OT" class="w-4 h-4 text-blue-600">
+              <span class="text-sm text-gray-700">Post-Shift</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="otType" value="RD OT" class="w-4 h-4 text-blue-600">
+              <span class="text-sm text-gray-700">RD OT</span>
             </label>
           </div>
         </div>
@@ -151,7 +170,7 @@
 
         <!-- Action Footer -->
         <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-          <button type="button" onclick="document.getElementById('trackerForm').reset()" class="text-sm font-medium text-gray-500 hover:text-gray-800 px-4 py-2 rounded transition">
+                    <button type="button" onclick="document.getElementById('trackerForm').reset(); handleShiftTypeChange();" class="text-sm font-medium text-gray-500 hover:text-gray-800 px-4 py-2 rounded transition">
             Clear form
           </button>
           <button type="submit" id="submitBtn" class="google-blue text-white font-medium text-sm px-6 py-2.5 rounded shadow hover:bg-[#1557b0] transition flex items-center gap-2">
@@ -265,7 +284,7 @@
     </div>
 
     <!-- VIEW 3: Interval Management -->
-    <div id="intervalView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12">
+    <div id="intervalView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12">
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         
         <!-- Controls Header -->
@@ -311,24 +330,43 @@
               <span class="material-symbols-outlined text-[18px]">content_copy</span>
               Copy Report
             </button>
+            <button onclick="copyChatReport()" id="copyChatReportBtn" class="bg-white border border-gray-300 text-gray-700 font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-gray-50 transition flex items-center gap-2 hidden">
+              <span class="material-symbols-outlined text-[18px]">chat</span>
+              Copy Chat Report
+            </button>
+          </div>
+          <div class="ml-auto relative">
+            <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
+            <input type="text" id="intervalFilterInput" oninput="applyIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-9 pr-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-56">
           </div>
         </div>
 
-        <!-- Interval Table -->
-        <div class="overflow-x-auto">
+        <!-- Summary Stats Bar -->
+        <div id="intervalSummaryBar" class="hidden px-6 py-3 border-b border-gray-100 bg-gray-50/60 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-600">
+          <span><span class="font-semibold text-gray-800" id="summaryTotalAgents">0</span> agents scheduled</span>
+          <span><span class="font-semibold text-amber-600" id="summarySkipCount">0</span> flagged (SOS/EOS skip)</span>
+          <span><span class="font-semibold text-purple-700" id="summaryOtCount">0</span> on OT</span>
+          <span><span class="font-semibold text-green-700" id="summaryTotalCases">0</span> total cases logged</span>
+        </div>
+
+        <!-- Interval Table (scrollable body, frozen header) -->
+        <div class="overflow-auto" style="max-height: 65vh;">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-gray-800 text-white text-xs tracking-wider">
-                <th class="p-3 font-medium">LDAP</th>
-                <th class="p-3 font-medium text-center">SOS</th>
-                <th class="p-3 font-medium text-center">EOS</th>
-                <th class="p-3 font-medium text-center">Site</th>
-                <th class="p-3 font-medium text-center">Status</th>
-                <th class="p-3 font-medium text-center">Cases Logged</th>
+                <th class="p-3 font-medium sticky top-0 z-10 bg-gray-800">LDAP</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">SOS</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">EOS</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Site</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Status</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Regular / Telus / Cimba</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Manual Assignment</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Reopened Cases</th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Total</th>
               </tr>
             </thead>
             <tbody id="intervalTableBody" class="text-sm divide-y divide-gray-200">
-              <tr><td colspan="6" class="p-8 text-center text-gray-400">Select a date and time to load the interval.</td></tr>
+              <tr><td colspan="9" class="p-8 text-center text-gray-400">Select a date and time to load the interval.</td></tr>
             </tbody>
           </table>
         </div>
@@ -366,6 +404,14 @@
       }).join(', ');
     }
     // ----------------------------------------------
+
+function refreshAccess() {
+      showToast("Refreshing access...", "success");
+      google.script.run
+        .withSuccessHandler(() => location.reload())
+        .withFailureHandler(() => showToast("Failed to refresh. Try again.", "error"))
+        .clearAccessCache();
+    }
 
     // 1. App Initialization (Run on load)
     document.addEventListener("DOMContentLoaded", function() {
@@ -449,8 +495,11 @@
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
       if(viewId === 'intervalView' && !document.getElementById('intervalDate').value) {
-         // Auto-fill today's date if empty
-         document.getElementById('intervalDate').valueAsDate = new Date();
+         // Auto-fill today's date and current hour, then auto-load
+         const now = new Date();
+         document.getElementById('intervalDate').valueAsDate = now;
+         document.getElementById('intervalHour').value = now.getHours() + ':00';
+         loadIntervalData();
       }
     }
 
@@ -458,7 +507,11 @@
     function handleActivityChange() {
       const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
       const caseIdsTextarea = document.getElementById('caseIds');
-      
+      const caseTypeInputs = document.querySelectorAll('input[name="caseType"]');
+      const isNormalProduction = activity === 'Normal Production';
+
+      caseTypeInputs.forEach(input => input.required = isNormalProduction);
+
       if (activity === 'Coaching/Training') {
         caseIdsTextarea.disabled = true;
         caseIdsTextarea.required = false;
@@ -466,9 +519,18 @@
         caseIdsTextarea.value = '';
       } else {
         caseIdsTextarea.disabled = false;
-        caseIdsTextarea.required = true;
+        caseIdsTextarea.required = isNormalProduction;
         caseIdsTextarea.classList.remove('bg-gray-100', 'cursor-not-allowed');
       }
+    }
+
+    function handleShiftTypeChange() {
+      const isOT = document.querySelector('input[name="shiftType"]:checked').value === 'Overtime';
+      const otContainer = document.getElementById('otTypeContainer');
+      const otInputs = otContainer.querySelectorAll('input[name="otType"]');
+      otContainer.classList.toggle('hidden', !isOT);
+      otInputs.forEach(input => input.required = isOT);
+      if (!isOT) otInputs.forEach(input => input.checked = false);
     }
 
     function handleFormSubmit(event) {
@@ -480,8 +542,8 @@
       if (activity === 'Break/Lunch') {
         let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
         let uniqueIds = [...new Set(rawIds)];
-        if (uniqueIds.length < 3) {
-          showToast("You must track at least 3 case IDs during a Break/Lunch interval.", 'warning');
+        if (uniqueIds.length > 0 && uniqueIds.length < 3) {
+          showToast("If tracking cases during Break/Lunch, you must log at least 3 case IDs.", 'warning');
           return;
         }
       }
@@ -494,8 +556,10 @@
       btn.classList.add('opacity-75', 'cursor-not-allowed');
       spinner.classList.remove('hidden');
 
+      const otTypeChecked = document.querySelector('input[name="otType"]:checked');
       const payload = {
         shiftType: document.querySelector('input[name="shiftType"]:checked').value,
+        otType: otTypeChecked ? otTypeChecked.value : '',
         caseType: document.querySelector('input[name="caseType"]:checked') ? document.querySelector('input[name="caseType"]:checked').value : 'N/A',
         intervalActivity: activity,
         caseIdsText: caseIdsText
@@ -507,12 +571,15 @@
           resetButton(btn, spinner);
           
           if (response.success) {
-            if (response.flagged > 0) {
+            if (response.rejected > 0) {
+              showToast(`${response.rejected} invalid ID(s) skipped. ${response.valid} valid cases logged${response.flagged > 0 ? `, ${response.flagged} flagged` : ''}.`, 'warning');
+            } else if (response.flagged > 0) {
               showToast(`Warning: ${response.flagged} duplicate(s) flagged. ${response.valid} valid cases logged.`, 'warning');
             } else {
               showToast(`Success! ${response.valid} cases securely logged.`, 'success');
             }
             document.getElementById('trackerForm').reset();
+            handleShiftTypeChange();
           } else {
             showToast(response.error, 'error');
           }
@@ -766,52 +833,96 @@
         .getIntervalData(formattedDate, timeVal);
     }
 
+    let allIntervalAgents = [];
+
     function renderIntervalTable(agents) {
-      const tbody = document.getElementById('intervalTableBody');
-      const copyBtn = document.getElementById('copyReportBtn'); // Grabs the button
-      
-      if (agents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">No agents scheduled for this interval.</td></tr>';
-        copyBtn.classList.add('hidden'); // Hide if empty
+      allIntervalAgents = agents;
+      const filterInput = document.getElementById('intervalFilterInput');
+      if (filterInput) filterInput.value = '';
+      renderIntervalRows(agents);
+    }
+
+    function applyIntervalFilter() {
+      const q = document.getElementById('intervalFilterInput').value.trim().toLowerCase();
+      if (!q) {
+        renderIntervalRows(allIntervalAgents);
         return;
       }
-      
-      copyBtn.classList.remove('hidden'); // Unhide if data exists
-      
-      tbody.innerHTML = agents.map(a => `
-        <tr class="hover:bg-gray-50 transition ${a.isOT ? 'bg-amber-50/30' : ''}">
-          <td class="p-3">
-            <div class="flex items-center gap-2">
-              ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200', 50)}
-              <span class="font-medium text-blue-600">${a.ldap}</span>
-              ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
-            </div>
-          </td>
-          <td class="p-3 text-center text-gray-600">${a.sos}</td>
-          <td class="p-3 text-center text-gray-600">${a.eos}</td>
-          <td class="p-3 text-center text-gray-600">${a.site}</td>
-          <td class="p-3 text-center">
-            <!-- Dynamic Status Dropdown -->
-            <select onchange="updateStatusColor(this)" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors bg-white text-gray-700">
-              <option value="" class="bg-white text-gray-800" ${a.computedStatus === '' ? 'selected' : ''}></option>
-              <option value="Assigned - 7" class="bg-white text-gray-800" ${a.computedStatus === 'Assigned - 7' ? 'selected' : ''}>Assigned - 7</option>
-              <option value="Break - 3" class="bg-white text-gray-800" ${a.computedStatus === 'Break - 3' ? 'selected' : ''}>Break - 3</option>
-              <option value="VL/SL" class="bg-white text-gray-800" ${a.computedStatus === 'VL/SL' ? 'selected' : ''}>VL/SL</option>
-              <option value="on Live Channel" class="bg-white text-gray-800" ${a.computedStatus === 'on Live Channel' ? 'selected' : ''}>on Live Channel</option>
-              <option value="SKIP - EOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP - EOS' ? 'selected' : ''}>SKIP - EOS</option>
-              <option value="SKIP SOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP SOS' ? 'selected' : ''}>SKIP SOS</option>
-              <option value="Absent" class="bg-white text-gray-800" ${a.computedStatus === 'Absent' ? 'selected' : ''}>Absent</option>
-              <option value="on Coaching/Training" class="bg-white text-gray-800" ${a.computedStatus === 'on Coaching/Training' ? 'selected' : ''}>on Coaching/Training</option>
-              <option value="Closing Reopens" class="bg-white text-gray-800" ${a.computedStatus === 'Closing Reopens' ? 'selected' : ''}>Closing Reopens</option>
-            </select>
-          </td>
-          <td class="p-3 text-center font-medium ${a.casesLogged > 0 ? 'text-green-600' : 'text-gray-400'}">${a.casesLogged}</td>
-        </tr>
-      `).join('');
-      
+      const filtered = allIntervalAgents.filter(a =>
+        a.ldap.toLowerCase().includes(q) || (a.site || '').toLowerCase().includes(q)
+      );
+      renderIntervalRows(filtered);
+    }
+
+    function renderIntervalRows(agents) {
+      const tbody = document.getElementById('intervalTableBody');
+      const copyBtn = document.getElementById('copyReportBtn');
+      const summaryBar = document.getElementById('intervalSummaryBar');
+
+      if (allIntervalAgents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">No agents scheduled for this interval.</td></tr>';
+        copyBtn.classList.add('hidden');
+        document.getElementById('copyChatReportBtn').classList.add('hidden');
+        summaryBar.classList.add('hidden');
+        return;
+      }
+
+      if (agents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">No agents match your filter.</td></tr>';
+      } else {
+        tbody.innerHTML = agents.map(a => `
+          <tr class="hover:bg-gray-50 transition ${a.isOT ? 'bg-amber-50/30' : ''}">
+            <td class="p-3">
+              <div class="flex items-center gap-2">
+                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200', 50)}
+                <span class="font-medium text-blue-600">${a.ldap}</span>
+                ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
+              </div>
+            </td>
+            <td class="p-3 text-center text-gray-600">${a.sos}</td>
+            <td class="p-3 text-center text-gray-600">${a.eos}</td>
+            <td class="p-3 text-center text-gray-600">${a.site}</td>
+            <td class="p-3 text-center">
+              <!-- Dynamic Status Dropdown -->
+              <select onchange="updateStatusColor(this)" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors bg-white text-gray-700">
+                <option value="" class="bg-white text-gray-800" ${a.computedStatus === '' ? 'selected' : ''}></option>
+                <option value="Assigned - 7" class="bg-white text-gray-800" ${a.computedStatus === 'Assigned - 7' ? 'selected' : ''}>Assigned - 7</option>
+                <option value="Break - 3" class="bg-white text-gray-800" ${a.computedStatus === 'Break - 3' ? 'selected' : ''}>Break - 3</option>
+                <option value="VL/SL" class="bg-white text-gray-800" ${a.computedStatus === 'VL/SL' ? 'selected' : ''}>VL/SL</option>
+                <option value="on Live Channel" class="bg-white text-gray-800" ${a.computedStatus === 'on Live Channel' ? 'selected' : ''}>on Live Channel</option>
+                <option value="SKIP - EOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP - EOS' ? 'selected' : ''}>SKIP - EOS</option>
+                <option value="SKIP SOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP SOS' ? 'selected' : ''}>SKIP SOS</option>
+                <option value="Absent" class="bg-white text-gray-800" ${a.computedStatus === 'Absent' ? 'selected' : ''}>Absent</option>
+                <option value="on Coaching/Training" class="bg-white text-gray-800" ${a.computedStatus === 'on Coaching/Training' ? 'selected' : ''}>on Coaching/Training</option>
+                <option value="Closing Reopens" class="bg-white text-gray-800" ${a.computedStatus === 'Closing Reopens' ? 'selected' : ''}>Closing Reopens</option>
+              </select>
+            </td>
+            <td class="p-3 text-center font-medium ${a.regularCount > 0 ? 'text-blue-600' : 'text-gray-400'}">${a.regularCount}</td>
+            <td class="p-3 text-center font-medium ${a.manualCount > 0 ? 'text-purple-600' : 'text-gray-400'}">${a.manualCount}</td>
+            <td class="p-3 text-center font-medium ${a.reopenedCount > 0 ? 'text-teal-600' : 'text-gray-400'}">${a.reopenedCount}</td>
+            <td class="p-3 text-center font-semibold ${a.casesLogged > 0 ? 'text-green-600' : 'text-gray-400'}">${a.casesLogged}</td>
+          </tr>
+        `).join('');
+      }
+
+      copyBtn.classList.remove('hidden');
+      document.getElementById('copyChatReportBtn').classList.remove('hidden');
+
       // Update colors for dynamically selected statuses
       const selects = tbody.querySelectorAll('select');
       selects.forEach(select => updateStatusColor(select));
+
+      // Summary bar always reflects the full (unfiltered) interval, not the filtered view
+      const totalAgents = allIntervalAgents.length;
+      const skipCount = allIntervalAgents.filter(a => a.computedStatus === 'SKIP - EOS' || a.computedStatus === 'SKIP SOS').length;
+      const otCount = allIntervalAgents.filter(a => a.isOT).length;
+      const totalCases = allIntervalAgents.reduce((sum, a) => sum + (a.casesLogged || 0), 0);
+
+      document.getElementById('summaryTotalAgents').textContent = totalAgents;
+      document.getElementById('summarySkipCount').textContent = skipCount;
+      document.getElementById('summaryOtCount').textContent = otCount;
+      document.getElementById('summaryTotalCases').textContent = totalCases;
+      summaryBar.classList.remove('hidden');
     }
     // --- STATUS DROPDOWN COLOR HELPER ---
     function updateStatusColor(selectElement) {
@@ -843,11 +954,11 @@
       
       // Build the text using Tab spacing (\t) so it pastes perfectly into Sheets/Chat
       let reportText = `Interval Report: ${dateVal} | ${timeVal}\n\n`;
-      reportText += `LDAP\tSOS\tEOS\tSite\tStatus\tCases Logged\n`; 
+      reportText += `LDAP\tSOS\tEOS\tSite\tStatus\tRegular/Telus/Cimba\tManual Assignment\tReopened Cases\tTotal\n`; 
 
       rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        if(cells.length === 6) {
+        if(cells.length === 9) {
           // Clean up the LDAP text (removes the visual 'OT' tag if present)
           const ldap = cells[0].innerText.replace('OT', '').trim(); 
           const sos = cells[1].innerText.trim();
@@ -858,15 +969,55 @@
           const statusSelect = cells[4].querySelector('select');
           const status = statusSelect ? statusSelect.value : '';
           
-          const cases = cells[5].innerText.trim();
+          const regular = cells[5].innerText.trim();
+          const manual = cells[6].innerText.trim();
+          const reopened = cells[7].innerText.trim();
+          const total = cells[8].innerText.trim();
           
-          reportText += `${ldap}\t${sos}\t${eos}\t${site}\t${status}\t${cases}\n`;
+          reportText += `${ldap}\t${sos}\t${eos}\t${site}\t${status}\t${regular}\t${manual}\t${reopened}\t${total}\n`;
         }
       });
 
       // Write to the user's clipboard
       navigator.clipboard.writeText(reportText).then(() => {
         showToast("Report copied to clipboard!", "success");
+      }).catch(err => {
+        showToast("Failed to copy. Please copy manually.", "error");
+      });
+    }
+
+    function copyChatReport() {
+      const timeSelect = document.getElementById('intervalHour');
+      const timeVal = timeSelect.options[timeSelect.selectedIndex].text;
+
+      function caseTypeLabel(a) {
+        const parts = [];
+        if (a.regularCount > 0) parts.push('Regular/Take Next');
+        if (a.manualCount > 0) parts.push('Manual Assignment');
+        if (a.reopenedCount > 0) parts.push('Reopens');
+        return parts.join(' + ');
+      }
+
+      function lineFor(a) {
+        if (a.activityLogged === 'Coaching/Training') {
+          return `${a.ldap} - Coaching/Training`;
+        }
+        if (a.activityLogged === 'Break/Lunch') {
+          return `${a.ldap} - ${a.casesLogged} cases, Break`;
+        }
+        if (a.computedStatus === 'SKIP SOS' || a.computedStatus === 'SKIP - EOS') {
+          return `${a.ldap} - ${a.computedStatus}`;
+        }
+        const label = caseTypeLabel(a) || 'No cases logged';
+        const otTag = a.isOT ? ` (${a.otType || 'OT'})` : '';
+        return `${a.ldap} - ${a.casesLogged} cases, ${label}${otTag}`;
+      }
+
+      let reportText = `Report for ${timeVal} Interval\n\n`;
+      reportText += allIntervalAgents.map(a => `* ${lineFor(a)}`).join('\n');
+
+      navigator.clipboard.writeText(reportText).then(() => {
+        showToast("Chat report copied to clipboard!", "success");
       }).catch(err => {
         showToast("Failed to copy. Please copy manually.", "error");
       });
