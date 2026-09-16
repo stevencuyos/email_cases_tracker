@@ -349,31 +349,43 @@ function resolveAuditsBulk(auditsToProcess, resolution) {
     const auditSheet = ss.getSheetByName('Audit Queue');
     const rawSheet = ss.getSheetByName('Raw_Cases');
 
+    // To avoid timeouts with many API calls, we could fetch all data and write back,
+    // but these are sparse updates. Using a RangeList for simple status updates helps,
+    // though we still need to calculate math for approvals.
+
+    // We'll organize updates by row to minimize calls.
+    const auditUpdates = []; // {row, status, resolution}
+    const rawUpdates = [];   // {row, valid, flagged, note}
+
     for (const audit of auditsToProcess) {
       const { auditRow, rawRowRef } = audit;
 
       if (resolution === 'Approve') {
-        auditSheet.getRange(auditRow, 1).setValue("🟢 APPROVED");
-        auditSheet.getRange(auditRow, 9).setValue("Approved");
+        auditUpdates.push({ row: auditRow, col1: "🟢 APPROVED", col9: "Approved" });
 
-        // Fetch Valid (Col 12) and Flagged (Col 13)
+        // Need to read current values to do the math for Approve
+        // It's still a read per row, but we can do it quickly.
         const validCount = rawSheet.getRange(rawRowRef, 12).getValue();
         const flaggedCount = rawSheet.getRange(rawRowRef, 13).getValue();
-
-        rawSheet.getRange(rawRowRef, 12).setValue(validCount + flaggedCount); // Update Valid
-        rawSheet.getRange(rawRowRef, 13).setValue(0); // Zero out Flagged
-        rawSheet.getRange(rawRowRef, 15).setValue("✅ Resolved by Manager"); // Audit Notes
-
+        rawUpdates.push({ row: rawRowRef, col12: validCount + flaggedCount, col13: 0, col15: "✅ Resolved by Manager" });
       } else {
-        auditSheet.getRange(auditRow, 1).setValue("⚫ REJECTED");
-        auditSheet.getRange(auditRow, 9).setValue("Rejected");
-
-        // Zero out the flagged count on Reject so it drops off the pending metrics
-        rawSheet.getRange(rawRowRef, 13).setValue(0);
-
-        rawSheet.getRange(rawRowRef, 15).setValue("❌ Rejected by Manager (Duplicate/Fraud)");
+        auditUpdates.push({ row: auditRow, col1: "⚫ REJECTED", col9: "Rejected" });
+        rawUpdates.push({ row: rawRowRef, col12: null, col13: 0, col15: "❌ Rejected by Manager (Duplicate/Fraud)" });
       }
     }
+
+    // Apply updates efficiently
+    auditUpdates.forEach(u => {
+      auditSheet.getRange(u.row, 1).setValue(u.col1);
+      auditSheet.getRange(u.row, 9).setValue(u.col9);
+    });
+
+    rawUpdates.forEach(u => {
+      if (u.col12 !== null) rawSheet.getRange(u.row, 12).setValue(u.col12);
+      rawSheet.getRange(u.row, 13).setValue(u.col13);
+      rawSheet.getRange(u.row, 15).setValue(u.col15);
+    });
+
     return { success: true };
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
@@ -478,6 +490,125 @@ function getAllAgents() {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
     logError('getAllAgents', e.toString(), user);
     return [];
+  }
+}
+
+// --- 10. Fetch Analytics Data ---
+function getAnalyticsData(daysToFetch = 7) {
+  try {
+    requireManagerOrThrow();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+    const auditSheet = ss.getSheetByName('Audit Queue');
+
+    const now = new Date();
+    const todayStr = toDateStringFast(now);
+
+    // Create cutoff date based on requested range (00:00:00 of the target day)
+    const cutoffDate = new Date();
+    cutoffDate.setDate(now.getDate() - (daysToFetch - 1));
+    cutoffDate.setHours(0, 0, 0, 0);
+
+    let data = {
+      kpis: {
+        totalValidToday: 0,
+        pendingAudits: 0,
+        activeStaffToday: 0,
+        activeStaffThisHour: 0
+      },
+      heatmap: [], // Array of { name: 'Day', data: [{ x: 'Hour', y: count }] }
+      workflows: {},
+      sites: {},
+      leaderboard: {}
+    };
+
+    // 1. Pending Audits KPI
+    if (auditSheet && auditSheet.getLastRow() > 1) {
+      const auditData = auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 1).getValues();
+      data.kpis.pendingAudits = auditData.filter(r => String(r[0]).includes('PENDING')).length;
+    }
+
+    if (!rawSheet || rawSheet.getLastRow() <= 1) return data;
+
+    const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 12).getValues(); // Up to Col 11 (Valid)
+
+    // Format helpers
+    const currentHourStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "h:00 a");
+
+    let activeAgentsToday = new Set();
+    let activeAgentsThisHour = new Set();
+
+    // Heatmap structure prep
+    const heatmapDataMap = {}; // { '9/24/2026': { '9:00 AM': 10, ... } }
+
+    rawData.forEach(r => {
+      const rowDateObj = (r[RAW_COLS.DATE] instanceof Date) ? r[RAW_COLS.DATE] : new Date(r[RAW_COLS.DATE]);
+
+      // Only process data within the cutoff range
+      if (rowDateObj < cutoffDate) return;
+
+      const rowDateStr = toDateStringFast(rowDateObj);
+      const rowInterval = (r[RAW_COLS.INTERVAL] instanceof Date) ? Utilities.formatDate(r[RAW_COLS.INTERVAL], Session.getScriptTimeZone(), "h:00 a") : r[RAW_COLS.INTERVAL];
+      const agent = r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : 'unknown';
+      const site = r[RAW_COLS.SITE] || 'Unknown';
+      const workflow = r[RAW_COLS.CASE_TYPE] || 'Unknown';
+      const validCases = Number(r[RAW_COLS.VALID]) || 0;
+
+      // KPI: Today's Metrics
+      if (rowDateStr === todayStr && validCases > 0) {
+        data.kpis.totalValidToday += validCases;
+        activeAgentsToday.add(agent);
+        if (rowInterval === currentHourStr) {
+          activeAgentsThisHour.add(agent);
+        }
+      }
+
+      // Populate Heatmap Data
+      if (!heatmapDataMap[rowDateStr]) heatmapDataMap[rowDateStr] = {};
+      heatmapDataMap[rowDateStr][rowInterval] = (heatmapDataMap[rowDateStr][rowInterval] || 0) + validCases;
+
+      // Populate Donut (Workflows)
+      data.workflows[workflow] = (data.workflows[workflow] || 0) + validCases;
+
+      // Populate Bar Chart (Sites)
+      data.sites[site] = (data.sites[site] || 0) + validCases;
+
+      // Populate Leaderboard
+      if (validCases > 0) {
+        if (!data.leaderboard[agent]) data.leaderboard[agent] = 0;
+        data.leaderboard[agent] += validCases;
+      }
+    });
+
+    data.kpis.activeStaffToday = activeAgentsToday.size;
+    data.kpis.activeStaffThisHour = activeAgentsThisHour.size;
+
+    // Transform Heatmap data for ApexCharts
+    // Sort dates ascending
+    const sortedDates = Object.keys(heatmapDataMap).sort((a, b) => new Date(a) - new Date(b));
+    const allHours = ["12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM"];
+
+    // Reverse the dates so newest is on top of the Y-axis for standard heatmap look
+    sortedDates.reverse().forEach(dateStr => {
+      // Get a short friendly name (e.g. "Mon, Sep 24")
+      const d = new Date(dateStr);
+      const friendlyName = Utilities.formatDate(d, Session.getScriptTimeZone(), "EEE, MMM d");
+
+      const daySeries = { name: friendlyName, data: [] };
+      allHours.forEach(hour => {
+        daySeries.data.push({
+          x: hour,
+          y: heatmapDataMap[dateStr][hour] || 0
+        });
+      });
+      data.heatmap.push(daySeries);
+    });
+
+    return data;
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getAnalyticsData', e.toString(), user);
+    throw new Error("Unable to fetch analytics data. Check network and retry.");
   }
 }
 

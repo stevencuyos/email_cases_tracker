@@ -12,6 +12,9 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
+  <!-- ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
   <style>
     body { font-family: 'Roboto', sans-serif; background-color: #f8f9fa; }
     .google-blue { background-color: #1a73e8; }
@@ -70,6 +73,9 @@
         </button>
         <button onclick="switchTab('intervalView')" id="tab-intervalView" class="px-4 py-3 text-sm nav-inactive rounded-t-md transition-colors flex items-center gap-1">
           Interval View
+        </button>
+        <button onclick="switchTab('analyticsView')" id="tab-analyticsView" class="px-4 py-3 text-sm nav-inactive rounded-t-md transition-colors flex items-center gap-1">
+          Performance Analytics
         </button>
       </div>
     </div>
@@ -281,10 +287,10 @@
                 <th class="p-4 font-medium border-b border-gray-200 w-10">
                   <input type="checkbox" id="selectAllAudits" onchange="toggleAllAudits(this)" class="w-4 h-4 text-blue-600 rounded border-gray-300">
                 </th>
-                <th class="p-4 font-medium border-b border-gray-200">Agent</th>
-                <th class="p-4 font-medium border-b border-gray-200">Time / Type</th>
+                <th class="p-4 font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('auditTableBody', this, 1)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('auditTableBody', this, 2)"><div class="flex items-center gap-1">Time / Type <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 min-w-[180px]">Flagged IDs</th>
-                <th class="p-4 font-medium border-b border-gray-200">Reason</th>
+                <th class="p-4 font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('auditTableBody', this, 4)"><div class="flex items-center gap-1">Reason <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 text-right">Action</th>
               </tr>
             </thead>
@@ -406,6 +412,81 @@
               <tr><td colspan="9" class="p-8 text-center text-gray-400">Select a date and time to load the interval.</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: Performance Analytics -->
+    <div id="analyticsView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12">
+      <!-- Header Controls -->
+      <div class="flex justify-between items-end mb-2">
+        <div>
+          <h2 class="text-2xl font-normal text-gray-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">insights</span>
+            Performance Analytics
+          </h2>
+          <p class="text-sm text-gray-500 mt-1">Review operational output, workflows, and top performers.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <select id="analyticsDateRange" onchange="loadAnalytics()" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 bg-white">
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+          </select>
+          <button onclick="loadAnalytics()" class="bg-[#1a73e8] text-white font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">refresh</span> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 1: Executive KPI Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-center">
+          <span class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px] text-green-600">done_all</span> Total Valid (Today)
+          </span>
+          <span id="kpi-valid-today" class="text-4xl font-normal text-gray-800">--</span>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-center">
+          <span class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px] text-amber-500">pending_actions</span> Pending Audits
+          </span>
+          <span id="kpi-pending-audits" class="text-4xl font-normal text-gray-800">--</span>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-center">
+          <span class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px] text-blue-600">group</span> Active Staff (Today / Hr)
+          </span>
+          <span class="text-4xl font-normal text-gray-800">
+            <span id="kpi-staff-today">--</span> <span class="text-xl text-gray-400">/ <span id="kpi-staff-hour">--</span></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Row 2: Heatmap -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-base font-medium text-gray-700 mb-4">Hourly Productivity Heatmap</h3>
+        <div id="heatmapChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+      </div>
+
+      <!-- Row 3: Donut & Bar Charts -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 class="text-base font-medium text-gray-700 mb-4">Workflow Distribution</h3>
+          <div id="donutChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 class="text-base font-medium text-gray-700 mb-4">Site Throughput</h3>
+          <div id="barChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+        </div>
+      </div>
+
+      <!-- Row 4: Agent Leaderboard -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-base font-medium text-gray-700 mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#fbbc04]">social_leaderboard</span> Top Performers
+        </h3>
+        <div id="leaderboardContainer" class="space-y-4">
+          <div class="text-center text-gray-400 py-8">Loading leaderboard...</div>
         </div>
       </div>
     </div>
@@ -632,7 +713,7 @@ function refreshAccess() {
 
     // 3. Tab Switching Logic
     function switchTab(viewId) {
-      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView'].forEach(id => {
+      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView'].forEach(id => {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
@@ -647,6 +728,7 @@ function refreshAccess() {
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
       if(viewId === 'intervalView') loadIntervalData();
+      if(viewId === 'analyticsView') loadAnalytics();
     }
 
     // 4. Form Submission Logic
@@ -1236,6 +1318,133 @@ function refreshAccess() {
       else if (val === 'on Coaching/Training') selectElement.classList.add('bg-[#681da8]', 'text-white');
       else if (val === 'Closing Reopens') selectElement.classList.add('bg-[#5d4037]', 'text-white');
       else selectElement.classList.add('bg-white', 'text-gray-700');
+    }
+
+    // --- ANALYTICS LOGIC ---
+    let heatmapChartInstance = null;
+    let donutChartInstance = null;
+    let barChartInstance = null;
+
+    function loadAnalytics() {
+      const days = parseInt(document.getElementById('analyticsDateRange').value, 10);
+
+      // Visual loading state
+      document.getElementById('kpi-valid-today').innerText = '...';
+      document.getElementById('kpi-pending-audits').innerText = '...';
+      document.getElementById('kpi-staff-today').innerText = '...';
+      document.getElementById('kpi-staff-hour').innerText = '...';
+
+      google.script.run
+        .withSuccessHandler(renderAnalytics)
+        .withFailureHandler(err => showToast("Error loading analytics.", "error"))
+        .getAnalyticsData(days);
+    }
+
+    function renderAnalytics(data) {
+      // 1. Update KPIs
+      document.getElementById('kpi-valid-today').innerText = data.kpis.totalValidToday;
+      document.getElementById('kpi-pending-audits').innerText = data.kpis.pendingAudits;
+      document.getElementById('kpi-staff-today').innerText = data.kpis.activeStaffToday;
+      document.getElementById('kpi-staff-hour').innerText = data.kpis.activeStaffThisHour;
+
+      // 2. Render Heatmap
+      const heatmapOptions = {
+        series: data.heatmap,
+        chart: { height: 350, type: 'heatmap', toolbar: { show: false } },
+        dataLabels: { enabled: false },
+        colors: ["#1a73e8"],
+        title: { text: '' },
+        xaxis: { type: 'category' }
+      };
+
+      if (heatmapChartInstance) {
+        heatmapChartInstance.updateSeries(data.heatmap);
+      } else {
+        document.getElementById('heatmapChart').innerHTML = ''; // Clear loading text
+        heatmapChartInstance = new ApexCharts(document.querySelector("#heatmapChart"), heatmapOptions);
+        heatmapChartInstance.render();
+      }
+
+      // 3. Render Donut (Workflows)
+      const workflowLabels = Object.keys(data.workflows);
+      const workflowSeries = Object.values(data.workflows);
+      const donutOptions = {
+        series: workflowSeries,
+        labels: workflowLabels,
+        chart: { type: 'donut', height: 300 },
+        colors: ['#1a73e8', '#fbbc04', '#34a853', '#ea4335', '#9333ea'],
+        legend: { position: 'bottom' },
+        plotOptions: { pie: { donut: { size: '65%' } } }
+      };
+
+      if (donutChartInstance) {
+        donutChartInstance.updateOptions({ labels: workflowLabels });
+        donutChartInstance.updateSeries(workflowSeries);
+      } else {
+        document.getElementById('donutChart').innerHTML = '';
+        donutChartInstance = new ApexCharts(document.querySelector("#donutChart"), donutOptions);
+        donutChartInstance.render();
+      }
+
+      // 4. Render Bar Chart (Sites)
+      const siteLabels = Object.keys(data.sites);
+      const siteSeries = [{ name: 'Valid Cases', data: Object.values(data.sites) }];
+      const barOptions = {
+        series: siteSeries,
+        chart: { type: 'bar', height: 300, toolbar: { show: false } },
+        plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '45%' } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: siteLabels },
+        colors: ['#34a853']
+      };
+
+      if (barChartInstance) {
+        barChartInstance.updateOptions({ xaxis: { categories: siteLabels } });
+        barChartInstance.updateSeries(siteSeries);
+      } else {
+        document.getElementById('barChart').innerHTML = '';
+        barChartInstance = new ApexCharts(document.querySelector("#barChart"), barOptions);
+        barChartInstance.render();
+      }
+
+      // 5. Render Leaderboard
+      const leaderboardDiv = document.getElementById('leaderboardContainer');
+      const sortedAgents = Object.entries(data.leaderboard).sort((a, b) => b[1] - a[1]);
+
+      if (sortedAgents.length === 0) {
+        leaderboardDiv.innerHTML = '<div class="text-center text-gray-400 py-8">No data available for this range.</div>';
+        return;
+      }
+
+      const maxScore = sortedAgents[0][1];
+
+      leaderboardDiv.innerHTML = sortedAgents.map((entry, index) => {
+        const ldap = entry[0];
+        const score = entry[1];
+        const percentage = Math.max(5, (score / maxScore) * 100); // Minimum 5% width for visibility
+
+        let rankBadge = '';
+        if (index === 0) rankBadge = '<span class="w-6 h-6 rounded-full bg-[#fbbc04] text-white flex items-center justify-center text-xs font-bold shadow-sm">1</span>';
+        else if (index === 1) rankBadge = '<span class="w-6 h-6 rounded-full bg-gray-300 text-gray-700 flex items-center justify-center text-xs font-bold shadow-sm">2</span>';
+        else if (index === 2) rankBadge = '<span class="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">3</span>';
+        else rankBadge = `<span class="w-6 h-6 flex items-center justify-center text-xs font-medium text-gray-400">${index + 1}</span>`;
+
+        return `
+          <div class="flex items-center gap-4">
+            ${rankBadge}
+            ${getMomaImgClass(ldap, 'w-10 h-10 rounded-full border border-gray-200 object-cover', 100)}
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-end mb-1">
+                <span class="text-sm font-medium text-gray-800 truncate">${ldap}</span>
+                <span class="text-sm font-bold text-gray-800">${score}</span>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     // --- COPY REPORT LOGIC ---
