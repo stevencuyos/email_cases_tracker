@@ -157,31 +157,31 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label class="cursor-pointer">
               <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Regular (Take Next)</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Reopened Cases</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Telus Cases</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Manual Assignment</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Cimba Cases</span>
               </div>
             </label>
@@ -444,9 +444,27 @@
 
 function refreshAccess() {
       showToast("Refreshing access...", "success");
+
+      // Temporarily show loading state on the identity chip
+      const chip = document.getElementById('identityChip');
+      chip.classList.add('animate-pulse');
+      chip.innerHTML = `<span class="text-sm text-gray-500 py-1.5 px-2">Loading profile...</span>`;
+
       google.script.run
-        .withSuccessHandler(() => location.reload())
-        .withFailureHandler(() => showToast("Failed to refresh. Try again.", "error"))
+        .withSuccessHandler(() => {
+          // Instead of reloading, fetch the fresh profile and re-init the UI
+          google.script.run
+            .withSuccessHandler((profile) => {
+              initializeUserUI(profile);
+              showToast("Access refreshed successfully.", "success");
+            })
+            .withFailureHandler(() => showToast("Failed to load new profile.", "error"))
+            .getUserProfile();
+        })
+        .withFailureHandler(() => {
+          showToast("Failed to refresh. Try again.", "error");
+          chip.classList.remove('animate-pulse');
+        })
         .clearAccessCache();
     }
 
@@ -637,10 +655,15 @@ function refreshAccess() {
       const caseIdsTextarea = document.getElementById('caseIds');
       const caseTypeInputs = document.querySelectorAll('input[name="caseType"]');
       const isNormalProduction = activity === 'Normal Production';
+      const isCoaching = activity === 'Coaching/Training';
 
-      caseTypeInputs.forEach(input => input.required = isNormalProduction);
+      caseTypeInputs.forEach(input => {
+        input.required = isNormalProduction;
+        input.disabled = isCoaching; // Gray out case types during coaching
+        if (isCoaching) input.checked = false; // Uncheck them
+      });
 
-      if (activity === 'Coaching/Training') {
+      if (isCoaching) {
         caseIdsTextarea.disabled = true;
         caseIdsTextarea.required = false;
         caseIdsTextarea.classList.add('bg-gray-100', 'cursor-not-allowed');
