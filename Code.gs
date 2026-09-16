@@ -519,7 +519,9 @@ function getAnalyticsData(daysToFetch = 7) {
       heatmap: [], // Array of { name: 'Day', data: [{ x: 'Hour', y: count }] }
       workflows: {},
       sites: {},
-      leaderboard: {}
+      leaderboard: {},
+      otLeaderboard: {}, // { agent: validOTCases }
+      otTimelineMap: {}  // { "Date|Hour": validOTCases }
     };
 
     // 1. Pending Audits KPI
@@ -530,7 +532,8 @@ function getAnalyticsData(daysToFetch = 7) {
 
     if (!rawSheet || rawSheet.getLastRow() <= 1) return data;
 
-    const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 12).getValues(); // Up to Col 11 (Valid)
+    // Fetch up to Column 17 (OT Type is Col 16, Index 16. Valid is Col 11. Shift Type is Col 8)
+    const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 17).getValues();
 
     // Format helpers
     const currentHourStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "h:00 a");
@@ -552,6 +555,7 @@ function getAnalyticsData(daysToFetch = 7) {
       const agent = r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : 'unknown';
       const site = r[RAW_COLS.SITE] || 'Unknown';
       const workflow = r[RAW_COLS.CASE_TYPE] || 'Unknown';
+      const isOT = r[RAW_COLS.SHIFT_TYPE] === 'Overtime';
       const validCases = Number(r[RAW_COLS.VALID]) || 0;
 
       // KPI: Today's Metrics
@@ -573,10 +577,19 @@ function getAnalyticsData(daysToFetch = 7) {
       // Populate Bar Chart (Sites)
       data.sites[site] = (data.sites[site] || 0) + validCases;
 
-      // Populate Leaderboard
+      // Populate Leaderboards and OT
       if (validCases > 0) {
         if (!data.leaderboard[agent]) data.leaderboard[agent] = 0;
         data.leaderboard[agent] += validCases;
+
+        if (isOT) {
+          if (!data.otLeaderboard[agent]) data.otLeaderboard[agent] = 0;
+          data.otLeaderboard[agent] += validCases;
+
+          const otTimeKey = rowDateStr + "|" + rowInterval;
+          if (!data.otTimelineMap[otTimeKey]) data.otTimelineMap[otTimeKey] = 0;
+          data.otTimelineMap[otTimeKey] += validCases;
+        }
       }
     });
 
