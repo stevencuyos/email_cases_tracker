@@ -328,9 +328,18 @@ function getDashboardData() {
 
 // 6. Resolve Soft Audits (Approve/Reject)
 function resolveAudit(auditRow, rawRowRef, resolution) {
+  return resolveAuditsBulk([{ auditRow: auditRow, rawRowRef: rawRowRef }], resolution);
+}
+
+// 6b. Resolve Bulk Audits
+function resolveAuditsBulk(auditsToProcess, resolution) {
   const profile = getUserProfile();
   if (!profile.isManager) {
     return { success: false, error: "Access denied: manager permissions required." };
+  }
+
+  if (!auditsToProcess || auditsToProcess.length === 0) {
+    return { success: true }; // Nothing to do
   }
 
   const lock = LockService.getScriptLock();
@@ -340,32 +349,36 @@ function resolveAudit(auditRow, rawRowRef, resolution) {
     const auditSheet = ss.getSheetByName('Audit Queue');
     const rawSheet = ss.getSheetByName('Raw_Cases');
 
-    if (resolution === 'Approve') {
-      auditSheet.getRange(auditRow, 1).setValue("🟢 APPROVED");
-      auditSheet.getRange(auditRow, 9).setValue("Approved");
+    for (const audit of auditsToProcess) {
+      const { auditRow, rawRowRef } = audit;
 
-      // Fetch Valid (Col 12) and Flagged (Col 13)
-      const validCount = rawSheet.getRange(rawRowRef, 12).getValue();
-      const flaggedCount = rawSheet.getRange(rawRowRef, 13).getValue();
+      if (resolution === 'Approve') {
+        auditSheet.getRange(auditRow, 1).setValue("🟢 APPROVED");
+        auditSheet.getRange(auditRow, 9).setValue("Approved");
 
-      rawSheet.getRange(rawRowRef, 12).setValue(validCount + flaggedCount); // Update Valid
-      rawSheet.getRange(rawRowRef, 13).setValue(0); // Zero out Flagged
-      rawSheet.getRange(rawRowRef, 15).setValue("✅ Resolved by Manager"); // Audit Notes
+        // Fetch Valid (Col 12) and Flagged (Col 13)
+        const validCount = rawSheet.getRange(rawRowRef, 12).getValue();
+        const flaggedCount = rawSheet.getRange(rawRowRef, 13).getValue();
 
-    } else {
-      auditSheet.getRange(auditRow, 1).setValue("⚫ REJECTED");
-      auditSheet.getRange(auditRow, 9).setValue("Rejected");
-      
-      // FIXED: We must zero out the flagged count on Reject so it drops off the pending metrics!
-      rawSheet.getRange(rawRowRef, 13).setValue(0); 
-      
-      rawSheet.getRange(rawRowRef, 15).setValue("❌ Rejected by Manager (Duplicate/Fraud)");
+        rawSheet.getRange(rawRowRef, 12).setValue(validCount + flaggedCount); // Update Valid
+        rawSheet.getRange(rawRowRef, 13).setValue(0); // Zero out Flagged
+        rawSheet.getRange(rawRowRef, 15).setValue("✅ Resolved by Manager"); // Audit Notes
+
+      } else {
+        auditSheet.getRange(auditRow, 1).setValue("⚫ REJECTED");
+        auditSheet.getRange(auditRow, 9).setValue("Rejected");
+
+        // Zero out the flagged count on Reject so it drops off the pending metrics
+        rawSheet.getRange(rawRowRef, 13).setValue(0);
+
+        rawSheet.getRange(rawRowRef, 15).setValue("❌ Rejected by Manager (Duplicate/Fraud)");
+      }
     }
     return { success: true };
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
-    logError('resolveAudit', e.toString(), user);
-    return { success: false, error: "Failed to resolve audit. Please check your connection and try again." };
+    logError('resolveAuditsBulk', e.toString(), user);
+    return { success: false, error: "Failed to resolve audits. Please check your connection and try again." };
   } finally {
     lock.releaseLock();
   }

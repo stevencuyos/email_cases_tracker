@@ -90,28 +90,38 @@
         <!-- Shift Type -->
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700">Is this Regular Shift or OT? <span class="text-red-500">*</span></h3>
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Regular Shift</span>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Regular Shift</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Overtime</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Overtime</span>
+              </div>
             </label>
           </div>
-          <div id="otTypeContainer" class="hidden mt-3 ml-7 space-y-2">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="otType" value="Pre-Shift OT" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-700">Pre-Shift</span>
+          <div id="otTypeContainer" class="hidden mt-3 grid grid-cols-3 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="otType" value="Pre-Shift OT" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Pre-Shift</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="otType" value="Post-Shift OT" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-700">Post-Shift</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="otType" value="Post-Shift OT" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">Post-Shift</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="otType" value="RD OT" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-700">RD OT</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="otType" value="RD OT" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center">
+                <span class="text-sm font-medium">RD OT</span>
+              </div>
             </label>
           </div>
         </div>
@@ -119,18 +129,24 @@
         <!-- Interval Activity -->
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700">Activity for this interval? <span class="text-red-500">*</span></h3>
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Normal Production</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Normal Production</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Break/Lunch</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Break/Lunch</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange()" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-              <span class="text-sm text-gray-800">Coaching/Training</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Coaching/Training</span>
+              </div>
             </label>
           </div>
         </div>
@@ -139,25 +155,35 @@
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700">Email Cases type <span class="text-red-500">*</span></h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Regular Email (Take Next)" required class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Regular (Take Next)</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Regular (Take Next)</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Reopened Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Reopened Cases</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Reopened Cases</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Telus Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Telus Cases</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Telus Cases</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Manual Assignment" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Manual Assignment</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Manual Assignment</span>
+              </div>
             </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="radio" name="caseType" value="Cimba Cases" class="w-4 h-4 text-blue-600">
-              <span class="text-sm text-gray-800">Cimba Cases</span>
+            <label class="cursor-pointer">
+              <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections()" class="peer sr-only">
+              <div class="px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-disabled:bg-gray-100 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+                <span class="text-sm font-medium">Cimba Cases</span>
+              </div>
             </label>
           </div>
         </div>
@@ -197,7 +223,7 @@
               <input type="text" id="targetAgentLdap" list="agentList" placeholder="Agent LDAP" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500 w-36">
               <datalist id="agentList"></datalist>
             </div>
-            <input type="date" id="mySubmissionsDate" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
+            <input type="date" id="mySubmissionsDate" onchange="syncDateAcrossTabs('mySubmissionsDate')" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
             <button onclick="loadMySubmissions()" id="mySubmissionsSearchBtn" class="bg-[#1a73e8] text-white text-sm font-medium px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-1">
               <span class="material-symbols-outlined text-[18px]">search</span>
               Search
@@ -208,10 +234,10 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium border-b border-gray-200">Interval</th>
-                <th class="p-4 font-medium border-b border-gray-200">Activity</th>
-                <th class="p-4 font-medium border-b border-gray-200">Case Type</th>
-                <th class="p-4 font-medium border-b border-gray-200 text-center">Valid Count</th>
+                <th class="p-4 font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('mySubmissionsTableBody', this, 0)"><div class="flex items-center gap-1">Interval <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('mySubmissionsTableBody', this, 1)"><div class="flex items-center gap-1">Activity <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('mySubmissionsTableBody', this, 2)"><div class="flex items-center gap-1">Case Type <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 text-center cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('mySubmissionsTableBody', this, 3, true)"><div class="flex items-center justify-center gap-1">Valid Count <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 min-w-[250px]">Case IDs</th>
               </tr>
             </thead>
@@ -236,14 +262,25 @@
             </h2>
             <p class="text-sm text-gray-500 mt-1">Review flagged duplicate submissions.</p>
           </div>
-          <button onclick="loadDashboard()" class="text-gray-500 hover:text-blue-600 transition" title="Refresh Data">
-            <span class="material-symbols-outlined">refresh</span>
-          </button>
+          <div class="flex items-center gap-3">
+            <button onclick="handleBulkAudit('Approve')" class="hidden bg-green-50 text-green-700 border border-green-200 text-sm font-medium px-3 py-1.5 rounded hover:bg-green-100 transition items-center gap-1 bulk-audit-btn">
+              <span class="material-symbols-outlined text-[18px]">check</span> Approve Selected
+            </button>
+            <button onclick="handleBulkAudit('Reject')" class="hidden bg-red-50 text-red-700 border border-red-200 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-100 transition items-center gap-1 bulk-audit-btn">
+              <span class="material-symbols-outlined text-[18px]">close</span> Reject Selected
+            </button>
+            <button onclick="loadDashboard()" class="text-gray-500 hover:text-blue-600 transition p-1" title="Refresh Data">
+              <span class="material-symbols-outlined">refresh</span>
+            </button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                <th class="p-4 font-medium border-b border-gray-200 w-10">
+                  <input type="checkbox" id="selectAllAudits" onchange="toggleAllAudits(this)" class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                </th>
                 <th class="p-4 font-medium border-b border-gray-200">Agent</th>
                 <th class="p-4 font-medium border-b border-gray-200">Time / Type</th>
                 <th class="p-4 font-medium border-b border-gray-200 min-w-[180px]">Flagged IDs</th>
@@ -252,7 +289,7 @@
               </tr>
             </thead>
             <tbody id="auditTableBody" class="text-sm divide-y divide-gray-100">
-              <tr><td colspan="5" class="p-8 text-center text-gray-400">Loading audits...</td></tr>
+              <tr><td colspan="6" class="p-8 text-center text-gray-400">Loading audits...</td></tr>
             </tbody>
           </table>
         </div>
@@ -271,9 +308,9 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium border-b border-gray-200">Agent</th>
-                <th class="p-4 font-medium border-b border-gray-200 text-center">Valid Cases</th>
-                <th class="p-4 font-medium border-b border-gray-200 text-center">Pending Flags</th>
+                <th class="p-4 font-medium border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('metricsTableBody', this, 0)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 text-center cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('metricsTableBody', this, 1, true)"><div class="flex items-center justify-center gap-1">Valid Cases <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 text-center cursor-pointer hover:bg-gray-100 transition" onclick="sortTable('metricsTableBody', this, 2, true)"><div class="flex items-center justify-center gap-1">Pending Flags <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
               </tr>
             </thead>
             <tbody id="metricsTableBody" class="text-sm divide-y divide-gray-100">
@@ -291,7 +328,7 @@
         <div class="p-6 border-b border-gray-100 flex flex-wrap gap-4 items-end bg-blue-50/30">
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Select Date</label>
-            <input type="date" id="intervalDate" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
+            <input type="date" id="intervalDate" onchange="syncDateAcrossTabs('intervalDate')" class="p-2 border border-gray-300 rounded text-sm focus:ring-blue-500">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1">Select Interval Hour</label>
@@ -354,15 +391,15 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-gray-800 text-white text-xs tracking-wider">
-                <th class="p-3 font-medium sticky top-0 z-10 bg-gray-800">LDAP</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">SOS</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">EOS</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Site</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Status</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Regular / Telus / Cimba</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Manual Assignment</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Reopened Cases</th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800">Total</th>
+                <th class="p-3 font-medium sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 0)"><div class="flex items-center gap-1">LDAP <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center justify-center gap-1">SOS <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">EOS <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">Site <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Status <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 5, true)"><div class="flex items-center justify-center gap-1">Regular <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Manual <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Reopened <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 cursor-pointer hover:bg-gray-700 transition" onclick="sortTable('intervalTableBody', this, 8, true)"><div class="flex items-center justify-center gap-1">Total <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
               </tr>
             </thead>
             <tbody id="intervalTableBody" class="text-sm divide-y divide-gray-200">
@@ -407,10 +444,82 @@
 
 function refreshAccess() {
       showToast("Refreshing access...", "success");
+
+      // Temporarily show loading state on the identity chip
+      const chip = document.getElementById('identityChip');
+      chip.classList.add('animate-pulse');
+      chip.innerHTML = `<span class="text-sm text-gray-500 py-1.5 px-2">Loading profile...</span>`;
+
       google.script.run
-        .withSuccessHandler(() => location.reload())
-        .withFailureHandler(() => showToast("Failed to refresh. Try again.", "error"))
+        .withSuccessHandler(() => {
+          // Instead of reloading, fetch the fresh profile and re-init the UI
+          google.script.run
+            .withSuccessHandler((profile) => {
+              initializeUserUI(profile);
+              showToast("Access refreshed successfully.", "success");
+            })
+            .withFailureHandler(() => showToast("Failed to load new profile.", "error"))
+            .getUserProfile();
+        })
+        .withFailureHandler(() => {
+          showToast("Failed to refresh. Try again.", "error");
+          chip.classList.remove('animate-pulse');
+        })
         .clearAccessCache();
+    }
+
+    // --- LOCAL STORAGE HELPERS ---
+    function saveSelections() {
+      const shiftType = document.querySelector('input[name="shiftType"]:checked');
+      if (shiftType) localStorage.setItem('savedShiftType', shiftType.value);
+
+      const otType = document.querySelector('input[name="otType"]:checked');
+      if (otType) {
+        localStorage.setItem('savedOtType', otType.value);
+      } else {
+        localStorage.removeItem('savedOtType'); // Clear if none selected or not OT
+      }
+
+      const intervalActivity = document.querySelector('input[name="intervalActivity"]:checked');
+      if (intervalActivity) localStorage.setItem('savedIntervalActivity', intervalActivity.value);
+
+      const caseType = document.querySelector('input[name="caseType"]:checked');
+      if (caseType) localStorage.setItem('savedCaseType', caseType.value);
+    }
+
+    function loadSelections() {
+      const savedShiftType = localStorage.getItem('savedShiftType');
+      if (savedShiftType) {
+        const input = document.querySelector(`input[name="shiftType"][value="${savedShiftType}"]`);
+        if (input) {
+          input.checked = true;
+          handleShiftTypeChange(); // Triggers UI update
+        }
+      }
+
+      // Load OT type if shift type was Overtime
+      if (savedShiftType === 'Overtime') {
+        const savedOtType = localStorage.getItem('savedOtType');
+        if (savedOtType) {
+          const input = document.querySelector(`input[name="otType"][value="${savedOtType}"]`);
+          if (input) input.checked = true;
+        }
+      }
+
+      const savedIntervalActivity = localStorage.getItem('savedIntervalActivity');
+      if (savedIntervalActivity) {
+        const input = document.querySelector(`input[name="intervalActivity"][value="${savedIntervalActivity}"]`);
+        if (input) {
+          input.checked = true;
+          handleActivityChange(); // Triggers UI update
+        }
+      }
+
+      const savedCaseType = localStorage.getItem('savedCaseType');
+      if (savedCaseType) {
+        const input = document.querySelector(`input[name="caseType"][value="${savedCaseType}"]`);
+        if (input) input.checked = true;
+      }
     }
 
     // 1. App Initialization (Run on load)
@@ -420,6 +529,10 @@ function refreshAccess() {
         .withSuccessHandler(initializeUserUI)
         .withFailureHandler(function(err){ console.error("Failed to load profile", err); })
         .getUserProfile();
+
+      // Load user preferences from local storage
+      loadSelections();
+      loadSharedDate();
     });
 
     // 2. Setup UI based on profile
@@ -478,6 +591,45 @@ function refreshAccess() {
       }
     }
 
+    // --- DATE SYNC HELPERS ---
+    function syncDateAcrossTabs(sourceElementId) {
+      const sourceDate = document.getElementById(sourceElementId).value;
+      if (!sourceDate) return;
+
+      localStorage.setItem('sharedManagerDate', sourceDate);
+
+      // Sync to the other input
+      const otherElementId = sourceElementId === 'intervalDate' ? 'mySubmissionsDate' : 'intervalDate';
+      const otherElement = document.getElementById(otherElementId);
+      if (otherElement && otherElement.value !== sourceDate) {
+        otherElement.value = sourceDate;
+      }
+    }
+
+    function loadSharedDate() {
+      const savedDate = localStorage.getItem('sharedManagerDate');
+      const now = new Date();
+
+      const intervalDateEl = document.getElementById('intervalDate');
+      const mySubmissionsDateEl = document.getElementById('mySubmissionsDate');
+
+      if (savedDate) {
+        if (intervalDateEl) intervalDateEl.value = savedDate;
+        if (mySubmissionsDateEl) mySubmissionsDateEl.value = savedDate;
+      } else {
+        // Default to today if nothing saved
+        if (intervalDateEl) intervalDateEl.valueAsDate = now;
+        if (mySubmissionsDateEl) mySubmissionsDateEl.valueAsDate = now;
+      }
+
+      // Auto-set the interval hour to current hour once on load
+      const intervalHourEl = document.getElementById('intervalHour');
+      if (intervalHourEl && !intervalHourEl.dataset.initialized) {
+        intervalHourEl.value = now.getHours() + ':00';
+        intervalHourEl.dataset.initialized = 'true';
+      }
+    }
+
     // 3. Tab Switching Logic
     function switchTab(viewId) {
       ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView'].forEach(id => {
@@ -494,13 +646,7 @@ function refreshAccess() {
       
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
-      if(viewId === 'intervalView' && !document.getElementById('intervalDate').value) {
-         // Auto-fill today's date and current hour, then auto-load
-         const now = new Date();
-         document.getElementById('intervalDate').valueAsDate = now;
-         document.getElementById('intervalHour').value = now.getHours() + ':00';
-         loadIntervalData();
-      }
+      if(viewId === 'intervalView') loadIntervalData();
     }
 
     // 4. Form Submission Logic
@@ -509,10 +655,15 @@ function refreshAccess() {
       const caseIdsTextarea = document.getElementById('caseIds');
       const caseTypeInputs = document.querySelectorAll('input[name="caseType"]');
       const isNormalProduction = activity === 'Normal Production';
+      const isCoaching = activity === 'Coaching/Training';
 
-      caseTypeInputs.forEach(input => input.required = isNormalProduction);
+      caseTypeInputs.forEach(input => {
+        input.required = isNormalProduction;
+        input.disabled = isCoaching; // Gray out case types during coaching
+        if (isCoaching) input.checked = false; // Uncheck them
+      });
 
-      if (activity === 'Coaching/Training') {
+      if (isCoaching) {
         caseIdsTextarea.disabled = true;
         caseIdsTextarea.required = false;
         caseIdsTextarea.classList.add('bg-gray-100', 'cursor-not-allowed');
@@ -539,6 +690,19 @@ function refreshAccess() {
       const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
       const caseIdsText = document.getElementById('caseIds').value;
       
+      // Strict Frontend Case ID Validation
+      if (activity !== 'Coaching/Training' && caseIdsText.trim() !== '') {
+        let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
+        const CASE_ID_PATTERN = /^\d-\d{7,14}$/;
+        let invalidIds = rawIds.filter(id => !CASE_ID_PATTERN.test(id));
+
+        if (invalidIds.length > 0) {
+          document.getElementById('caseIds').focus();
+          showToast(`Invalid Case ID format detected: ${invalidIds.slice(0, 3).join(', ')}${invalidIds.length > 3 ? '...' : ''}. Format must be like 1-12345678`, 'error');
+          return;
+        }
+      }
+
       if (activity === 'Break/Lunch') {
         let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
         let uniqueIds = [...new Set(rawIds)];
@@ -640,13 +804,23 @@ function refreshAccess() {
     function renderDashboard(data) {
       const auditTbody = document.getElementById('auditTableBody');
       const metricsTbody = document.getElementById('metricsTableBody');
+      const selectAllCheckbox = document.getElementById('selectAllAudits');
+
+      if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.disabled = data.audits.length === 0;
+      }
+      updateBulkAuditButtons();
       
       // 1. Render Audit Queue
       if (data.audits.length === 0) {
-        auditTbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">🎉 No pending audits! Queue is clean.</td></tr>';
+        auditTbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">🎉 No pending audits! Queue is clean.</td></tr>';
       } else {
         auditTbody.innerHTML = data.audits.map(a => `
           <tr class="hover:bg-gray-50 transition" id="audit-row-${a.row}">
+            <td class="p-4">
+              <input type="checkbox" class="audit-checkbox w-4 h-4 text-blue-600 rounded border-gray-300" onchange="updateBulkAuditButtons()" data-audit-row="${a.row}" data-raw-row="${a.rawRowRef}">
+            </td>
             <td class="p-4">
               <div class="flex items-center gap-3">
                 ${getMomaImgClass(a.agent, 'w-8 h-8 rounded-full border border-gray-200 object-cover', 80)}
@@ -792,6 +966,79 @@ function refreshAccess() {
       }
     }
 
+    // --- BULK AUDIT LOGIC ---
+    function toggleAllAudits(selectAllCheckbox) {
+      const checkboxes = document.querySelectorAll('.audit-checkbox');
+      checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+      updateBulkAuditButtons();
+    }
+
+    function updateBulkAuditButtons() {
+      const checkboxes = document.querySelectorAll('.audit-checkbox:checked');
+      const buttons = document.querySelectorAll('.bulk-audit-btn');
+
+      const isAnyChecked = checkboxes.length > 0;
+      buttons.forEach(btn => {
+        if (isAnyChecked) {
+          btn.classList.remove('hidden');
+          btn.classList.add('flex'); // Add flex to maintain flex layout for icons
+        } else {
+          btn.classList.add('hidden');
+          btn.classList.remove('flex');
+        }
+      });
+
+      const selectAllCb = document.getElementById('selectAllAudits');
+      const allCheckboxes = document.querySelectorAll('.audit-checkbox');
+      if (selectAllCb && allCheckboxes.length > 0) {
+        selectAllCb.checked = allCheckboxes.length === checkboxes.length;
+      }
+    }
+
+    function handleBulkAudit(resolution) {
+      const checkedBoxes = document.querySelectorAll('.audit-checkbox:checked');
+      if (checkedBoxes.length === 0) return;
+
+      const auditsToProcess = Array.from(checkedBoxes).map(cb => ({
+        auditRow: parseInt(cb.getAttribute('data-audit-row'), 10),
+        rawRowRef: parseInt(cb.getAttribute('data-raw-row'), 10)
+      }));
+
+      // Optimistically hide rows
+      auditsToProcess.forEach(audit => {
+        const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
+        if (rowEl) rowEl.style.opacity = '0.5';
+      });
+
+      // Disable buttons while processing
+      const buttons = document.querySelectorAll('.bulk-audit-btn');
+      buttons.forEach(btn => btn.disabled = true);
+
+      google.script.run
+        .withSuccessHandler(res => {
+          buttons.forEach(btn => btn.disabled = false);
+          if (res.success) {
+            showToast(`Successfully ${resolution.toLowerCase()}d ${auditsToProcess.length} cases.`, 'success');
+            loadDashboard(); // Reload to refresh metrics and clear queue
+          } else {
+            showToast(res.error, 'error');
+            auditsToProcess.forEach(audit => {
+              const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
+              if (rowEl) rowEl.style.opacity = '1';
+            });
+          }
+        })
+        .withFailureHandler(err => {
+          buttons.forEach(btn => btn.disabled = false);
+          showToast("Network error.", 'error');
+          auditsToProcess.forEach(audit => {
+            const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
+            if (rowEl) rowEl.style.opacity = '1';
+          });
+        })
+        .resolveAuditsBulk(auditsToProcess, resolution);
+    }
+
     // Handle Approve/Reject Action
     function handleAudit(auditRow, rawRowRef, resolution) {
       // Optimistically hide the row so the UI feels instant
@@ -924,6 +1171,54 @@ function refreshAccess() {
       document.getElementById('summaryTotalCases').textContent = totalCases;
       summaryBar.classList.remove('hidden');
     }
+    // --- TABLE SORTING LOGIC ---
+    function sortTable(tableBodyId, headerElement, columnIndex, isNumeric = false) {
+      const tbody = document.getElementById(tableBodyId);
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      // Ignore if empty or loading state
+      if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('Loading'))) return;
+      if (rows.length === 1 && rows[0].innerText.includes('No ')) return;
+
+      const currentDir = headerElement.dataset.sortDir || 'asc';
+      const newDir = currentDir === 'asc' ? 'desc' : 'asc';
+
+      rows.sort((a, b) => {
+        const cellA = a.children[columnIndex];
+        const cellB = b.children[columnIndex];
+
+        let valA = cellA ? cellA.innerText.trim() : '';
+        let valB = cellB ? cellB.innerText.trim() : '';
+
+        if (isNumeric) {
+          valA = parseFloat(valA) || 0;
+          valB = parseFloat(valB) || 0;
+          return newDir === 'asc' ? valA - valB : valB - valA;
+        } else {
+          return newDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+      });
+
+      // Clear existing sort indicators on all headers in this table
+      const thead = headerElement.closest('thead');
+      thead.querySelectorAll('th').forEach(th => {
+        th.dataset.sortDir = '';
+        const arrow = th.querySelector('.sort-arrow');
+        if (arrow) arrow.innerText = 'unfold_more';
+      });
+
+      // Update current header
+      headerElement.dataset.sortDir = newDir;
+      const arrow = headerElement.querySelector('.sort-arrow');
+      if (arrow) {
+        arrow.innerText = newDir === 'asc' ? 'expand_less' : 'expand_more';
+      }
+
+      // Re-append sorted rows
+      tbody.innerHTML = '';
+      rows.forEach(row => tbody.appendChild(row));
+    }
+
     // --- STATUS DROPDOWN COLOR HELPER ---
     function updateStatusColor(selectElement) {
       const val = selectElement.value;
