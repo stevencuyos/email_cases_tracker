@@ -625,6 +625,77 @@ function getAnalyticsData(daysToFetch = 7) {
   }
 }
 
+// 9b. Fetch Live POC Schedule
+function getPOCSchedule() {
+  try {
+    const pocSheetUrl = 'https://docs.google.com/spreadsheets/d/1SwO6Wet3OWPQDkXC2jyQ3rbPTjCDMZbAc5fLbDK6HHU/edit';
+    const ss = SpreadsheetApp.openByUrl(pocSheetUrl);
+    const sheet = ss.getSheetByName('POC Schedule');
+
+    if (!sheet) {
+      return { success: false, error: 'POC Schedule tab not found in the source sheet.' };
+    }
+
+    const now = new Date();
+    const todayStr = toDateStringFast(now); // "M/d/yyyy"
+
+    // Header row is Row 8
+    const headers = sheet.getRange(8, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+    // Find today's column (Starts from column A / Index 0)
+    let targetColIdx = -1;
+    for (let i = 0; i < headers.length; i++) {
+      let cellDate = headers[i];
+      let formattedCellDate = "";
+      try {
+        if (cellDate instanceof Date) {
+          formattedCellDate = toDateStringFast(cellDate);
+        } else if (cellDate) {
+          formattedCellDate = toDateStringFast(new Date(cellDate));
+        }
+      } catch(e) {}
+
+      if (formattedCellDate === todayStr) {
+        targetColIdx = i;
+        break;
+      }
+    }
+
+    if (targetColIdx === -1) {
+       return { success: false, error: 'Could not find a column for today (' + todayStr + ') in the POC sheet.' };
+    }
+
+    // Times are in Col A (Index 0), starting from Row 9 (Index 8 in array if we read from top)
+    // We will fetch from Row 9 to Row 32 (24 hours)
+    const scheduleData = sheet.getRange(9, 1, 24, sheet.getLastColumn()).getValues();
+
+    let pocList = [];
+    for (let r = 0; r < scheduleData.length; r++) {
+       let timeVal = scheduleData[r][0];
+       let pocVal = scheduleData[r][targetColIdx];
+
+       let timeStr = "";
+       if (timeVal instanceof Date) {
+         timeStr = Utilities.formatDate(timeVal, Session.getScriptTimeZone(), "h:00 a");
+       } else {
+         timeStr = String(timeVal);
+       }
+
+       pocList.push({
+         time: timeStr,
+         poc: pocVal ? String(pocVal).trim() : 'Unassigned'
+       });
+    }
+
+    return { success: true, schedule: pocList };
+
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getPOCSchedule', e.toString(), user);
+    return { success: false, error: 'Failed to fetch POC Schedule.' };
+  }
+}
+
 // 9. Fetch Data for Interval View
 function getIntervalData(dateStr, intervalHourStr) {
   try {
