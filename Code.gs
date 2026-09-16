@@ -37,6 +37,13 @@ function toDateStringFast(dateObj) {
   return Utilities.formatDate(dateObj, Session.getScriptTimeZone(), "M/d/yyyy");
 }
 
+// --- COLUMN MAP FOR Raw_Cases (0-indexed, matches getValues() output) ---
+const RAW_COLS = {
+  TIMESTAMP: 0, DATE: 1, INTERVAL: 2, AGENT: 3, NAME: 4, SITE: 5, LOB: 6, WORKFLOW: 7,
+  SHIFT_TYPE: 8, CASE_TYPE: 9, TOTAL: 10, VALID: 11, FLAGGED: 12, CASE_IDS: 13,
+  AUDIT_NOTES: 14, INTERVAL_ACTIVITY: 15, OT_TYPE: 16
+};
+
 // --- MAIN APPLICATION LOGIC ---
 
 // 1. Serve the Web App Interface
@@ -55,7 +62,7 @@ function initializeDatabase() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     const sheetsConfig = {
-      'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes', 'Interval Activity'],
+      'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes', 'Interval Activity', 'OT Type'],
       'Index_CaseIDs': ['Case ID', 'Type Logged', 'Date Logged', 'Agent'],
       'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef'],
       'Error_Logs': ['Timestamp', 'Function', 'User', 'Error Message']
@@ -141,6 +148,15 @@ function getUserProfile() {
   return profile;
 }
 
+// Clears cached profile/agent-list data so access changes (new manager, new masterlist row) take effect immediately.
+function clearAccessCache() {
+  const email = Session.getActiveUser().getEmail();
+  const currentLdap = email ? email.split('@')[0] : 'unknown_agent';
+  CacheService.getUserCache().remove('userProfile_' + currentLdap);
+  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList']);
+  return true;
+}
+
 // Throws unless the current user is a manager. Call at the top of any manager-only function.
 function requireManagerOrThrow() {
   const profile = getUserProfile();
@@ -176,15 +192,19 @@ function submitCases(formObject) {
     const site = userProfile.site; 
     
     const shiftType = formObject.shiftType;
+    const otType = formObject.otType || '';
     const caseType = formObject.caseType;
     const intervalActivity = formObject.intervalActivity || 'Normal Production';
     const rawText = formObject.caseIdsText || '';
 
+    const CASE_ID_PATTERN = /^\d-\d{7,14}$/;
     let rawIds = rawText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
     let uniqueIds = [...new Set(rawIds)];
+    let malformedIds = uniqueIds.filter(id => !CASE_ID_PATTERN.test(id));
+    uniqueIds = uniqueIds.filter(id => CASE_ID_PATTERN.test(id));
     let validIds = [];
     let flaggedIds = [];
-    let auditReasons = [];
+    let reasonCounts = {};
 
     const indexData = indexSheet.getLastRow() > 1 ? indexSheet.getRange(2, 1, indexSheet.getLastRow() - 1, 4).getValues() : [];
 
@@ -206,7 +226,7 @@ function submitCases(formObject) {
 
       if (isFlagged) {
         flaggedIds.push(id);
-        auditReasons.push(`${id}: ${reason}`);
+        reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
       } else {
         validIds.push(id);
       }
@@ -215,11 +235,14 @@ function submitCases(formObject) {
     let totalCount = uniqueIds.length;
     let validCount = validIds.length;
     let flaggedCount = flaggedIds.length;
-    let auditNotes = flaggedCount > 0 ? "⚠️ " + auditReasons.join(' | ') : "Clean";
+    let auditNotes = flaggedCount > 0
+      ? "⚠️ " + Object.entries(reasonCounts).map(([reason, count]) => `${reason} (${count})`).join(', ')
+      : "Clean";
 
     let rawRowNumber = rawSheet.getLastRow() + 1;
     // Writes LOB, Workflow, and Name into the raw sheet, appended Interval Activity at the end
-    rawSheet.appendRow([timestamp, dateStr, intervalStr, ldap, userProfile.name, site, userProfile.lob, userProfile.workflow, shiftType, caseType, totalCount, validCount, flaggedCount, uniqueIds.join(', '), auditNotes, intervalActivity]);
+    rawSheet.appendRow([timestamp, dateStr, intervalStr, ldap, userProfile.name, site, userProfile.lob, userProfile.workflow, shiftType, caseType, totalCount, validCount, flaggedCount, uniqueIds.join(', '), auditNotes, intervalActivity, otType]);
+    rawSheet.getRange(rawRowNumber, 3).setNumberFormat('@'); // Prevent Sheets from auto-converting this to a Date
 
     let indexDataToAppend = uniqueIds.map(id => [id, caseType, dateStr, ldap]);
     if (indexDataToAppend.length > 0) {
@@ -230,7 +253,7 @@ function submitCases(formObject) {
       auditSheet.appendRow(["🔴 PENDING", timestamp, ldap, site, caseType, totalCount, flaggedIds.join(', '), auditNotes, "", rawRowNumber]);
     }
     
-    return { success: true, valid: validCount, flagged: flaggedCount };
+    return { success: true, valid: validCount, flagged: flaggedCount, rejected: malformedIds.length };
     
   } catch (error) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
@@ -275,13 +298,13 @@ function getDashboardData() {
       const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 15).getValues(); 
 
       rawData.forEach(r => {
-        let rowDateStr = toDateStringFast(r[1]);
+        let rowDateStr = toDateStringFast(r[RAW_COLS.DATE]);
 
         if (rowDateStr === todayStr) { 
-          const agent = r[3];
-          const site = r[5]; 
-          const valid = Number(r[11]) || 0; 
-          const flagged = Number(r[12]) || 0; 
+          const agent = r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : '';
+          const site = r[RAW_COLS.SITE]; 
+          const valid = Number(r[RAW_COLS.VALID]) || 0; 
+          const flagged = Number(r[RAW_COLS.FLAGGED]) || 0;
           
           if (!metrics[agent]) {
             metrics[agent] = { agent: agent, site: site, totalValid: 0, totalFlagged: 0 };
@@ -365,24 +388,44 @@ function getMySubmissions(dateStr, targetLdap) {
     if (rawSheet && rawSheet.getLastRow() > 1) {
       const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues();
       
+      const dedupeMap = {};
+
       rawData.forEach(r => {
         let rowDateStr = toDateStringFast(r[1]);
-        logError('DATE_CHECK', 'raw=' + r[1] + ' converted=' + rowDateStr + ' expected=' + dateStr + ' agent=' + r[3], 'debug');
         
         // r[3] is Agent LDAP
         if (rowDateStr === dateStr && r[3] && r[3].toString().trim().toLowerCase() === queryLdap.trim()) {
-          submissions.push({
-            interval: r[2],               // Col C
+          const intervalVal = (r[2] instanceof Date)
+            ? Utilities.formatDate(r[2], Session.getScriptTimeZone(), "h:00 a")
+            : r[2];
+          const caseIdsVal = r[13];
+
+          // Normalize Case IDs for the dedupe key only (order-independent), so "A, B, C" and
+          // "C, A, B" are recognized as the same submission. The original caseIdsVal (unsorted)
+          // is still what gets displayed to the user.
+          const normalizedIds = caseIdsVal
+            ? caseIdsVal.split(',').map(id => id.trim().toLowerCase()).filter(id => id !== '').sort().join(',')
+            : '';
+
+          // Dedupe key: same interval + case type + same set of Case IDs (regardless of order)
+          // = same physical submission. If it was resubmitted (and possibly resolved by a
+          // manager), the later row in the sheet is authoritative, so it naturally overwrites
+          // the earlier entry below.
+          const dedupeKey = intervalVal + '|' + r[9] + '|' + normalizedIds;
+
+          dedupeMap[dedupeKey] = {
+            interval: intervalVal,        // Col C
             activity: r[15] || 'Normal Production', // Col P
             caseType: r[9],               // Col J
             validCount: r[11],            // Col L
-            caseIds: r[13]                // Col N
-          });
+            caseIds: caseIdsVal           // Col N
+          };
         }
       });
+
+      submissions = Object.values(dedupeMap);
     }
     
-    // Sort submissions by interval chronologically if needed, simple string match usually works for "h:00 a"
     return submissions;
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
@@ -487,10 +530,10 @@ function getIntervalData(dateStr, intervalHourStr) {
       if (dateColIdx !== -1) {
         // Loop through agents starting from Row 3
         for (let r = 2; r < shiftData.length; r++) {
-          const ldap = shiftData[r][0] ? shiftData[r][0].toString() : '';
+          const ldap = shiftData[r][0] ? shiftData[r][0].toString().trim().toLowerCase() : '';
           
           // NEW FILTER: Skip agent if they are not in the Email channel (unless they do OT later)
-          if (!emailAgents.has(ldap.toLowerCase())) {
+          if (!emailAgents.has(ldap)) {
             continue; 
           }
 
@@ -530,7 +573,10 @@ function getIntervalData(dateStr, intervalHourStr) {
                   eos: formattedEOS,
                   site: site,
                   isOT: false,
-                  casesLogged: 0
+                  casesLogged: 0,
+                  regularCount: 0,
+                  manualCount: 0,
+                  reopenedCount: 0
                 };
               }
             }
@@ -541,7 +587,7 @@ function getIntervalData(dateStr, intervalHourStr) {
     
     // 3. Process Overtime & Live Metrics from 'Raw_Cases'
     if (rawSheet && rawSheet.getLastRow() > 1) {
-      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 16).getValues(); 
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 17).getValues(); 
       // Format target hour to match Raw_Cases "h:00 a" format (e.g. "4:00 PM").
       // We still use Utilities here because it runs exactly once per function call, not in a loop.
       let targetDateObj = new Date();
@@ -549,14 +595,18 @@ function getIntervalData(dateStr, intervalHourStr) {
       const intervalLabel = Utilities.formatDate(targetDateObj, Session.getScriptTimeZone(), "h:00 a");
       
       rawData.forEach(r => {
-        let rowDateStr = toDateStringFast(r[1]);
+        let rowDateStr = toDateStringFast(r[RAW_COLS.DATE]);
+        const rowInterval = (r[RAW_COLS.INTERVAL] instanceof Date)
+          ? Utilities.formatDate(r[RAW_COLS.INTERVAL], Session.getScriptTimeZone(), "h:00 a")
+          : r[RAW_COLS.INTERVAL];
         
-        if (rowDateStr === dateStr && r[2] === intervalLabel) {
-          const ldap = r[3];
-          const site = r[5];
-          const isOvertime = r[8] === "Overtime";
-          const validCases = Number(r[11]) || 0;
-          const intervalActivity = r[15] || 'Normal Production';
+        if (rowDateStr === dateStr && rowInterval === intervalLabel) {
+          const ldap = r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : '';
+          const site = r[RAW_COLS.SITE];
+          const isOvertime = r[RAW_COLS.SHIFT_TYPE] === "Overtime";
+          const otType = r[RAW_COLS.OT_TYPE] || '';
+          const validCases = Number(r[RAW_COLS.VALID]) || 0;
+          const intervalActivity = r[RAW_COLS.INTERVAL_ACTIVITY] || 'Normal Production';
           
           // If OT agent isn't on the shift list, add them dynamically regardless of their Channel
           if (!agentsInInterval[ldap] && isOvertime) {
@@ -566,15 +616,29 @@ function getIntervalData(dateStr, intervalHourStr) {
               eos: "OT",
               site: site,
               isOT: true,
+              otType: otType,
               casesLogged: 0,
+              regularCount: 0,
+              manualCount: 0,
+              reopenedCount: 0,
               activityLogged: intervalActivity
             };
           }
           
           // Add metrics if they are in the list
           if (agentsInInterval[ldap]) {
+            const caseType = r[RAW_COLS.CASE_TYPE];
             agentsInInterval[ldap].casesLogged += validCases;
             agentsInInterval[ldap].activityLogged = intervalActivity; // Track the activity they submitted
+
+            if (caseType === 'Manual Assignment') {
+              agentsInInterval[ldap].manualCount += validCases;
+            } else if (caseType === 'Reopened Cases') {
+              agentsInInterval[ldap].reopenedCount += validCases;
+            } else {
+              // Regular Email (Take Next), Telus Cases, and Cimba Cases are combined
+              agentsInInterval[ldap].regularCount += validCases;
+            }
           }
         }
       });
@@ -597,6 +661,8 @@ function getIntervalData(dateStr, intervalHourStr) {
         computedStatus = "on Coaching/Training";
       } else if (agent.activityLogged === 'Break/Lunch' && agent.casesLogged >= 3) {
         computedStatus = "Break - 3";
+      } else if (agent.reopenedCount > 0 && agent.reopenedCount === agent.casesLogged && agent.casesLogged >= 7) {
+        computedStatus = "Closing Reopens";
       } else if (agent.casesLogged >= 7) {
         computedStatus = "Assigned - 7";
       } else if (!agent.isOT && targetHour === sosHour) {
