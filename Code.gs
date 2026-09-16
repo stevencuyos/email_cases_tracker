@@ -34,7 +34,7 @@ function toDateStringFast(dateObj) {
     // If it's already a string, attempt a naive cleanup
     return String(dateObj).split('T')[0]; 
   }
-  return (dateObj.getMonth() + 1) + '/' + dateObj.getDate() + '/' + dateObj.getFullYear();
+  return Utilities.formatDate(dateObj, Session.getScriptTimeZone(), "M/d/yyyy");
 }
 
 // --- MAIN APPLICATION LOGIC ---
@@ -350,6 +350,8 @@ function resolveAudit(auditRow, rawRowRef, resolution) {
 
 // 7. Fetch User's Submissions for "My Submissions" Tab
 function getMySubmissions(dateStr, targetLdap) {
+  const realEmail = Session.getActiveUser().getEmail();
+  logError('ENTRY_CHECK_V2', 'ACTUAL_LOGGED_IN_EMAIL=' + realEmail + ' | dateStr=' + dateStr + ' targetLdap=' + targetLdap, 'entry');
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const rawSheet = ss.getSheetByName('Raw_Cases');
@@ -365,9 +367,10 @@ function getMySubmissions(dateStr, targetLdap) {
       
       rawData.forEach(r => {
         let rowDateStr = toDateStringFast(r[1]);
+        logError('DATE_CHECK', 'raw=' + r[1] + ' converted=' + rowDateStr + ' expected=' + dateStr + ' agent=' + r[3], 'debug');
         
         // r[3] is Agent LDAP
-        if (rowDateStr === dateStr && r[3] && r[3].toString().toLowerCase() === queryLdap) {
+        if (rowDateStr === dateStr && r[3] && r[3].toString().trim().toLowerCase() === queryLdap.trim()) {
           submissions.push({
             interval: r[2],               // Col C
             activity: r[15] || 'Normal Production', // Col P
