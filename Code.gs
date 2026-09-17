@@ -539,6 +539,9 @@ function setupEscalationSweepTrigger() {
 
 function escalationSweep() {
   try {
+    const props = PropertiesService.getScriptProperties();
+    if (props.getProperty('ESCALATION_SWEEP_ENABLED') !== 'true') return;
+
     const lock = LockService.getScriptLock();
     if (!lock.tryLock(5000)) return;
 
@@ -546,7 +549,6 @@ function escalationSweep() {
     const escalationLogSheet = ss.getSheetByName('Escalation_Log');
     if (!escalationLogSheet) return;
 
-    const props = PropertiesService.getScriptProperties();
     const graceMinutes = parseInt(props.getProperty('GRACE_PERIOD_MINUTES') || '30', 10);
     const now = new Date();
 
@@ -1574,4 +1576,15 @@ function getWeekStartMonday(date) {
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+function testEscalationEmail() {
+  sendEscalationEmail(
+    '9/17/2026',
+    '4:00 PM',
+    'stevenjosephc',
+    new Date(),
+    ['testagent1', 'testagent2'],
+    5
+  );
 }
