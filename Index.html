@@ -1143,33 +1143,43 @@ function refreshAccess() {
       const currPOC = schedule.find(s => s.time === currTarget) || { poc: 'Unknown' };
       const nextPOC = schedule.find(s => s.time === nextTarget) || { poc: 'Unknown' };
 
+      const shortTime = (tStr) => tStr.replace(':00 AM', '').replace(':00 PM', '');
+
       pocContainer.innerHTML = `
-        <div class="relative flex flex-col gap-2 pl-3">
-          <!-- Vertical Timeline Line -->
-          <div class="absolute left-[22px] top-3 bottom-3 w-px bg-gray-200 dark:bg-gray-700"></div>
+        <div class="mt-4 mb-2 relative nav-text">
+          <div class="absolute left-[39px] top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
 
           <!-- Previous -->
-          <div class="flex items-center gap-3 relative z-10 opacity-60">
-            <div class="w-8 flex-shrink-0 text-right text-[10px] text-gray-500 font-medium">${prevTarget.split(' ')[0]}</div>
-            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 ring-4 ring-theme-card"></div>
-            <div class="text-xs text-gray-600 dark:text-gray-400 font-medium truncate">${prevPOC.poc}</div>
+          <div class="flex items-center mb-5 relative">
+            <div class="w-[34px] text-right pr-3"><span class="text-[10px] text-gray-400 font-medium">${shortTime(prevTarget)}</span></div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 z-10 absolute left-[36px]"></div>
+            <div class="pl-4 flex items-center gap-2.5">
+              ${getMomaImgClass(prevPOC.poc, 'w-5 h-5 rounded-full grayscale opacity-60', 50)}
+              <span class="text-[11px] text-gray-500">${prevPOC.poc}</span>
+            </div>
           </div>
 
           <!-- Current -->
-          <div class="flex items-center gap-3 relative z-10 py-1">
-            <div class="w-8 flex-shrink-0 text-right text-[11px] font-bold text-theme-primary">${currTarget.split(' ')[0]}</div>
-            <div class="relative w-2 h-2 flex-shrink-0">
-               <div class="absolute inset-0 rounded-full bg-theme-primary animate-ping opacity-75"></div>
-               <div class="relative w-2 h-2 rounded-full bg-theme-primary ring-4 ring-theme-card"></div>
+          <div class="flex items-center mb-5 relative">
+            <div class="w-[34px] text-right pr-3"><span class="text-[10px] font-bold text-theme-primary">${shortTime(currTarget)}</span></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-theme-primary ring-4 ring-theme-accent-muted z-10 absolute left-[35px]"></div>
+            <div class="pl-4 flex items-center gap-2.5">
+              ${getMomaImgClass(currPOC.poc, 'w-7 h-7 rounded-full border border-theme-primary shadow-sm', 80)}
+              <div class="flex flex-col leading-none justify-center">
+                <span class="text-[12px] font-bold text-gray-800 dark:text-gray-100 mb-0.5">${currPOC.poc}</span>
+                ${currPOC.site ? `<span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">${currPOC.site}</span>` : ''}
+              </div>
             </div>
-            <div class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">${currPOC.poc}</div>
           </div>
 
           <!-- Next -->
-          <div class="flex items-center gap-3 relative z-10 opacity-60">
-            <div class="w-8 flex-shrink-0 text-right text-[10px] text-gray-500 font-medium">${nextTarget.split(' ')[0]}</div>
-            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 ring-4 ring-theme-card"></div>
-            <div class="text-xs text-gray-600 dark:text-gray-400 font-medium truncate">${nextPOC.poc}</div>
+          <div class="flex items-center relative">
+            <div class="w-[34px] text-right pr-3"><span class="text-[10px] text-gray-400 font-medium">${shortTime(nextTarget)}</span></div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 z-10 absolute left-[36px]"></div>
+            <div class="pl-4 flex items-center gap-2.5">
+              ${getMomaImgClass(nextPOC.poc, 'w-5 h-5 rounded-full grayscale opacity-60', 50)}
+              <span class="text-[11px] text-gray-500">${nextPOC.poc}</span>
+            </div>
           </div>
         </div>
       `;
@@ -2442,16 +2452,15 @@ function refreshAccess() {
           return `
           <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'bg-red-50/40 dark:bg-red-900/10' : ''}">
             <td class="p-3">
-              <div class="flex items-center gap-2 relative group cursor-pointer">
-                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600 shrink-0', 50)}
-                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium text-theme-primary hover:underline truncate z-10 block">${a.ldap}</a>
-                ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded z-10">OT</span>' : ''}
-                <!-- Tooltip -->
-                <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 pointer-events-none w-max max-w-xs">
-                   <div class="bg-gray-800 dark:bg-gray-700 text-white text-xs rounded shadow-lg p-2 flex flex-col gap-1 border border-gray-700 dark:border-gray-600">
-                     <div class="flex items-center gap-1"><span class="text-gray-400">Supervisor:</span> <span class="font-medium">${a.supervisor || 'Unknown'}</span></div>
-                     <div class="flex items-center gap-1"><span class="text-gray-400">Site:</span> <span class="font-medium">${a.site || 'Unknown'}</span></div>
-                   </div>
+              <div class="flex items-center gap-2 group relative">
+                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
+                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium case-link hover:underline">${a.ldap}</a>
+                ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
+
+                <!-- Custom Tooltip -->
+                <div class="absolute top-full left-6 mt-1 hidden group-hover:block bg-slate-800 dark:bg-gray-700 text-white text-[11px] rounded shadow-lg z-50 p-2.5 min-w-[180px] whitespace-nowrap border border-slate-700">
+                   <div class="mb-1"><span class="text-slate-400">Supervisor:</span> <span class="font-semibold text-white">${a.supervisor}</span></div>
+                   <div><span class="text-slate-400">Site:</span> <span class="font-semibold text-white">${a.site}</span></div>
                 </div>
               </div>
             </td>
@@ -2896,18 +2905,16 @@ function refreshAccess() {
       }
 
       function lineFor(a) {
-        if (a.activityLogged === 'Coaching/Training') {
-          return `${a.ldap} - Coaching/Training`;
-        }
-        if (a.activityLogged === 'Break/Lunch') {
-          return `${a.ldap} - ${a.casesLogged} cases, Break`;
-        }
+        if (a.activityLogged === 'Coaching/Training') return `${a.ldap} - Coaching/Training`;
+        if (a.activityLogged === 'Break/Lunch') return `${a.ldap} - ${a.casesLogged} cases, Break`;
+
+        // Grab manual dropdown status OR computed status
         const st = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus;
-        if (st === 'SKIP SOS' || st === 'SKIP - EOS') {
-          return `${a.ldap} - ${st}`;
-        }
-        const label = caseTypeLabel(a) || 'No cases logged';
         const otTag = a.isOT ? ` (${a.otType || 'OT'})` : '';
+
+        if (st) return `${a.ldap} - ${a.casesLogged} cases, ${st}${otTag}`;
+
+        const label = caseTypeLabel(a) || 'No cases logged';
         return `${a.ldap} - ${a.casesLogged} cases, ${label}${otTag}`;
       }
 
@@ -2916,9 +2923,7 @@ function refreshAccess() {
 
       navigator.clipboard.writeText(reportText).then(() => {
         showToast("Chat report copied to clipboard!", "success");
-      }).catch(err => {
-        showToast("Failed to copy. Please copy manually.", "error");
-      });
+      }).catch(err => showToast("Failed to copy. Please copy manually.", "error"));
     }
   </script>
 </body>
