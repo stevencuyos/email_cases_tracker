@@ -37,6 +37,17 @@ function toDateStringFast(dateObj) {
   return Utilities.formatDate(dateObj, Session.getScriptTimeZone(), "M/d/yyyy");
 }
 
+// ISO (yyyy-MM-dd) form, needed only where the client builds its own date keys
+// (e.g. calendar heatmap) since toDateStringFastClient() on the frontend uses this format.
+function toISODateStringFast(dateObj) {
+  const y = dateObj.getFullYear();
+  let m = dateObj.getMonth() + 1;
+  let d = dateObj.getDate();
+  if (m < 10) m = '0' + m;
+  if (d < 10) d = '0' + d;
+  return y + '-' + m + '-' + d;
+}
+
 // --- COLUMN MAP FOR Raw_Cases (0-indexed, matches getValues() output) ---
 const RAW_COLS = {
   TIMESTAMP: 0, DATE: 1, INTERVAL: 2, AGENT: 3, NAME: 4, SITE: 5, LOB: 6, WORKFLOW: 7,
@@ -1049,14 +1060,15 @@ function getMyProfileData() {
           else breakdown.Regular += validCases;
         }
 
-        if (!history[rowDateStr]) {
-          history[rowDateStr] = { All: 0, Regular: 0, Reopened: 0, Manual: 0, Telus: 0, Cimba: 0 };
+        const historyKey = toISODateStringFast(rowDateObj);
+        if (!history[historyKey]) {
+          history[historyKey] = { All: 0, Regular: 0, Reopened: 0, Manual: 0, Telus: 0, Cimba: 0 };
         }
-        history[rowDateStr].All += validCases;
-        if (history[rowDateStr][typeCategory] !== undefined) {
-          history[rowDateStr][typeCategory] += validCases;
+        history[historyKey].All += validCases;
+        if (history[historyKey][typeCategory] !== undefined) {
+          history[historyKey][typeCategory] += validCases;
         } else {
-          history[rowDateStr].Regular += validCases; // Fallback
+          history[historyKey].Regular += validCases; // Fallback
         }
       });
     }
