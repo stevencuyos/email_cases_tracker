@@ -263,6 +263,12 @@
       <div id="pocContainer" class="space-y-1 nav-text">
         <div class="text-xs text-center text-gray-400 py-2">Loading...</div>
       </div>
+
+      <!-- Manager Only: POC Planner Shortcut -->
+      <a href="https://script.google.com/a/macros/google.com/s/AKfycbzpFsp5ElMkJ6jwveJkoZJmBU1-YwhXKDCPHXyUh_TvCYNkiZ4UNs9Pn4ZBAleGR5YS/exec" target="_blank" id="pocPlannerBtn" class="hidden mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-theme-accent-muted/50 dark:bg-theme-accent-muted/20 text-theme-primary dark:text-theme-primary border border-theme-primary/20 rounded-theme-sm hover:bg-theme-primary hover:text-white dark:hover:bg-theme-primary dark:hover:text-white transition text-xs font-semibold nav-text shadow-sm">
+        <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
+        Launch POC Planner
+      </a>
     </div>
 
     <!-- User Identity & Settings -->
@@ -1166,6 +1172,10 @@ function refreshAccess() {
       if (profile.isManager) {
         document.getElementById('managerOnlyTabs').classList.remove('hidden');
         
+        // Unhide the POC Planner shortcut
+        const pocPlannerBtn = document.getElementById('pocPlannerBtn');
+        if (pocPlannerBtn) pocPlannerBtn.classList.remove('hidden');
+
         // Update My Submissions to Agent Submissions
        document.getElementById('mySubmissionsNavText').innerText = 'Agent Submissions';
         document.getElementById('tab-mySubmissionsView').title = 'Agent Submissions';
@@ -1681,7 +1691,7 @@ function refreshAccess() {
         return `
           <div class="flex-1 flex flex-col items-center gap-1">
             <div class="w-full flex items-end" style="height:96px;">
-              <div class="w-full bg-theme-primary/80 dark:bg-theme-primary rounded-t" style="height:${pct}%"></div>
+              <div class="w-full bg-theme-primary opacity-80 dark:opacity-100 rounded-t" style="height:${pct}%"></div>
             </div>
             <div class="text-[10px] cell-faint">${t.label}</div>
           </div>`;
