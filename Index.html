@@ -36,13 +36,21 @@
     body { font-family: 'Roboto', sans-serif; background-color: #f8f9fa; }
     .dark body { background-color: #111827; color: #f3f4f6; }
 
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 1,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+
     /* Modern SaaS Nav Styles */
-    .nav-active { background-color: #e8f0fe; color: #1a73e8; font-weight: 500; border-right: 3px solid #1a73e8; }
-    .dark .nav-active { background-color: #1e3a8a; color: #60a5fa; border-right: 3px solid #60a5fa; }
+    .nav-active { background-color: #e8f0fe; color: #1a73e8; font-weight: 500; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
+    .dark .nav-active { background-color: #1e3a8a; color: #60a5fa; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
     .nav-active .material-symbols-outlined { color: #1a73e8; }
     .dark .nav-active .material-symbols-outlined { color: #60a5fa; }
 
-    .nav-inactive { color: #5f6368; font-weight: 400; border-right: 3px solid transparent; }
+    .nav-inactive { color: #5f6368; font-weight: 400; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); transition: background-color 0.2s, color 0.2s; }
     .dark .nav-inactive { color: #9ca3af; }
     .nav-inactive:hover { background-color: #f1f3f4; color: #202124; }
     .dark .nav-inactive:hover { background-color: #374151; color: #f3f4f6; }
@@ -113,12 +121,12 @@
       </div>
       <!-- Navigation Links -->
       <nav class="flex flex-col mt-4 space-y-1">
-        <button onclick="switchTab('submissionView')" id="tab-submissionView" title="Submit Cases" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+        <button onclick="switchTab('submissionView')" id="tab-submissionView" title="Submit Cases" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">edit_square</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Submit Cases</span>
         </button>
 
-        <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" title="My Submissions" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+        <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" title="My Submissions" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">list_alt</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text" id="mySubmissionsNavText">My Submissions</span>
         </button>
@@ -128,17 +136,17 @@
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Management</span>
           </div>
 
-          <button onclick="switchTab('analyticsView')" id="tab-analyticsView" title="Performance Analytics" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('analyticsView')" id="tab-analyticsView" title="Performance Analytics" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">insights</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Performance Analytics</span>
           </button>
 
-          <button onclick="switchTab('dashboardView')" id="tab-dashboardView" title="Manager Dashboard" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('dashboardView')" id="tab-dashboardView" title="Manager Dashboard" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">dashboard</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Manager Dashboard</span>
           </button>
 
-          <button onclick="switchTab('intervalView')" id="tab-intervalView" title="Interval View" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('intervalView')" id="tab-intervalView" title="Interval View" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">view_timeline</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Interval View</span>
           </button>
@@ -190,10 +198,10 @@
   <main class="flex-1 flex flex-col h-full overflow-y-auto relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
 
     <!-- View Containers -->
-    <div class="w-full px-8 py-8 mx-auto max-w-6xl pb-24 flex flex-col items-center">
+    <div class="w-full px-8 py-8 mx-auto max-w-7xl pb-24 flex flex-col items-center">
 
     <!-- VIEW 1: Submission Form -->
-    <div id="submissionView" class="hidden w-full max-w-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300">
+    <div id="submissionView" class="hidden w-full max-w-3xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300">
       <div class="p-8 pb-6 border-b border-gray-100 dark:border-gray-700">
         <h2 class="text-2xl font-normal mb-1 text-gray-800 dark:text-gray-100">Log Your Interval</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">Paste your Case IDs separated by commas or new lines. Duplicates will be automatically audited.</p>
@@ -324,7 +332,7 @@
     </div>
 
     <!-- VIEW: My Submissions / Agent Submissions -->
-    <div id="mySubmissionsView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12 w-full">
+    <div id="mySubmissionsView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
       <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
         <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
           <div>
@@ -366,7 +374,7 @@
     </div>
 
     <!-- VIEW 2: Manager Dashboard -->
-    <div id="dashboardView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12 w-full">
+    <div id="dashboardView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
       
       <!-- Section 1: Audit Queue -->
       <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
@@ -437,7 +445,7 @@
     </div>
 
     <!-- VIEW 3: Interval Management -->
-    <div id="intervalView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
+    <div id="intervalView" class="hidden w-full max-w-7xl space-y-6 transition-all duration-300 pb-12 w-full">
       <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
         
         <!-- Controls Header -->
@@ -528,7 +536,7 @@
     </div>
 
     <!-- VIEW 4: Performance Analytics -->
-    <div id="analyticsView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
+    <div id="analyticsView" class="hidden w-full max-w-7xl space-y-6 transition-all duration-300 pb-12 w-full">
       <!-- Header Controls -->
       <div class="flex justify-between items-end mb-2">
         <div>
@@ -632,7 +640,7 @@
    </div>
 
     <!-- VIEW: My Profile -->
-    <div id="profileView" class="hidden w-full max-w-4xl space-y-6 pb-12">
+    <div id="profileView" class="hidden w-full max-w-5xl space-y-6 pb-12">
       <div id="profileCardContainer" class="space-y-6">
         <div class="text-center text-gray-400 py-12">Loading profile...</div>
       </div>
@@ -916,19 +924,23 @@ function refreshAccess() {
 
       pocContainer.innerHTML = `
         <!-- Previous -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded bg-google-red text-white shadow-sm mb-1">
-          <span class="text-[10px] font-medium opacity-90">${prevTarget}</span>
-          <span class="text-xs font-bold truncate max-w-[100px]">${prevPOC.poc}</span>
+        <div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 mb-1">
+          <span class="text-[10px] font-medium">${prevTarget}</span>
+          <span class="text-xs font-medium truncate max-w-[100px]">${prevPOC.poc}</span>
         </div>
         <!-- Current -->
-        <div class="flex items-center justify-between px-3 py-2.5 rounded bg-google-green text-white shadow-sm mb-1 ring-1 ring-white/20">
-          <span class="text-[11px] font-medium opacity-90">${currTarget}</span>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 mb-1 border border-green-200/50 dark:border-green-800/50 relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
+          <span class="text-[11px] font-medium flex items-center gap-1.5 ml-1">
+             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+             ${currTarget}
+          </span>
           <span class="text-sm font-bold truncate max-w-[100px]">${currPOC.poc}</span>
         </div>
         <!-- Next -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded bg-google-yellow text-gray-900 shadow-sm">
-          <span class="text-[10px] font-medium opacity-80">${nextTarget}</span>
-          <span class="text-xs font-bold truncate max-w-[100px]">${nextPOC.poc}</span>
+        <div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400">
+          <span class="text-[10px] font-medium">${nextTarget}</span>
+          <span class="text-xs font-medium truncate max-w-[100px]">${nextPOC.poc}</span>
         </div>
       `;
     }
@@ -1066,7 +1078,7 @@ function refreshAccess() {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
-        if (tabEl) tabEl.className = "w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group";
+        if (tabEl) tabEl.className = "flex items-center px-4 py-3 nav-inactive transition-colors text-left group";
       });
       
       let viewEl = document.getElementById(viewId);
@@ -1077,7 +1089,7 @@ function refreshAccess() {
         void viewEl.offsetWidth; // restart animation on repeat visits
         viewEl.classList.add('view-enter');
       }
-      if (tabViewEl) tabViewEl.className = "w-full flex items-center px-6 py-3 nav-active transition-colors text-left group";
+      if (tabViewEl) tabViewEl.className = "flex items-center px-4 py-3 nav-active transition-colors text-left group";
       
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
@@ -1363,59 +1375,94 @@ function refreshAccess() {
       }
 
       container.innerHTML = `
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-          <div class="p-6 flex flex-col sm:flex-row gap-6">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
+          <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-emerald-400 to-amber-400"></div>
+          <div class="p-6 pt-8 flex flex-col sm:flex-row gap-6">
             <div class="flex items-center gap-4 sm:w-64 shrink-0">
-              ${avatarHTML}
+              <div class="relative">
+                ${avatarHTML}
+                ${(data.employeeStatus || '').toLowerCase() === 'active' ? '<span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center"><span class="w-2.5 h-2.5 bg-emerald-300 rounded-full animate-ping"></span></span>' : ''}
+              </div>
               <div class="min-w-0">
                 <div class="font-medium text-lg leading-tight truncate cell-strong">${escAttr(data.name)}</div>
                 <div class="text-sm cell-muted truncate">${escAttr(data.position || '\u2014')}</div>
                 ${data.employeeStatus ? `<span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}">${escAttr(data.employeeStatus)}</span>` : ''}
               </div>
             </div>
-            <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Tenure</div>
+            <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm items-start">
+              <div class="bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-blue-600 dark:text-blue-400 mb-0.5 font-semibold">Tenure</div>
                 <div class="font-medium cell-strong">${escAttr(data.tenureText || '\u2014')}</div>
-                <div class="text-[11px] cell-faint">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
+                <div class="text-[10px] text-blue-500/70 dark:text-blue-400/70">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
               </div>
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Site</div>
+              <div class="bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-0.5 font-semibold">Site</div>
                 <div class="font-medium cell-strong">${escAttr(data.site || '\u2014')}</div>
               </div>
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Team</div>
+              <div class="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-0.5 font-semibold">Team</div>
                 <div class="font-medium cell-strong">${escAttr(data.team || '\u2014')}</div>
-                <div class="text-[11px] cell-faint">${escAttr(data.workflow || '')}</div>
+                <div class="text-[10px] text-amber-600/70 dark:text-amber-400/70 truncate">${escAttr(data.workflow || '')}</div>
               </div>
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Grade</div>
+              <div class="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-0.5 font-semibold">Grade</div>
                 <div class="font-medium cell-strong">${escAttr(data.gradeLevel || '\u2014')}</div>
               </div>
-              <div class="col-span-2 sm:col-span-4 pt-2 border-t border-gray-100 dark:border-gray-700 mt-1">
-                <span class="text-[10px] uppercase tracking-wide cell-faint">Reports to</span>
-                <span class="text-sm ml-2">${reportsToHtml}</span>
+              <div class="col-span-2 sm:col-span-4 pt-3 mt-1 flex items-center gap-2">
+                <span class="text-[10px] uppercase tracking-wide cell-faint font-semibold bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">Reports to</span>
+                <span class="text-sm">${reportsToHtml}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">Today</div>
-            <div class="text-2xl font-normal cell-strong">${data.stats.today}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+               <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">today</span>
+               </div>
+               ${data.stats.today > 0 ? `<span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full">+${data.stats.today}</span>` : ''}
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">Today</div>
+              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.today}</div>
+            </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">This Week</div>
-            <div class="text-2xl font-normal cell-strong">${data.stats.thisWeek}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+               <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">date_range</span>
+               </div>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">This Week</div>
+              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisWeek}</div>
+            </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">This Month</div>
-            <div class="text-2xl font-normal cell-strong">${data.stats.thisMonth}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+               <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">calendar_month</span>
+               </div>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">This Month</div>
+              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisMonth}</div>
+            </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">My Pending Audits</div>
-            <div class="text-2xl font-normal ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-500' : 'cell-strong'}">${data.stats.pendingAudits}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border ${data.stats.pendingAudits > 0 ? 'border-amber-200 dark:border-amber-800/50' : 'border-gray-200/50 dark:border-gray-700/50'} flex flex-col justify-between relative overflow-hidden">
+            ${data.stats.pendingAudits > 0 ? '<div class="absolute top-0 right-0 w-16 h-16 bg-amber-100 dark:bg-amber-900/20 rounded-bl-full -mr-8 -mt-8 animate-pulse"></div>' : ''}
+            <div class="flex items-center justify-between mb-3 relative z-10">
+               <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">gavel</span>
+               </div>
+               ${data.stats.pendingAudits > 0 ? `<span class="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Action</span>` : ''}
+            </div>
+            <div class="relative z-10">
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">My Pending Audits</div>
+              <div class="text-3xl font-bold ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-800 dark:text-gray-100'}">${data.stats.pendingAudits}</div>
+            </div>
           </div>
         </div>
 
