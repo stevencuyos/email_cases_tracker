@@ -78,7 +78,7 @@ function initializeDatabase() {
       'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef'],
       'Error_Logs': ['Timestamp', 'Function', 'User', 'Error Message'],
       'Interval_Status': ['Date', 'Interval', 'LDAP', 'Status', 'SetBy', 'Timestamp'],
-      'Interval_CheckIns': ['Date', 'Interval', 'ScheduledPOC', 'CheckedInBy', 'Timestamp', 'Result', 'UnresolvedLDAPs', 'Notes'],
+      'Interval_CheckIns': ['Date', 'Interval', 'ScheduledPOC', 'CheckedInBy', 'Timestamp', 'Result', 'UnresolvedLDAPs', 'Notes', 'IsSubstitute'],
       'Escalation_Log': ['Date', 'Interval', 'EscalatedAt', 'ScheduledPOC', 'UnresolvedCount', 'TotalAgents'],
       'Escalation_Config': ['Role', 'Name', 'Email']
     };
@@ -174,8 +174,9 @@ function getUserProfile() {
 function clearAccessCache() {
   const email = Session.getActiveUser().getEmail();
   const currentLdap = email ? email.split('@')[0] : 'unknown_agent';
+  const nowStr = toDateStringFast(new Date());
   CacheService.getUserCache().remove('userProfile_' + currentLdap);
-  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList', 'agentDemographicsList', 'emailAgentsMap_v2']);
+  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList', 'agentDemographicsList', 'emailAgentsMap_v2', 'poc_schedule_' + nowStr]);
   return true;
 }
 
@@ -952,6 +953,60 @@ function getIntervalStatusOverrides(dateStr, intervalHourStr) {
   }
 }
 
+function setIntervalStatusBulk(dateStr, intervalHourStr, updates) {
+  const profile = requireManagerOrThrow();
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Interval_Status');
+    if (!sheet) {
+      initializeDatabase();
+      sheet = ss.getSheetByName('Interval_Status');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const now = new Date();
+
+    // Process updates
+    updates.forEach(update => {
+      const targetLdap = String(update.ldap).trim().toLowerCase();
+      let foundRow = -1;
+
+      for (let i = 1; i < data.length; i++) {
+        const rowDate = data[i][0];
+        const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
+        const rowInterval = data[i][1];
+        const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
+        const rowLdap = String(data[i][2]).trim().toLowerCase();
+
+        if (formattedDate === dateStr && formattedInterval === intervalHourStr && rowLdap === targetLdap) {
+          foundRow = i + 1;
+          break;
+        }
+      }
+
+      if (foundRow !== -1) {
+        sheet.getRange(foundRow, 4).setValue(update.status);
+        sheet.getRange(foundRow, 5).setValue(profile.ldap);
+        sheet.getRange(foundRow, 6).setValue(now);
+        data[foundRow - 1][3] = update.status; // Update local array to prevent duplicate searches acting incorrectly
+      } else {
+        sheet.appendRow([dateStr, intervalHourStr, targetLdap, update.status, profile.ldap, now]);
+        data.push([dateStr, intervalHourStr, targetLdap, update.status, profile.ldap, now]);
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('setIntervalStatusBulk', e.toString(), user);
+    return { error: "Failed to process bulk status updates." };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function setIntervalStatus(dateStr, intervalHourStr, ldap, status) {
   const profile = requireManagerOrThrow();
   const lock = LockService.getScriptLock();
@@ -1021,7 +1076,8 @@ function getCheckInStatus(dateStr, intervalHourStr) {
           timestamp: (data[i][4] instanceof Date) ? data[i][4].getTime() : data[i][4],
           result: data[i][5],
           unresolvedLDAPs: data[i][6],
-          notes: data[i][7]
+          notes: data[i][7],
+          isSubstitute: data[i][8] === true || data[i][8] === 'true'
         };
       }
     }
@@ -1086,8 +1142,13 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
       if (match) scheduledPOC = match.poc;
     }
 
+    let isSubstitute = false;
+    if (scheduledPOC !== "Unknown" && scheduledPOC.toLowerCase() !== profile.ldap.toLowerCase()) {
+       isSubstitute = true;
+    }
+
     const now = new Date();
-    sheet.appendRow([dateStr, intervalHourStr, scheduledPOC, profile.ldap, now, result, unresolvedStr, noteStr]);
+    sheet.appendRow([dateStr, intervalHourStr, scheduledPOC, profile.ldap, now, result, unresolvedStr, noteStr, isSubstitute]);
 
     return {
       success: true,
@@ -1099,7 +1160,8 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
         timestamp: now.getTime(),
         result: result,
         unresolvedLDAPs: unresolvedStr,
-        notes: noteStr
+        notes: noteStr,
+        isSubstitute: isSubstitute
       }
     };
   } catch (e) {
@@ -1114,6 +1176,21 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
 // 9b. Fetch Live POC Schedule
 function getPOCSchedule() {
   try {
+    const cache = CacheService.getScriptCache();
+    const now = new Date();
+    const todayStr = toDateStringFast(now); // "M/d/yyyy"
+    const cacheKey = 'poc_schedule_' + todayStr;
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        return { success: true, schedule: parsed };
+      } catch (e) {
+        // Failed to parse, ignore cache and fetch
+      }
+    }
+
     const pocSheetUrl = 'https://docs.google.com/spreadsheets/d/1SwO6Wet3OWPQDkXC2jyQ3rbPTjCDMZbAc5fLbDK6HHU/edit';
     const ss = SpreadsheetApp.openByUrl(pocSheetUrl);
     const sheet = ss.getSheetByName('POC Schedule');
@@ -1121,9 +1198,6 @@ function getPOCSchedule() {
     if (!sheet) {
       return { success: false, error: 'POC Schedule tab not found in the source sheet.' };
     }
-
-    const now = new Date();
-    const todayStr = toDateStringFast(now); // "M/d/yyyy"
 
     // Header row is Row 8
     const headers = sheet.getRange(8, 1, 1, sheet.getLastColumn()).getValues()[0];
@@ -1176,6 +1250,13 @@ function getPOCSchedule() {
        let siteStr = siteMap[pocStr.toLowerCase()] || '';
 
        pocList.push({ time: timeStr, poc: pocStr, site: siteStr });
+    }
+
+    // Cache the successful fetch for 10 minutes to significantly speed up Live POC loading
+    try {
+      cache.put(cacheKey, JSON.stringify(pocList), 600); // 10 minutes
+    } catch(err) {
+      // Ignore cache put errors
     }
 
     return { success: true, schedule: pocList };
