@@ -664,9 +664,24 @@
              <span class="material-symbols-outlined text-[16px]">done_all</span>
              <span id="summaryTotalCases">0</span> cases logged
           </div>
-          <span class="ml-auto italic text-gray-400 flex items-center gap-1">
-             <span class="material-symbols-outlined text-[14px]">save</span>
-             Status edits saved locally
+
+          <!-- Check-In Area -->
+          <div id="checkInArea" class="ml-auto flex items-center">
+             <button id="checkInBtn" onclick="handleCheckIn()" class="hidden bg-theme-primary text-white text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-theme-primary-hover transition flex items-center gap-1.5">
+               <span class="material-symbols-outlined text-[16px]">verified</span> Check In Interval
+             </button>
+             <div id="checkInBadge" class="hidden flex items-center gap-2 px-3 py-1 rounded border">
+                <span id="checkInIcon" class="material-symbols-outlined text-[16px]"></span>
+                <div class="flex flex-col">
+                  <span id="checkInResult" class="text-[10px] uppercase font-bold tracking-wide"></span>
+                  <span id="checkInDetails" class="text-[10px] text-gray-500"></span>
+                </div>
+             </div>
+          </div>
+
+          <span class="ml-4 italic text-gray-400 flex items-center gap-1">
+             <span class="material-symbols-outlined text-[14px]">cloud_done</span>
+             Status edits saved
           </span>
         </div>
 
@@ -2363,23 +2378,150 @@ function refreshAccess() {
     function loadIntervalOverrides() {
       const d = document.getElementById('intervalDate').value;
       const h = document.getElementById('intervalHour').value;
-      intervalStatusKey = 'intervalStatus|' + d + '|' + h;
-      try { intervalStatusOverrides = JSON.parse(localStorage.getItem(intervalStatusKey) || '{}'); }
-      catch (e) { intervalStatusOverrides = {}; }
+
+      if (!d) return;
+
+      const [year, month, day] = d.split('-');
+      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+
+      google.script.run
+        .withSuccessHandler((overrides) => {
+          intervalStatusOverrides = overrides || {};
+          // Re-render the rows with the new overrides if agents are already loaded
+          if (allIntervalAgents && allIntervalAgents.length > 0) {
+              const filterInput = document.getElementById('intervalFilterInput');
+              if (filterInput && filterInput.value.trim()) {
+                 applyIntervalFilter();
+              } else {
+                 renderIntervalRows(allIntervalAgents);
+              }
+          }
+        })
+        .withFailureHandler((err) => {
+          console.error("Failed to load status overrides", err);
+          intervalStatusOverrides = {};
+        })
+        .getIntervalStatusOverrides(formattedDate, h);
     }
 
     function setIntervalStatus(selectEl, ldap) {
       const computed = selectEl.dataset.computed || '';
-      if (selectEl.value === computed) delete intervalStatusOverrides[ldap];
-      else intervalStatusOverrides[ldap] = selectEl.value;
-      try { localStorage.setItem(intervalStatusKey, JSON.stringify(intervalStatusOverrides)); } catch (e) {}
+      const newStatus = selectEl.value;
+
+      if (newStatus === computed) delete intervalStatusOverrides[ldap];
+      else intervalStatusOverrides[ldap] = newStatus;
+
       updateStatusColor(selectEl);
+
+      const d = document.getElementById('intervalDate').value;
+      const h = document.getElementById('intervalHour').value;
+
+      const [year, month, day] = d.split('-');
+      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+
+      // Disable select while saving
+      selectEl.disabled = true;
+      selectEl.classList.add('opacity-50', 'cursor-not-allowed');
+
+      google.script.run
+        .withSuccessHandler(() => {
+          selectEl.disabled = false;
+          selectEl.classList.remove('opacity-50', 'cursor-not-allowed');
+          showToast("Status saved.", "success");
+        })
+        .withFailureHandler((err) => {
+          selectEl.disabled = false;
+          selectEl.classList.remove('opacity-50', 'cursor-not-allowed');
+          showToast("Failed to save status.", "error");
+        })
+        .setIntervalStatus(formattedDate, h, ldap, newStatus);
     }
 
     function statusOptionsHtml(selected) {
       return STATUS_OPTIONS.map(o =>
         `<option value="${o}" class="select-default" ${o === selected ? 'selected' : ''}>${o}</option>`
       ).join('');
+    }
+
+
+    // --- CHECK-IN LOGIC ---
+    function renderCheckInStatus(record) {
+      const btn = document.getElementById('checkInBtn');
+      const badge = document.getElementById('checkInBadge');
+
+      if (!record) {
+        btn.classList.remove('hidden');
+        badge.classList.add('hidden');
+        return;
+      }
+
+      btn.classList.add('hidden');
+      badge.classList.remove('hidden');
+
+      const icon = document.getElementById('checkInIcon');
+      const result = document.getElementById('checkInResult');
+      const details = document.getElementById('checkInDetails');
+
+      if (record.result === "Complete w/ Exceptions") {
+         badge.className = "flex items-center gap-2 px-3 py-1 rounded border border-amber-200 bg-amber-50 dark:bg-amber-900/30 dark:border-amber-800";
+         icon.className = "material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400";
+         icon.innerText = "warning";
+         result.className = "text-[10px] uppercase font-bold tracking-wide text-amber-700 dark:text-amber-400";
+         result.innerText = record.result;
+      } else {
+         badge.className = "flex items-center gap-2 px-3 py-1 rounded border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/30 dark:border-emerald-800";
+         icon.className = "material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400";
+         icon.innerText = "check_circle";
+         result.className = "text-[10px] uppercase font-bold tracking-wide text-emerald-700 dark:text-emerald-400";
+         result.innerText = record.result;
+      }
+
+      const timeStr = formatRelativeTime(record.timestamp);
+      details.innerText = `By ${record.checkedInBy} • ${timeStr}`;
+    }
+
+    function handleCheckIn(overrideNote = "") {
+      const d = document.getElementById('intervalDate').value;
+      const h = document.getElementById('intervalHour').value;
+
+      if (!d) return showToast("Please select a date", "warning");
+
+      const [year, month, day] = d.split('-');
+      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+
+      const btn = document.getElementById('checkInBtn');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Processing...';
+
+      google.script.run
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">verified</span> Check In Interval';
+
+          if (res.error) {
+             showToast(res.error, "error");
+          } else if (res.needsNote) {
+             const ldaps = res.unresolvedLDAPs.join(', ');
+             const note = window.prompt(`The following agents have no status or cases:\n\n${ldaps}\n\nPlease enter a short note to proceed with the check-in:`);
+             if (note !== null && note.trim() !== "") {
+                handleCheckIn(note);
+             } else {
+                showToast("Check-in cancelled.", "warning");
+             }
+          } else if (res.alreadyCheckedIn || res.success) {
+             showToast("Interval checked in successfully.", "success");
+             renderCheckInStatus(res.record);
+          }
+        })
+        .withFailureHandler((err) => {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">verified</span> Check In Interval';
+          showToast("Network error checking in.", "error");
+        })
+        .checkInInterval(formattedDate, h, overrideNote);
     }
 
     // --- INTERVAL VIEW LOGIC ---
@@ -2454,7 +2596,7 @@ function refreshAccess() {
             <td class="p-3">
               <div class="flex items-center gap-2 group relative">
                 ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
-                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium case-link hover:underline">${a.ldap}</a>
+                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium case-link hover:underline whitespace-nowrap">${a.ldap}</a>
                 ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
 
                 <!-- Custom Tooltip -->
@@ -2498,6 +2640,18 @@ function refreshAccess() {
       document.getElementById('summaryOtCount').textContent = otCount;
       document.getElementById('summaryTotalCases').textContent = totalCases;
       summaryBar.classList.remove('hidden');
+
+      // Fetch check-in status
+      document.getElementById('checkInBtn').classList.add('hidden');
+      document.getElementById('checkInBadge').classList.add('hidden');
+      const d = document.getElementById('intervalDate').value;
+      const h = document.getElementById('intervalHour').value;
+      const [year, month, day] = d.split('-');
+      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+
+      google.script.run
+        .withSuccessHandler(renderCheckInStatus)
+        .getCheckInStatus(formattedDate, h);
     }
     // --- TABLE SORTING LOGIC ---
     function sortTable(tableBodyId, headerElement, columnIndex, isNumeric = false) {
