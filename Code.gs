@@ -171,7 +171,7 @@ function clearAccessCache() {
   const email = Session.getActiveUser().getEmail();
   const currentLdap = email ? email.split('@')[0] : 'unknown_agent';
   CacheService.getUserCache().remove('userProfile_' + currentLdap);
-  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList']);
+  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList', 'agentDemographicsList']);
   return true;
 }
 
@@ -752,24 +752,37 @@ function getIntervalData(dateStr, intervalHourStr) {
     let targetHour = parseInt(intervalHourStr.split(':')[0], 10);
     let agentsInInterval = {};
     
-    // 1. Build a whitelist of "Email" Channel Agents from the Masterlist (With Cache)
+    // 1. Build a whitelist of "Email" Channel Agents & cache Demographics from the Masterlist
     const cache = CacheService.getScriptCache();
     let emailAgentsList = cache.get('emailAgentsList');
+    let agentDemographicsList = cache.get('agentDemographicsList');
     let emailAgents = new Set();
+    let agentDemographics = {};
     
-    if (emailAgentsList) {
+    if (emailAgentsList && agentDemographicsList) {
       emailAgents = new Set(JSON.parse(emailAgentsList));
+      agentDemographics = JSON.parse(agentDemographicsList);
     } else if (masterSheet && masterSheet.getLastRow() > 1) {
-      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 24).getValues();
+      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 45).getValues();
       for (let i = 0; i < masterData.length; i++) {
         const ldap = masterData[i][0] ? masterData[i][0].toString().toLowerCase() : '';
-        const channel = masterData[i][23] ? masterData[i][23].toString().toLowerCase() : ''; 
+        if (!ldap) continue;
         
+        const channel = masterData[i][23] ? masterData[i][23].toString().toLowerCase() : '';
         if (channel === 'email') {
           emailAgents.add(ldap);
         }
+
+        // Cache Supervisor (Col AB / 27) and Site (Col AS / 44)
+        agentDemographics[ldap] = {
+          supervisor: masterData[i][27] || 'Unknown',
+          site: masterData[i][44] || 'Unknown'
+        };
       }
       cache.put('emailAgentsList', JSON.stringify(Array.from(emailAgents)), 14400);
+      cache.put('agentDemographicsList', JSON.stringify(agentDemographics), 14400);
+    } else if (agentDemographicsList) {
+      agentDemographics = JSON.parse(agentDemographicsList);
     }
 
     // 2. Process Regular Shifts from 'Agent Shifts'
@@ -841,6 +854,7 @@ function getIntervalData(dateStr, intervalHourStr) {
                   sos: formattedSOS,
                   eos: formattedEOS,
                   site: site,
+                  supervisor: agentDemographics[ldap] ? agentDemographics[ldap].supervisor : 'Unknown',
                   isOT: false,
                   casesLogged: 0,
                   regularCount: 0,
@@ -884,6 +898,7 @@ function getIntervalData(dateStr, intervalHourStr) {
               sos: "OT",
               eos: "OT",
               site: site,
+              supervisor: agentDemographics[ldap] ? agentDemographics[ldap].supervisor : 'Unknown',
               isOT: true,
               otType: otType,
               casesLogged: 0,
