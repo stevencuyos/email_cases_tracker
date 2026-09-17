@@ -263,6 +263,12 @@
       <div id="pocContainer" class="space-y-1 nav-text">
         <div class="text-xs text-center text-gray-400 py-2">Loading...</div>
       </div>
+
+      <!-- Manager Only: POC Planner Shortcut -->
+      <button onclick="switchTab('pocPlannerView')" id="pocPlannerBtn" class="hidden mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-theme-accent-muted/50 dark:bg-theme-accent-muted/20 text-theme-primary dark:text-theme-primary border border-theme-primary/20 rounded-theme-sm hover:bg-theme-primary hover:text-white dark:hover:bg-theme-primary dark:hover:text-white transition text-xs font-semibold nav-text shadow-sm">
+        <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
+        Launch POC Planner
+      </button>
     </div>
 
     <!-- User Identity & Settings -->
@@ -799,6 +805,27 @@
       </div>
     </div>
 
+    <!-- VIEW: POC Planner (Embedded) -->
+    <div id="pocPlannerView" class="hidden w-full max-w-7xl h-[85vh] space-y-6 transition-all duration-300 pb-12 w-full">
+      <div class="w-full h-full bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative flex flex-col">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 z-10"></div>
+        <div class="p-4 pt-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-theme-canvas/50 dark:bg-gray-800/50 shrink-0">
+          <div>
+            <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">edit_calendar</span>
+              Email POC Planner
+            </h2>
+          </div>
+          <a href="https://script.google.com/a/macros/google.com/s/AKfycbzpFsp5ElMkJ6jwveJkoZJmBU1-YwhXKDCPHXyUh_TvCYNkiZ4UNs9Pn4ZBAleGR5YS/exec" target="_blank" class="text-xs flex items-center gap-1 text-gray-500 hover:text-theme-primary transition">
+            Open in new tab <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+          </a>
+        </div>
+        <div class="flex-1 w-full bg-theme-canvas dark:bg-gray-900 rounded-b-theme overflow-hidden">
+          <iframe src="https://script.google.com/a/macros/google.com/s/AKfycbzpFsp5ElMkJ6jwveJkoZJmBU1-YwhXKDCPHXyUh_TvCYNkiZ4UNs9Pn4ZBAleGR5YS/exec" class="w-full h-full border-0"></iframe>
+        </div>
+      </div>
+    </div>
+
     </div> <!-- End View Containers Max-W Wrapper -->
 
   </main>
@@ -1166,6 +1193,10 @@ function refreshAccess() {
       if (profile.isManager) {
         document.getElementById('managerOnlyTabs').classList.remove('hidden');
         
+        // Unhide the POC Planner shortcut
+        const pocPlannerBtn = document.getElementById('pocPlannerBtn');
+        if (pocPlannerBtn) pocPlannerBtn.classList.remove('hidden');
+
         // Update My Submissions to Agent Submissions
        document.getElementById('mySubmissionsNavText').innerText = 'Agent Submissions';
         document.getElementById('tab-mySubmissionsView').title = 'Agent Submissions';
@@ -1268,7 +1299,7 @@ function refreshAccess() {
 
     // 3. Tab Switching Logic
     function switchTab(viewId) {
-      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView', 'profileView'].forEach(id => {
+      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView', 'profileView', 'pocPlannerView'].forEach(id => {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
@@ -1681,7 +1712,7 @@ function refreshAccess() {
         return `
           <div class="flex-1 flex flex-col items-center gap-1">
             <div class="w-full flex items-end" style="height:96px;">
-              <div class="w-full bg-theme-primary/80 dark:bg-theme-primary rounded-t" style="height:${pct}%"></div>
+              <div class="w-full bg-theme-primary opacity-80 dark:opacity-100 rounded-t" style="height:${pct}%"></div>
             </div>
             <div class="text-[10px] cell-faint">${t.label}</div>
           </div>`;
