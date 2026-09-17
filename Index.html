@@ -2593,17 +2593,11 @@ function refreshAccess() {
           const needsAttention = !status && a.casesLogged === 0;
           return `
           <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'bg-red-50/40 dark:bg-red-900/10' : ''}">
-            <td class="p-3 max-w-[150px]">
-              <div class="flex items-center gap-2 group relative">
-                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600 shrink-0', 50)}
-                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium text-theme-primary hover:underline min-w-0 truncate z-10">${a.ldap}</a>
-                ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded shrink-0">OT</span>' : ''}
-
-                <!-- Custom Tooltip -->
-                <div class="absolute top-full left-6 mt-1 hidden group-hover:block bg-slate-800 dark:bg-gray-700 text-white text-[11px] rounded shadow-lg z-50 p-2.5 min-w-[180px] whitespace-nowrap border border-slate-700">
-                   <div class="mb-1"><span class="text-slate-400">Supervisor:</span> <span class="font-semibold text-white">${a.supervisor}</span></div>
-                   <div><span class="text-slate-400">Site:</span> <span class="font-semibold text-white">${a.site}</span></div>
-                </div>
+            <td class="p-3">
+              <div class="flex items-center gap-2">
+                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
+                <span class="font-medium text-theme-primary whitespace-nowrap">${a.ldap}</span>
+                ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
               </div>
             </td>
             <td class="p-3 text-center cell-muted">${a.sos}</td>
