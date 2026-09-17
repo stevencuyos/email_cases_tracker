@@ -174,8 +174,9 @@ function getUserProfile() {
 function clearAccessCache() {
   const email = Session.getActiveUser().getEmail();
   const currentLdap = email ? email.split('@')[0] : 'unknown_agent';
+  const nowStr = toDateStringFast(new Date());
   CacheService.getUserCache().remove('userProfile_' + currentLdap);
-  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList', 'agentDemographicsList', 'emailAgentsMap_v2']);
+  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList', 'agentDemographicsList', 'emailAgentsMap_v2', 'poc_schedule_' + nowStr]);
   return true;
 }
 
@@ -1175,6 +1176,21 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
 // 9b. Fetch Live POC Schedule
 function getPOCSchedule() {
   try {
+    const cache = CacheService.getScriptCache();
+    const now = new Date();
+    const todayStr = toDateStringFast(now); // "M/d/yyyy"
+    const cacheKey = 'poc_schedule_' + todayStr;
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        return { success: true, schedule: parsed };
+      } catch (e) {
+        // Failed to parse, ignore cache and fetch
+      }
+    }
+
     const pocSheetUrl = 'https://docs.google.com/spreadsheets/d/1SwO6Wet3OWPQDkXC2jyQ3rbPTjCDMZbAc5fLbDK6HHU/edit';
     const ss = SpreadsheetApp.openByUrl(pocSheetUrl);
     const sheet = ss.getSheetByName('POC Schedule');
@@ -1182,9 +1198,6 @@ function getPOCSchedule() {
     if (!sheet) {
       return { success: false, error: 'POC Schedule tab not found in the source sheet.' };
     }
-
-    const now = new Date();
-    const todayStr = toDateStringFast(now); // "M/d/yyyy"
 
     // Header row is Row 8
     const headers = sheet.getRange(8, 1, 1, sheet.getLastColumn()).getValues()[0];
@@ -1237,6 +1250,13 @@ function getPOCSchedule() {
        let siteStr = siteMap[pocStr.toLowerCase()] || '';
 
        pocList.push({ time: timeStr, poc: pocStr, site: siteStr });
+    }
+
+    // Cache the successful fetch for 10 minutes to significantly speed up Live POC loading
+    try {
+      cache.put(cacheKey, JSON.stringify(pocList), 600); // 10 minutes
+    } catch(err) {
+      // Ignore cache put errors
     }
 
     return { success: true, schedule: pocList };
