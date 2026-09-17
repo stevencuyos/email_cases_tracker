@@ -65,6 +65,30 @@
     .sidebar-collapsed .nav-icon { margin: 0 auto; }
     .sidebar-collapsed .identity-text { display: none; }
     .sidebar-collapsed .identity-avatar { margin: 0 auto; }
+        /* Semantic classes so dynamically rendered tables follow the theme */
+    .row-hover:hover { background-color: #f8f9fa; }
+    .dark .row-hover:hover { background-color: #1f2937; }
+    .cell-strong { color: #202124; }
+    .dark .cell-strong { color: #f3f4f6; }
+    .cell-muted { color: #5f6368; }
+    .dark .cell-muted { color: #9ca3af; }
+    .cell-faint { color: #9aa0a6; }
+    .dark .cell-faint { color: #6b7280; }
+    .chip-box { background-color: #f8f9fa; border: 1px solid #e8eaed; }
+    .dark .chip-box { background-color: #111827; border-color: #374151; }
+    .chip-box-alert { background-color: #fce8e6; }
+    .dark .chip-box-alert { background-color: rgba(234,67,53,0.15); }
+    .case-link { color: #1a73e8; }
+    .dark .case-link { color: #8ab4f8; }
+    .select-default { background-color: #ffffff; color: #3c4043; }
+    .dark .select-default { background-color: #374151; color: #e5e7eb; }
+
+    @keyframes viewFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .view-enter { animation: viewFadeIn 0.22s ease-out; }
+
+    #tutorialOverlay { z-index: 70; }
+    #tutorialHighlight { box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); border: 2px solid #1a73e8; box-sizing: border-box; z-index: 71; }
+    #tutorialCard { z-index: 72; }
   </style>
 </head>
 <body class="text-gray-800 dark:text-gray-200 antialiased h-screen overflow-hidden flex bg-[#f8f9fa] dark:bg-gray-900 transition-colors">
@@ -78,19 +102,23 @@
           <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[28px] shrink-0">track_changes</span>
           <h1 class="text-lg font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap nav-text tracking-tight">Case Tracker</h1>
         </div>
-        <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0">
-          <span class="material-symbols-outlined text-[20px]">menu</span>
-        </button>
+        <div class="flex items-center gap-1 shrink-0">
+          <button onclick="openHelpModal()" title="Help" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span class="material-symbols-outlined text-[20px]">help</span>
+          </button>
+          <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span class="material-symbols-outlined text-[20px]">menu</span>
+          </button>
+        </div>
       </div>
-
       <!-- Navigation Links -->
       <nav class="flex flex-col mt-4 space-y-1">
-        <button onclick="switchTab('submissionView')" id="tab-submissionView" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+        <button onclick="switchTab('submissionView')" id="tab-submissionView" title="Submit Cases" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">edit_square</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Submit Cases</span>
         </button>
 
-        <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+        <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" title="My Submissions" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">list_alt</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text" id="mySubmissionsNavText">My Submissions</span>
         </button>
@@ -100,17 +128,17 @@
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Management</span>
           </div>
 
-          <button onclick="switchTab('analyticsView')" id="tab-analyticsView" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('analyticsView')" id="tab-analyticsView" title="Performance Analytics" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">insights</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Performance Analytics</span>
           </button>
 
-          <button onclick="switchTab('dashboardView')" id="tab-dashboardView" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('dashboardView')" id="tab-dashboardView" title="Manager Dashboard" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">dashboard</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Manager Dashboard</span>
           </button>
 
-          <button onclick="switchTab('intervalView')" id="tab-intervalView" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('intervalView')" id="tab-intervalView" title="Interval View" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">view_timeline</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Interval View</span>
           </button>
@@ -148,7 +176,7 @@
         </div>
       </div>
 
-      <div id="identityChip" class="flex items-center gap-3 bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse overflow-hidden shadow-sm">
+      <div id="identityChip" onclick="switchTab('profileView')" tabindex="0" role="button" title="View my profile" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('profileView');}" class="flex items-center gap-3 bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse overflow-hidden shadow-sm cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:ring-2 hover:ring-blue-100 dark:hover:ring-blue-900/40 transition">
         <div class="w-8 h-8 rounded-full bg-gray-200 shrink-0 identity-avatar"></div>
         <div class="flex flex-col identity-text min-w-0">
           <div class="h-3 bg-gray-200 rounded w-20 mb-1"></div>
@@ -169,6 +197,7 @@
       <div class="p-8 pb-6 border-b border-gray-100 dark:border-gray-700">
         <h2 class="text-2xl font-normal mb-1 text-gray-800 dark:text-gray-100">Log Your Interval</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">Paste your Case IDs separated by commas or new lines. Duplicates will be automatically audited.</p>
+        <p id="lastSubmittedNote" class="text-xs cell-muted mt-2"></p>
       </div>
 
       <form id="trackerForm" onsubmit="handleFormSubmit(event)" class="p-8 pt-6 space-y-8">
@@ -242,31 +271,31 @@
           <h3 class="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Email Cases type <span class="text-red-500">*</span></h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label class="cursor-pointer">
-              <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections()" class="peer sr-only">
+              <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Regular (Take Next)</span>
               </div>
             </label>
             <label class="cursor-pointer">
-              <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections()" class="peer sr-only">
+              <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Reopened Cases</span>
               </div>
             </label>
             <label class="cursor-pointer">
-              <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections()" class="peer sr-only">
+              <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Telus Cases</span>
               </div>
             </label>
             <label class="cursor-pointer">
-              <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections()" class="peer sr-only">
+              <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Manual Assignment</span>
               </div>
             </label>
             <label class="cursor-pointer">
-              <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections()" class="peer sr-only">
+              <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
                 <span class="text-sm font-medium">Cimba Cases</span>
               </div>
@@ -277,12 +306,13 @@
         <!-- Bulk Case IDs -->
         <div>
           <h3 class="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Tracked Case IDs <span class="text-red-500">*</span></h3>
-          <textarea id="caseIds" rows="5" required placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-y shadow-inner bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
+          <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints()" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-y shadow-inner bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
+          <div id="caseIdHints" class="mt-2 text-xs cell-muted min-h-[1rem]"></div>
         </div>
 
         <!-- Action Footer -->
         <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button type="button" onclick="document.getElementById('trackerForm').reset(); handleShiftTypeChange();" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-4 py-2 rounded transition">
+          <button type="button" onclick="clearForm()" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-4 py-2 rounded transition">
             Clear form
           </button>
           <button type="submit" id="submitBtn" class="bg-google-blue text-white font-medium text-sm px-6 py-2.5 rounded shadow hover:bg-blue-700 transition flex items-center gap-2">
@@ -350,10 +380,10 @@
           </div>
           <div class="flex items-center gap-3">
             <button onclick="handleBulkAudit('Approve')" class="hidden bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 text-sm font-medium px-3 py-1.5 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition items-center gap-1 bulk-audit-btn">
-              <span class="material-symbols-outlined text-[18px]">check</span> Approve Selected
+              <span class="material-symbols-outlined text-[18px]">check</span> Approve Selected (<span class="bulk-audit-count">0</span>)
             </button>
             <button onclick="handleBulkAudit('Reject')" class="hidden bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition items-center gap-1 bulk-audit-btn">
-              <span class="material-symbols-outlined text-[18px]">close</span> Reject Selected
+              <span class="material-symbols-outlined text-[18px]">close</span> Reject Selected (<span class="bulk-audit-count">0</span>)
             </button>
             <button onclick="loadDashboard()" class="text-gray-500 hover:text-blue-600 transition p-1" title="Refresh Data">
               <span class="material-symbols-outlined">refresh</span>
@@ -460,7 +490,7 @@
           </div>
           <div class="ml-auto relative">
             <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
-            <input type="text" id="intervalFilterInput" oninput="applyIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-56 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+            <input type="text" id="intervalFilterInput" oninput="debounceIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-56 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
           </div>
         </div>
 
@@ -470,6 +500,7 @@
           <span><span class="font-semibold text-amber-600 dark:text-amber-500" id="summarySkipCount">0</span> flagged (SOS/EOS skip)</span>
           <span><span class="font-semibold text-purple-700 dark:text-purple-400" id="summaryOtCount">0</span> on OT</span>
           <span><span class="font-semibold text-green-700 dark:text-green-500" id="summaryTotalCases">0</span> total cases logged</span>
+          <span class="ml-auto italic text-gray-400">Status edits are saved on this device only</span>
         </div>
 
         <!-- Interval Table (scrollable body, frozen header) -->
@@ -532,7 +563,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px] text-google-green">done_all</span> Total Valid (Today)
+            <span class="material-symbols-outlined text-[16px] text-google-green">done_all</span> Total Valid (<span id="kpi-range-label">Today</span>)
           </span>
           <span id="kpi-valid-today" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
         </div>
@@ -544,7 +575,7 @@
         </div>
         <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">group</span> Active Staff (Today / Hr)
+            <span class="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">group</span> Active Staff (<span id="kpi-range-label-2">Today</span> / Now)
           </span>
           <span class="text-4xl font-normal text-gray-800 dark:text-gray-100">
             <span id="kpi-staff-today">--</span> <span class="text-xl text-gray-400">/ <span id="kpi-staff-hour">--</span></span>
@@ -598,6 +629,13 @@
           </div>
         </div>
       </div>
+   </div>
+
+    <!-- VIEW: My Profile -->
+    <div id="profileView" class="hidden w-full max-w-4xl space-y-6 pb-12">
+      <div id="profileCardContainer" class="space-y-6">
+        <div class="text-center text-gray-400 py-12">Loading profile...</div>
+      </div>
     </div>
 
     </div> <!-- End View Containers Max-W Wrapper -->
@@ -608,6 +646,54 @@
   <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded shadow-lg transition-opacity duration-300 opacity-0 hidden flex items-center gap-3 z-50">
     <span id="toastIcon" class="material-symbols-outlined">info</span>
     <span id="toastMessage" class="text-sm">Message</span>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="helpModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeHelpModal()"></div>
+    <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
+          <span class="material-symbols-outlined text-blue-500 dark:text-blue-400">help</span>
+          Help &amp; Guide
+        </h2>
+        <button onclick="closeHelpModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-2">
+        <button onclick="closeHelpModal(); startTutorial();" class="w-full flex items-center justify-between bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-lg p-4 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition text-left mb-2">
+          <span class="font-medium flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">play_circle</span>
+            Take the guided tour
+          </span>
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </button>
+        <div id="helpAccordion" class="divide-y divide-gray-100 dark:divide-gray-700 border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial Overlay -->
+  <div id="tutorialOverlay" class="hidden fixed inset-0">
+    <div id="tutorialHighlight" class="fixed rounded-lg pointer-events-none transition-all duration-300"></div>
+    <div id="tutorialCard" class="fixed bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-5 w-80 transition-all duration-300">
+      <div class="flex items-center justify-between mb-2">
+        <span id="tutorialStepCount" class="text-xs font-medium cell-muted uppercase tracking-wide"></span>
+        <button onclick="endTutorial()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <h3 id="tutorialTitle" class="font-medium mb-1 cell-strong"></h3>
+      <p id="tutorialText" class="text-sm cell-muted mb-4"></p>
+      <div class="flex items-center justify-between">
+        <button id="tutorialBackBtn" onclick="prevTutorialStep()" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-1.5 rounded transition">Back</button>
+        <div class="flex items-center gap-2">
+          <button onclick="endTutorial()" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-1.5 rounded transition">Skip</button>
+          <button id="tutorialNextBtn" onclick="nextTutorialStep()" class="bg-google-blue text-white text-sm font-medium px-4 py-1.5 rounded shadow hover:bg-blue-700 transition">Next</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- JavaScript -->
@@ -629,7 +715,7 @@
       return idsString.split(',').map(id => {
         let cleanId = escAttr(id.trim());
         // Added whitespace-nowrap to the class list below:
-        return `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="text-blue-600 hover:underline hover:text-blue-800 whitespace-nowrap">${cleanId}</a>`;
+        return `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="case-link hover:underline whitespace-nowrap">${cleanId}</a>`;
       }).join(', ');
     }
     // ----------------------------------------------
@@ -764,9 +850,14 @@ function refreshAccess() {
       // Load user preferences from local storage
       loadSelections();
       loadSharedDate();
+      updateCaseIdHints();
 
       // Load POC Schedule
       loadPOCSchedule();
+
+      // Last-submitted note ticker
+      updateLastSubmittedNote();
+      setInterval(updateLastSubmittedNote, 30000);
     });
 
     // --- POC SCHEDULE LOGIC ---
@@ -844,6 +935,7 @@ function refreshAccess() {
 
     // 2. Setup UI based on profile
     function initializeUserUI(profile) {
+      currentUserIsManager = !!profile.isManager;
       const chip = document.getElementById('identityChip');
       
       // Generate the avatar HTML using the helper function
@@ -869,7 +961,8 @@ function refreshAccess() {
         document.getElementById('managerOnlyTabs').classList.remove('hidden');
         
         // Update My Submissions to Agent Submissions
-        document.getElementById('tab-mySubmissionsView').innerHTML = `Agent Submissions`;
+       document.getElementById('mySubmissionsNavText').innerText = 'Agent Submissions';
+        document.getElementById('tab-mySubmissionsView').title = 'Agent Submissions';
         document.getElementById('mySubmissionsTitle').innerHTML = `
           <span class="material-symbols-outlined text-blue-500">manage_search</span>
           Agent Submissions
@@ -879,7 +972,7 @@ function refreshAccess() {
         const searchContainer = document.getElementById('managerLdapSearch');
         const searchInput = document.getElementById('targetAgentLdap');
         searchContainer.classList.remove('hidden');
-        searchInput.value = profile.ldap; // Default to themselves
+        searchInput.value = localStorage.getItem('lastSearchedLdap') || profile.ldap; // Restore last search, else default to themselves
         
         // Load Agents for autocomplete
         google.script.run
@@ -899,6 +992,10 @@ function refreshAccess() {
       // Set default date for my submissions
       if(!document.getElementById('mySubmissionsDate').value) {
         document.getElementById('mySubmissionsDate').valueAsDate = new Date();
+      }
+
+      if (!localStorage.getItem('hasSeenTutorial')) {
+        setTimeout(startTutorial, 600);
       }
     }
 
@@ -947,15 +1044,25 @@ function refreshAccess() {
       if (sidebar.classList.contains('sidebar-expanded')) {
         sidebar.classList.remove('sidebar-expanded');
         sidebar.classList.add('sidebar-collapsed');
+        localStorage.setItem('sidebarCollapsed', '1');
       } else {
         sidebar.classList.remove('sidebar-collapsed');
         sidebar.classList.add('sidebar-expanded');
+        localStorage.setItem('sidebarCollapsed', '0');
+      }
+    }
+
+    function initSidebar() {
+      if (localStorage.getItem('sidebarCollapsed') === '1') {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.remove('sidebar-expanded');
+        sidebar.classList.add('sidebar-collapsed');
       }
     }
 
     // 3. Tab Switching Logic
     function switchTab(viewId) {
-      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView'].forEach(id => {
+      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView', 'profileView'].forEach(id => {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
@@ -964,13 +1071,19 @@ function refreshAccess() {
       
       let viewEl = document.getElementById(viewId);
       let tabViewEl = document.getElementById('tab-' + viewId);
-      if (viewEl) viewEl.classList.remove('hidden');
+      if (viewEl) {
+        viewEl.classList.remove('hidden');
+        viewEl.classList.remove('view-enter');
+        void viewEl.offsetWidth; // restart animation on repeat visits
+        viewEl.classList.add('view-enter');
+      }
       if (tabViewEl) tabViewEl.className = "w-full flex items-center px-6 py-3 nav-active transition-colors text-left group";
       
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
       if(viewId === 'intervalView') loadIntervalData();
       if(viewId === 'analyticsView') loadAnalytics();
+      if(viewId === 'profileView') loadMyProfile();
     }
 
     // 4. Form Submission Logic
@@ -1007,6 +1120,79 @@ function refreshAccess() {
       otInputs.forEach(input => input.required = isOT);
       if (!isOT) otInputs.forEach(input => input.checked = false);
     }
+
+    const CASE_ID_RE = /^\d-\d{7,14}$/;
+
+    function parseCaseIds(text) {
+      const raw = text.split(/[\n,;\s]+/).map(s => s.trim()).filter(Boolean);
+      const seen = {};
+      raw.forEach(id => { seen[id] = (seen[id] || 0) + 1; });
+      const unique = Object.keys(seen);
+      return {
+        raw: raw,
+        unique: unique,
+        dupes: unique.filter(id => seen[id] > 1),
+        invalid: unique.filter(id => !CASE_ID_RE.test(id))
+      };
+    }
+
+    function updateCaseIdHints() {
+      const el = document.getElementById('caseIdHints');
+      if (!el) return;
+      const p = parseCaseIds(document.getElementById('caseIds').value);
+      if (p.raw.length === 0) { el.innerHTML = ''; return; }
+      const parts = ['<span class="font-medium cell-strong">' + (p.unique.length - p.invalid.length) + '</span> valid ID(s)'];
+      if (p.dupes.length) parts.push('<span class="text-amber-600">' + p.dupes.length + ' repeated in this paste</span>');
+      if (p.invalid.length) parts.push('<span class="text-red-600">' + p.invalid.length + ' invalid format</span>');
+      el.innerHTML = parts.join(' &middot; ');
+    }
+
+    function formatRelativeTime(ts) {
+      const diffSec = Math.round((Date.now() - ts) / 1000);
+      if (diffSec < 60) return 'just now';
+      const diffMin = Math.round(diffSec / 60);
+      if (diffMin < 60) return diffMin + ' min ago';
+      const diffHr = Math.round(diffMin / 60);
+      return diffHr + ' hr ago';
+    }
+
+    function currentIntervalLabel() {
+      const d = new Date();
+      let h = d.getHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      let h12 = h % 12; h12 = h12 ? h12 : 12;
+      return h12 + ':00 ' + ampm;
+    }
+
+    function updateLastSubmittedNote() {
+      const note = document.getElementById('lastSubmittedNote');
+      if (!note) return;
+      const raw = localStorage.getItem('lastSubmitInfo');
+      if (!raw) { note.innerText = ''; return; }
+      try {
+        const info = JSON.parse(raw);
+        note.innerText = 'Last logged: ' + info.interval + ' interval, ' + formatRelativeTime(info.ts);
+      } catch (e) { note.innerText = ''; }
+    }
+
+    function handleCaseIdsKeydown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('submitBtn').click();
+      }
+    }
+
+    function focusCaseIds() {
+      const el = document.getElementById('caseIds');
+      if (el && !el.disabled) el.focus();
+    }
+
+    function clearForm() {
+      document.getElementById('trackerForm').reset();
+      handleShiftTypeChange();
+      handleActivityChange();
+      updateCaseIdHints();
+    }  
 
     function handleFormSubmit(event) {
       event.preventDefault();
@@ -1066,8 +1252,10 @@ function refreshAccess() {
             } else {
               showToast(`Success! ${response.valid} cases securely logged.`, 'success');
             }
-            document.getElementById('trackerForm').reset();
-            handleShiftTypeChange();
+            document.getElementById('caseIds').value = '';
+            updateCaseIdHints();
+            localStorage.setItem('lastSubmitInfo', JSON.stringify({ ts: Date.now(), interval: currentIntervalLabel() }));
+            updateLastSubmittedNote();
           } else {
             showToast(response.error, 'error');
           }
@@ -1085,13 +1273,25 @@ function refreshAccess() {
       spinner.classList.add('hidden');
     }
 
+    let toastQueue = [];
+    let toastActive = false;
+
     function showToast(message, type) {
+      toastQueue.push({ message: message, type: type });
+      if (!toastActive) processToastQueue();
+    }
+
+    function processToastQueue() {
+      if (toastQueue.length === 0) { toastActive = false; return; }
+      toastActive = true;
+      const { message, type } = toastQueue.shift();
+
       const toast = document.getElementById('toast');
       const toastMsg = document.getElementById('toastMessage');
       const toastIcon = document.getElementById('toastIcon');
 
       toastMsg.textContent = message;
-      
+
       if (type === 'success') {
         toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 transition-opacity duration-300";
         toastIcon.textContent = "check_circle";
@@ -1103,19 +1303,309 @@ function refreshAccess() {
         toastIcon.textContent = "error";
       }
 
+      const holdMs = (type === 'error') ? 8000 : 5000;
+
       toast.classList.remove('hidden', 'opacity-0');
-      
+
       setTimeout(() => {
         toast.classList.add('opacity-0');
-        setTimeout(() => toast.classList.add('hidden'), 300);
-      }, 6000);
+        setTimeout(() => {
+          toast.classList.add('hidden');
+          processToastQueue();
+        }, 300);
+      }, holdMs);
+    }
+
+    // --- MY PROFILE LOGIC ---
+    function loadMyProfile() {
+      const container = document.getElementById('profileCardContainer');
+      container.innerHTML = '<div class="text-center text-gray-400 py-12">Loading profile...</div>';
+      google.script.run
+        .withSuccessHandler(renderMyProfile)
+        .withFailureHandler(err => {
+          container.innerHTML = '<div class="text-center text-red-400 py-12">Failed to load profile.</div>';
+          showToast("Failed to load profile.", 'error');
+        })
+        .getMyProfileData();
+    }
+
+    function renderMyProfile(data) {
+      const container = document.getElementById('profileCardContainer');
+      const avatarHTML = getMomaImgClass(data.ldap, 'w-16 h-16 rounded-full border border-gray-200 dark:border-gray-600 object-cover shrink-0', 128);
+      const statusColor = (data.employeeStatus || '').toLowerCase() === 'active'
+        ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400'
+        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+
+      const reportsToHtml = data.reportsTo.length
+        ? data.reportsTo.map(r => escAttr(r.name)).join(' &rarr; ')
+        : '<span class="cell-faint">Not on file</span>';
+
+      const maxTrend = Math.max(1, ...data.trend.map(t => t.count));
+      const trendBars = data.trend.map(t => {
+        const pct = Math.max(6, Math.round((t.count / maxTrend) * 100));
+        return `
+          <div class="flex-1 flex flex-col items-center gap-1">
+            <div class="w-full flex items-end" style="height:96px;">
+              <div class="w-full bg-blue-400 dark:bg-blue-600 rounded-t" style="height:${pct}%"></div>
+            </div>
+            <div class="text-[10px] cell-faint">${t.label}</div>
+          </div>`;
+      }).join('');
+
+      const totalBreakdown = data.breakdown.Regular + data.breakdown.Reopened + data.breakdown.Manual;
+      function breakdownRow(label, value, colorClass) {
+        const pct = totalBreakdown > 0 ? Math.round((value / totalBreakdown) * 100) : 0;
+        return `
+          <div>
+            <div class="flex justify-between mb-0.5 text-xs"><span>${label}</span><span class="cell-faint">${value}</span></div>
+            <div class="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full"><div class="h-1.5 ${colorClass} rounded-full" style="width:${pct}%"></div></div>
+          </div>`;
+      }
+
+      container.innerHTML = `
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+          <div class="p-6 flex flex-col sm:flex-row gap-6">
+            <div class="flex items-center gap-4 sm:w-64 shrink-0">
+              ${avatarHTML}
+              <div class="min-w-0">
+                <div class="font-medium text-lg leading-tight truncate cell-strong">${escAttr(data.name)}</div>
+                <div class="text-sm cell-muted truncate">${escAttr(data.position || '\u2014')}</div>
+                ${data.employeeStatus ? `<span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}">${escAttr(data.employeeStatus)}</span>` : ''}
+              </div>
+            </div>
+            <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+              <div>
+                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Tenure</div>
+                <div class="font-medium cell-strong">${escAttr(data.tenureText || '\u2014')}</div>
+                <div class="text-[11px] cell-faint">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Site</div>
+                <div class="font-medium cell-strong">${escAttr(data.site || '\u2014')}</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Team</div>
+                <div class="font-medium cell-strong">${escAttr(data.team || '\u2014')}</div>
+                <div class="text-[11px] cell-faint">${escAttr(data.workflow || '')}</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Grade</div>
+                <div class="font-medium cell-strong">${escAttr(data.gradeLevel || '\u2014')}</div>
+              </div>
+              <div class="col-span-2 sm:col-span-4 pt-2 border-t border-gray-100 dark:border-gray-700 mt-1">
+                <span class="text-[10px] uppercase tracking-wide cell-faint">Reports to</span>
+                <span class="text-sm ml-2">${reportsToHtml}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+            <div class="text-[10px] uppercase cell-faint mb-1">Today</div>
+            <div class="text-2xl font-normal cell-strong">${data.stats.today}</div>
+          </div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+            <div class="text-[10px] uppercase cell-faint mb-1">This Week</div>
+            <div class="text-2xl font-normal cell-strong">${data.stats.thisWeek}</div>
+          </div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+            <div class="text-[10px] uppercase cell-faint mb-1">This Month</div>
+            <div class="text-2xl font-normal cell-strong">${data.stats.thisMonth}</div>
+          </div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+            <div class="text-[10px] uppercase cell-faint mb-1">My Pending Audits</div>
+            <div class="text-2xl font-normal ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-500' : 'cell-strong'}">${data.stats.pendingAudits}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md sm:col-span-2 p-5 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+            <div class="text-sm font-medium mb-3 cell-strong">Last 7 Days</div>
+            <div class="flex items-end gap-2">${trendBars}</div>
+          </div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+            <div class="text-sm font-medium mb-3 cell-strong">This Month by Type</div>
+            <div class="space-y-2">
+              ${breakdownRow('Regular', data.breakdown.Regular, 'bg-blue-500')}
+              ${breakdownRow('Reopened', data.breakdown.Reopened, 'bg-amber-400')}
+              ${breakdownRow('Manual', data.breakdown.Manual, 'bg-purple-400')}
+            </div>
+          </div>
+        </div>
+
+        <button onclick="switchTab('mySubmissionsView')" class="w-full flex items-center justify-between bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50 hover:border-blue-400 dark:hover:border-blue-500 transition text-left">
+          <span class="text-sm font-medium flex items-center gap-2 cell-strong">
+            <span class="material-symbols-outlined text-blue-500 dark:text-blue-400 text-[20px]">list_alt</span>
+            View my full submissions
+          </span>
+          <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
+        </button>
+      `;
+    }
+
+    // --- HELP MODAL ---
+    let currentUserIsManager = false;
+
+    const HELP_SECTIONS_AGENT = [
+      { title: 'Submitting cases', body: 'Pick your shift type, interval activity, and case type, then paste Case IDs (one per line or comma-separated), format 1-12345678. Duplicates are logged but flagged for manager review automatically.' },
+      { title: 'Case ID shortcuts', body: 'Press Ctrl+Enter (Cmd+Enter on Mac) inside the Case ID box to submit without reaching for the mouse. The line under the box shows a live count of valid IDs, repeats, and invalid formats as you paste.' },
+      { title: 'Break/Lunch tracking', body: 'If you track cases during Break/Lunch, you need at least 3 Case IDs logged for that interval.' },
+      { title: 'My Submissions', body: 'Shows everything you\u2019ve logged for a selected date, grouped by interval \u2014 use it to double check before your shift ends.' },
+      { title: 'My Profile', body: 'Click your name at the bottom of the sidebar to see your role details and a personal breakdown of your logged cases \u2014 today, this week, this month.' }
+    ];
+
+    const HELP_SECTIONS_MANAGER = [
+      { title: 'Audit Queue', body: 'Duplicate submissions land here for review. Approve counts them as valid; Reject marks them as duplicate/fraud and can\u2019t be undone from this screen. Select multiple rows to act in bulk.' },
+      { title: 'Interval View', body: 'Shows who\u2019s scheduled for an hour, their computed status (Assigned-7, SKIP SOS/EOS, Break-3, etc.), and lets you correct a status manually \u2014 corrections are saved on your device only.' },
+      { title: 'Performance Analytics', body: 'Executive KPIs, an hourly productivity heatmap, workflow/site breakdowns, and leaderboards for a selected date range.' },
+      { title: 'Agent Submissions', body: 'Same as My Submissions but lets you search any agent by LDAP to see their logged cases for a date.' }
+    ];
+
+    function buildHelpAccordion(isManager) {
+      const sections = isManager ? HELP_SECTIONS_AGENT.concat(HELP_SECTIONS_MANAGER) : HELP_SECTIONS_AGENT;
+      const acc = document.getElementById('helpAccordion');
+      acc.innerHTML = sections.map((s, i) => `
+        <div>
+          <button onclick="toggleHelpItem(${i})" class="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+            <span class="text-sm font-medium cell-strong">${s.title}</span>
+            <span class="material-symbols-outlined text-[18px] cell-faint help-chevron-${i}">expand_more</span>
+          </button>
+          <div id="helpItem-${i}" class="hidden px-4 pb-4 text-sm cell-muted">${s.body}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleHelpItem(i) {
+      const el = document.getElementById('helpItem-' + i);
+      const chevrons = document.querySelectorAll('.help-chevron-' + i);
+      el.classList.toggle('hidden');
+      chevrons.forEach(c => c.textContent = el.classList.contains('hidden') ? 'expand_more' : 'expand_less');
+    }
+
+    function openHelpModal() {
+      buildHelpAccordion(currentUserIsManager);
+      document.getElementById('helpModal').classList.remove('hidden');
+    }
+
+    function closeHelpModal() {
+      document.getElementById('helpModal').classList.add('hidden');
+    }
+
+    // --- GUIDED TOUR ---
+    let tutorialSteps = [];
+    let tutorialIndex = 0;
+    let tutorialSidebarWasCollapsed = false;
+    let tutorialResizeHandler = null;
+
+    function getTutorialSteps(isManager) {
+      const steps = [
+        { tab: 'submissionView', selector: '#tab-submissionView', title: 'Submit Cases', text: 'This is where you log your Case IDs each interval.' },
+        { tab: 'submissionView', selector: '#caseIds', title: 'Tracked Case IDs', text: 'Paste IDs separated by commas or new lines, e.g. 1-12345678. Ctrl+Enter submits directly from here.' },
+        { tab: 'mySubmissionsView', selector: '#tab-mySubmissionsView', title: isManager ? 'Agent Submissions' : 'My Submissions', text: isManager ? 'Search any agent by LDAP to review what they\u2019ve logged for a date.' : 'Review everything you\u2019ve logged for a selected date.' },
+        { tab: null, selector: '#identityChip', title: 'Your Profile', text: 'Click your name any time to see your role details and a personal breakdown of your logged cases.' }
+      ];
+      if (isManager) {
+        steps.push({ tab: 'analyticsView', selector: '#tab-analyticsView', title: 'Performance Analytics', text: 'KPIs, a productivity heatmap, and leaderboards for any date range.' });
+        steps.push({ tab: 'dashboardView', selector: '#tab-dashboardView', title: 'Manager Dashboard', text: 'Review flagged duplicate submissions and today\u2019s live per-agent metrics.' });
+        steps.push({ tab: 'intervalView', selector: '#tab-intervalView', title: 'Interval View', text: 'See who\u2019s scheduled this hour and their computed status. You can correct a status if needed.' });
+      }
+      steps.push({ tab: null, selector: null, title: 'That\u2019s it!', text: 'Reopen this tour any time from the Help (?) icon at the top of the sidebar.' });
+      return steps;
+    }
+
+    function startTutorial() {
+      tutorialSteps = getTutorialSteps(currentUserIsManager);
+      tutorialIndex = 0;
+
+      const sidebar = document.getElementById('sidebar');
+      tutorialSidebarWasCollapsed = sidebar.classList.contains('sidebar-collapsed');
+      if (tutorialSidebarWasCollapsed) {
+        sidebar.classList.remove('sidebar-collapsed');
+        sidebar.classList.add('sidebar-expanded');
+      }
+
+      document.getElementById('tutorialOverlay').classList.remove('hidden');
+      renderTutorialStep();
+
+      tutorialResizeHandler = () => positionTutorialStep();
+      window.addEventListener('resize', tutorialResizeHandler);
+    }
+
+    function endTutorial() {
+      document.getElementById('tutorialOverlay').classList.add('hidden');
+      if (tutorialResizeHandler) { window.removeEventListener('resize', tutorialResizeHandler); tutorialResizeHandler = null; }
+      if (tutorialSidebarWasCollapsed) {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.remove('sidebar-expanded');
+        sidebar.classList.add('sidebar-collapsed');
+      }
+      localStorage.setItem('hasSeenTutorial', '1');
+    }
+
+    function nextTutorialStep() {
+      if (tutorialIndex < tutorialSteps.length - 1) {
+        tutorialIndex++;
+        renderTutorialStep();
+      } else {
+        endTutorial();
+      }
+    }
+
+    function prevTutorialStep() {
+      if (tutorialIndex > 0) {
+        tutorialIndex--;
+        renderTutorialStep();
+      }
+    }
+
+    function renderTutorialStep() {
+      const step = tutorialSteps[tutorialIndex];
+      document.getElementById('tutorialStepCount').textContent = 'Step ' + (tutorialIndex + 1) + ' of ' + tutorialSteps.length;
+      document.getElementById('tutorialTitle').textContent = step.title;
+      document.getElementById('tutorialText').textContent = step.text;
+      document.getElementById('tutorialBackBtn').style.visibility = tutorialIndex === 0 ? 'hidden' : 'visible';
+      document.getElementById('tutorialNextBtn').textContent = (tutorialIndex === tutorialSteps.length - 1) ? 'Finish' : 'Next';
+
+      if (step.tab) switchTab(step.tab);
+
+      setTimeout(positionTutorialStep, 60);
+    }
+
+    function positionTutorialStep() {
+      const step = tutorialSteps[tutorialIndex];
+      const highlight = document.getElementById('tutorialHighlight');
+      const card = document.getElementById('tutorialCard');
+      const target = step.selector ? document.querySelector(step.selector) : null;
+
+      if (!target) {
+        highlight.style.opacity = '0';
+        card.style.top = (window.innerHeight / 2 - 90) + 'px';
+        card.style.left = (window.innerWidth / 2 - 160) + 'px';
+        return;
+      }
+
+      const rect = target.getBoundingClientRect();
+      const pad = 8;
+      highlight.style.opacity = '1';
+      highlight.style.top = (rect.top - pad) + 'px';
+      highlight.style.left = (rect.left - pad) + 'px';
+      highlight.style.width = (rect.width + pad * 2) + 'px';
+      highlight.style.height = (rect.height + pad * 2) + 'px';
+
+      const cardWidth = 320;
+      let cardTop = rect.bottom + 16;
+      let cardLeft = Math.min(Math.max(rect.left, 16), window.innerWidth - cardWidth - 16);
+      if (cardTop + 180 > window.innerHeight) cardTop = Math.max(16, rect.top - 190);
+      card.style.top = cardTop + 'px';
+      card.style.left = cardLeft + 'px';
     }
 
     // --- DASHBOARD LOGIC ---
 
     // Load data when tab is clicked
     function loadDashboard() {
-      document.getElementById('auditTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
+      document.getElementById('auditTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
       document.getElementById('metricsTableBody').innerHTML = '<tr><td colspan="3" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
       
       google.script.run
@@ -1141,31 +1631,31 @@ function refreshAccess() {
         auditTbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">🎉 No pending audits! Queue is clean.</td></tr>';
       } else {
         auditTbody.innerHTML = data.audits.map(a => `
-          <tr class="hover:bg-gray-50 transition" id="audit-row-${a.row}">
+          <tr class="row-hover transition" id="audit-row-${a.row}">
             <td class="p-4">
-              <input type="checkbox" class="audit-checkbox w-4 h-4 text-blue-600 rounded border-gray-300" onchange="updateBulkAuditButtons()" data-audit-row="${a.row}" data-raw-row="${a.rawRowRef}">
+              <input type="checkbox" class="audit-checkbox w-4 h-4 text-blue-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700" onchange="updateBulkAuditButtons()" data-audit-row="${a.row}" data-raw-row="${a.rawRowRef}">
             </td>
             <td class="p-4">
               <div class="flex items-center gap-3">
                 ${getMomaImgClass(a.agent, 'w-8 h-8 rounded-full border border-gray-200 object-cover', 80)}
                 <div class="flex flex-col">
-                  <span class="font-medium text-gray-800">${a.agent}</span>
-                  <span class="text-[10px] text-gray-500 uppercase">${a.site}</span>
+                  <span class="font-medium cell-strong">${a.agent}</span>
+                  <span class="text-[10px] cell-muted uppercase">${a.site}</span>
                 </div>
               </div>
             </td>
             <td class="p-4">
               <div class="flex flex-col">
-                <span class="text-gray-800">${a.timestamp}</span>
-                <span class="text-xs text-gray-500">${a.caseType}</span>
+                <span class="cell-strong">${a.timestamp}${a.rawTs ? ' <span class="text-[10px] cell-faint">(' + formatRelativeTime(a.rawTs) + ')</span>' : ''}</span>
+                <span class="text-xs cell-muted">${a.caseType}</span>
               </div>
             </td>
             <td class="p-4 align-top">
-              <div class="font-mono text-xs bg-red-50/50 rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
+              <div class="font-mono text-xs chip-box-alert rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
                 ${formatCaseIdsAsLinks(a.flaggedIds)}
               </div>
             </td>
-            <td class="p-4 text-xs text-gray-600">${a.reason}</td>
+            <td class="p-4 text-xs cell-muted">${a.reason}</td>
             <td class="p-4 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button onclick="handleAudit(${a.row}, ${a.rawRowRef}, 'Approve')" class="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded transition" title="Approve">
@@ -1185,18 +1675,18 @@ function refreshAccess() {
         metricsTbody.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-gray-400">No cases logged today yet.</td></tr>';
       } else {
         metricsTbody.innerHTML = data.metrics.map(m => `
-          <tr class="hover:bg-gray-50 transition">
+          <tr class="row-hover transition">
             <td class="p-4">
               <div class="flex items-center gap-3">
                 ${getMomaImgClass(m.agent, 'w-8 h-8 rounded-full border border-gray-200 object-cover', 80)}
                 <div class="flex flex-col">
-                  <span class="font-medium text-gray-800">${m.agent}</span>
-                  <span class="text-[10px] text-gray-500 uppercase">${m.site}</span>
+                  <span class="font-medium cell-strong">${m.agent}</span>
+                  <span class="text-[10px] cell-muted uppercase">${m.site}</span>
                 </div>
               </div>
             </td>
-            <td class="p-4 text-center font-medium text-lg ${m.totalValid > 0 ? 'text-green-600' : 'text-gray-400'}">${m.totalValid}</td>
-            <td class="p-4 text-center font-medium ${m.totalFlagged > 0 ? 'text-amber-500' : 'text-gray-300'}">${m.totalFlagged}</td>
+            <td class="p-4 text-center font-medium text-lg ${m.totalValid > 0 ? 'text-green-600 dark:text-green-400' : 'cell-faint'}">${m.totalValid}</td>
+            <td class="p-4 text-center font-medium ${m.totalFlagged > 0 ? 'text-amber-500' : 'cell-faint'}">${m.totalFlagged}</td>
           </tr>
         `).join('');
       }
@@ -1227,6 +1717,8 @@ function refreshAccess() {
       const targetLdap = document.getElementById('targetAgentLdap').value.trim();
 
       if (!dateVal) return showToast("Please select a date", "warning");
+
+      if (targetLdap) localStorage.setItem('lastSearchedLdap', targetLdap);
 
       document.getElementById('mySubmissionsTableBody').innerHTML =
         '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>';
@@ -1272,13 +1764,13 @@ function refreshAccess() {
           const validCount = sub && sub.validCount != null ? sub.validCount : 0;
           const caseIds = sub && sub.caseIds != null ? sub.caseIds : '';
           return `
-        <tr class="hover:bg-gray-50 transition">
-          <td class="p-4 whitespace-nowrap text-gray-800">${escAttr(interval)}</td>
-          <td class="p-4 text-gray-600">${escAttr(activity)}</td>
-          <td class="p-4 text-gray-600">${escAttr(caseType)}</td>
-          <td class="p-4 text-center font-medium ${validCount > 0 ? 'text-green-600' : 'text-gray-400'}">${validCount}</td>
+        <tr class="row-hover transition">
+          <td class="p-4 whitespace-nowrap cell-strong">${escAttr(interval)}</td>
+          <td class="p-4 cell-muted">${escAttr(activity)}</td>
+          <td class="p-4 cell-muted">${escAttr(caseType)}</td>
+          <td class="p-4 text-center font-medium ${validCount > 0 ? 'text-green-600 dark:text-green-400' : 'cell-faint'}">${validCount}</td>
           <td class="p-4 align-top">
-             <div class="font-mono text-xs bg-gray-50 border border-gray-200 rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
+             <div class="font-mono text-xs chip-box rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
                ${formatCaseIdsAsLinks(caseIds)}
              </div>
           </td>
@@ -1302,6 +1794,7 @@ function refreshAccess() {
       const buttons = document.querySelectorAll('.bulk-audit-btn');
 
       const isAnyChecked = checkboxes.length > 0;
+      document.querySelectorAll('.bulk-audit-count').forEach(el => el.textContent = checkboxes.length);
       buttons.forEach(btn => {
         if (isAnyChecked) {
           btn.classList.remove('hidden');
@@ -1322,6 +1815,10 @@ function refreshAccess() {
     function handleBulkAudit(resolution) {
       const checkedBoxes = document.querySelectorAll('.audit-checkbox:checked');
       if (checkedBoxes.length === 0) return;
+
+      if (resolution === 'Reject' && !confirm(`Reject ${checkedBoxes.length} flagged submission(s) as duplicate/fraud? This can't be undone from this screen.`)) {
+        return;
+      }
 
       const auditsToProcess = Array.from(checkedBoxes).map(cb => ({
         auditRow: parseInt(cb.getAttribute('data-audit-row'), 10),
@@ -1385,6 +1882,33 @@ function refreshAccess() {
         })
         .resolveAudit(auditRow, rawRowRef, resolution);
     }
+
+        const STATUS_OPTIONS = ['', 'Assigned - 7', 'Break - 3', 'VL/SL', 'on Live Channel', 'SKIP - EOS', 'SKIP SOS', 'Absent', 'on Coaching/Training', 'Closing Reopens'];
+    let intervalStatusKey = '';
+    let intervalStatusOverrides = {};
+
+    function loadIntervalOverrides() {
+      const d = document.getElementById('intervalDate').value;
+      const h = document.getElementById('intervalHour').value;
+      intervalStatusKey = 'intervalStatus|' + d + '|' + h;
+      try { intervalStatusOverrides = JSON.parse(localStorage.getItem(intervalStatusKey) || '{}'); }
+      catch (e) { intervalStatusOverrides = {}; }
+    }
+
+    function setIntervalStatus(selectEl, ldap) {
+      const computed = selectEl.dataset.computed || '';
+      if (selectEl.value === computed) delete intervalStatusOverrides[ldap];
+      else intervalStatusOverrides[ldap] = selectEl.value;
+      try { localStorage.setItem(intervalStatusKey, JSON.stringify(intervalStatusOverrides)); } catch (e) {}
+      updateStatusColor(selectEl);
+    }
+
+    function statusOptionsHtml(selected) {
+      return STATUS_OPTIONS.map(o =>
+        `<option value="${o}" class="select-default" ${o === selected ? 'selected' : ''}>${o}</option>`
+      ).join('');
+    }
+
     // --- INTERVAL VIEW LOGIC ---
     function loadIntervalData() {
       const dateVal = document.getElementById('intervalDate').value;
@@ -1396,7 +1920,8 @@ function refreshAccess() {
       const [year, month, day] = dateVal.split('-');
       const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
 
-      document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading schedule...</td></tr>';
+      loadIntervalOverrides();
+      document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">Loading schedule...</td></tr>';
       
       google.script.run
         .withSuccessHandler(renderIntervalTable)
@@ -1411,6 +1936,12 @@ function refreshAccess() {
       const filterInput = document.getElementById('intervalFilterInput');
       if (filterInput) filterInput.value = '';
       renderIntervalRows(agents);
+    }
+
+    let intervalFilterTimer = null;
+    function debounceIntervalFilter() {
+      clearTimeout(intervalFilterTimer);
+      intervalFilterTimer = setTimeout(applyIntervalFilter, 150);
     }
 
     function applyIntervalFilter() {
@@ -1441,39 +1972,33 @@ function refreshAccess() {
       if (agents.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">No agents match your filter.</td></tr>';
       } else {
-        tbody.innerHTML = agents.map(a => `
-          <tr class="hover:bg-gray-50 transition ${a.isOT ? 'bg-amber-50/30' : ''}">
+                const n = v => (v > 0 ? v : '<span class="cell-faint">&ndash;</span>');
+        tbody.innerHTML = agents.map(a => {
+          const status = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus;
+          const needsAttention = !status && a.casesLogged === 0;
+          return `
+          <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'bg-red-50/40 dark:bg-red-900/10' : ''}">
             <td class="p-3">
               <div class="flex items-center gap-2">
-                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200', 50)}
-                <span class="font-medium text-blue-600">${a.ldap}</span>
+                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
+                <span class="font-medium case-link">${a.ldap}</span>
                 ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
               </div>
             </td>
-            <td class="p-3 text-center text-gray-600">${a.sos}</td>
-            <td class="p-3 text-center text-gray-600">${a.eos}</td>
-            <td class="p-3 text-center text-gray-600">${a.site}</td>
+            <td class="p-3 text-center cell-muted">${a.sos}</td>
+            <td class="p-3 text-center cell-muted">${a.eos}</td>
+            <td class="p-3 text-center cell-muted">${a.site}</td>
             <td class="p-3 text-center">
-              <!-- Dynamic Status Dropdown -->
-              <select onchange="updateStatusColor(this)" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors bg-white text-gray-700">
-                <option value="" class="bg-white text-gray-800" ${a.computedStatus === '' ? 'selected' : ''}></option>
-                <option value="Assigned - 7" class="bg-white text-gray-800" ${a.computedStatus === 'Assigned - 7' ? 'selected' : ''}>Assigned - 7</option>
-                <option value="Break - 3" class="bg-white text-gray-800" ${a.computedStatus === 'Break - 3' ? 'selected' : ''}>Break - 3</option>
-                <option value="VL/SL" class="bg-white text-gray-800" ${a.computedStatus === 'VL/SL' ? 'selected' : ''}>VL/SL</option>
-                <option value="on Live Channel" class="bg-white text-gray-800" ${a.computedStatus === 'on Live Channel' ? 'selected' : ''}>on Live Channel</option>
-                <option value="SKIP - EOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP - EOS' ? 'selected' : ''}>SKIP - EOS</option>
-                <option value="SKIP SOS" class="bg-white text-gray-800" ${a.computedStatus === 'SKIP SOS' ? 'selected' : ''}>SKIP SOS</option>
-                <option value="Absent" class="bg-white text-gray-800" ${a.computedStatus === 'Absent' ? 'selected' : ''}>Absent</option>
-                <option value="on Coaching/Training" class="bg-white text-gray-800" ${a.computedStatus === 'on Coaching/Training' ? 'selected' : ''}>on Coaching/Training</option>
-                <option value="Closing Reopens" class="bg-white text-gray-800" ${a.computedStatus === 'Closing Reopens' ? 'selected' : ''}>Closing Reopens</option>
+              <select onchange="setIntervalStatus(this, '${a.ldap}')" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors select-default">
+                ${statusOptionsHtml(status)}
               </select>
             </td>
-            <td class="p-3 text-center font-medium ${a.regularCount > 0 ? 'text-blue-600' : 'text-gray-400'}">${a.regularCount}</td>
-            <td class="p-3 text-center font-medium ${a.manualCount > 0 ? 'text-purple-600' : 'text-gray-400'}">${a.manualCount}</td>
-            <td class="p-3 text-center font-medium ${a.reopenedCount > 0 ? 'text-teal-600' : 'text-gray-400'}">${a.reopenedCount}</td>
-            <td class="p-3 text-center font-semibold ${a.casesLogged > 0 ? 'text-green-600' : 'text-gray-400'}">${a.casesLogged}</td>
+            <td class="p-3 text-center font-medium ${a.regularCount > 0 ? 'text-blue-600 dark:text-blue-400' : ''}">${n(a.regularCount)}</td>
+            <td class="p-3 text-center font-medium ${a.manualCount > 0 ? 'text-purple-600 dark:text-purple-400' : ''}">${n(a.manualCount)}</td>
+            <td class="p-3 text-center font-medium ${a.reopenedCount > 0 ? 'text-teal-600 dark:text-teal-400' : ''}">${n(a.reopenedCount)}</td>
+            <td class="p-3 text-center font-semibold ${a.casesLogged > 0 ? 'text-green-600 dark:text-green-400' : ''}">${n(a.casesLogged)}</td>
           </tr>
-        `).join('');
+        `;}).join('');
       }
 
       copyBtn.classList.remove('hidden');
@@ -1485,7 +2010,7 @@ function refreshAccess() {
 
       // Summary bar always reflects the full (unfiltered) interval, not the filtered view
       const totalAgents = allIntervalAgents.length;
-      const skipCount = allIntervalAgents.filter(a => a.computedStatus === 'SKIP - EOS' || a.computedStatus === 'SKIP SOS').length;
+      const skipCount = allIntervalAgents.filter(a => { const s = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus; return s === 'SKIP - EOS' || s === 'SKIP SOS'; }).length;
       const otCount = allIntervalAgents.filter(a => a.isOT).length;
       const totalCases = allIntervalAgents.reduce((sum, a) => sum + (a.casesLogged || 0), 0);
 
@@ -1618,6 +2143,11 @@ function refreshAccess() {
         endDateStr = offsetEnd.toISOString().split('T')[0];
       }
 
+      const rangeSel = document.getElementById('analyticsDateRange');
+      const rangeText = rangeSel.options[rangeSel.selectedIndex].text;
+      document.getElementById('kpi-range-label').innerText = rangeText;
+      document.getElementById('kpi-range-label-2').innerText = rangeText;
+
       // Visual loading state
       document.getElementById('kpi-valid-today').innerText = '...';
       document.getElementById('kpi-pending-audits').innerText = '...';
@@ -1642,18 +2172,35 @@ function refreshAccess() {
       document.getElementById('kpi-staff-hour').innerText = data.kpis.activeStaffThisHour;
 
       // 2. Render Heatmap
+      const heatmapHeight = Math.max(160, 44 * (data.heatmap.length || 1) + 80);
       const heatmapOptions = {
         series: data.heatmap,
         theme: { mode: chartThemeMode },
-        chart: { height: 350, type: 'heatmap', toolbar: { show: false }, background: chartBg },
-        dataLabels: { enabled: false },
-        colors: ["#1a73e8"],
+        chart: { height: heatmapHeight, type: 'heatmap', toolbar: { show: false }, background: chartBg },
+        dataLabels: { enabled: data.heatmap.length <= 3, style: { fontSize: '11px' } },
+        stroke: { width: 1, colors: ['transparent'] },
+        plotOptions: {
+          heatmap: {
+            radius: 2,
+            enableShades: false,
+            colorScale: {
+              ranges: [
+                { from: 0,  to: 0,    color: '#f1f3f4', name: '0' },
+                { from: 1,  to: 3,    color: '#c6dafc', name: '1-3' },
+                { from: 4,  to: 6,    color: '#8ab4f8', name: '4-6' },
+                { from: 7,  to: 9,    color: '#1a73e8', name: '7-9 (target)' },
+                { from: 10, to: 9999, color: '#0b57d0', name: '10+' }
+              ]
+            }
+          }
+        },
+        legend: { position: 'bottom' },
         title: { text: '' },
         xaxis: { type: 'category' }
       };
 
       if (heatmapChartInstance) {
-        heatmapChartInstance.updateOptions({ theme: { mode: chartThemeMode } });
+        heatmapChartInstance.updateOptions({ theme: { mode: chartThemeMode }, chart: { height: heatmapHeight }, dataLabels: { enabled: data.heatmap.length <= 3 } });
         heatmapChartInstance.updateSeries(data.heatmap);
       } else {
         document.getElementById('heatmapChart').innerHTML = ''; // Clear loading text
@@ -1848,10 +2395,11 @@ function refreshAccess() {
           const statusSelect = cells[4].querySelector('select');
           const status = statusSelect ? statusSelect.value : '';
           
-          const regular = cells[5].innerText.trim();
-          const manual = cells[6].innerText.trim();
-          const reopened = cells[7].innerText.trim();
-          const total = cells[8].innerText.trim();
+          const num = c => { const t = c.innerText.trim(); return (t === '' || t === '\u2013') ? '0' : t; };
+          const regular = num(cells[5]);
+          const manual = num(cells[6]);
+          const reopened = num(cells[7]);
+          const total = num(cells[8]);
           
           reportText += `${ldap}\t${sos}\t${eos}\t${site}\t${status}\t${regular}\t${manual}\t${reopened}\t${total}\n`;
         }
@@ -1884,8 +2432,9 @@ function refreshAccess() {
         if (a.activityLogged === 'Break/Lunch') {
           return `${a.ldap} - ${a.casesLogged} cases, Break`;
         }
-        if (a.computedStatus === 'SKIP SOS' || a.computedStatus === 'SKIP - EOS') {
-          return `${a.ldap} - ${a.computedStatus}`;
+        const st = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus;
+        if (st === 'SKIP SOS' || st === 'SKIP - EOS') {
+          return `${a.ldap} - ${st}`;
         }
         const label = caseTypeLabel(a) || 'No cases logged';
         const otTag = a.isOT ? ` (${a.otType || 'OT'})` : '';
