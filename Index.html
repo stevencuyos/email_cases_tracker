@@ -2596,7 +2596,7 @@ function refreshAccess() {
             <td class="p-3">
               <div class="flex items-center gap-2 group relative">
                 ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
-                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium case-link hover:underline">${a.ldap}</a>
+                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium case-link hover:underline whitespace-nowrap">${a.ldap}</a>
                 ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
 
                 <!-- Custom Tooltip -->
