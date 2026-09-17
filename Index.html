@@ -508,10 +508,20 @@
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Review operational output, workflows, and top performers.</p>
         </div>
         <div class="flex items-center gap-3">
-          <select id="analyticsDateRange" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+          <select id="analyticsDateRange" onchange="updateDateRangePicker(); loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="this_week">This Week</option>
+            <option value="this_month">This Month</option>
             <option value="7">Last 7 Days</option>
             <option value="30">Last 30 Days</option>
+            <option value="custom">Custom Range</option>
           </select>
+          <div id="customDateRangeContainer" class="hidden items-center gap-2">
+            <input type="date" id="analyticsStartDate" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
+            <span class="text-gray-500 dark:text-gray-400">to</span>
+            <input type="date" id="analyticsEndDate" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
+          </div>
           <button onclick="loadAnalytics()" class="bg-google-blue text-white font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-2">
             <span class="material-symbols-outlined text-[18px]">refresh</span> Refresh
           </button>
@@ -1556,9 +1566,57 @@ function refreshAccess() {
     let heatmapChartInstance = null;
     let donutChartInstance = null;
     let barChartInstance = null;
+    let otTimelineChartInstance = null;
+
+    function updateDateRangePicker() {
+      const preset = document.getElementById('analyticsDateRange').value;
+      const customContainer = document.getElementById('customDateRangeContainer');
+      if (preset === 'custom') {
+        customContainer.classList.remove('hidden');
+        customContainer.classList.add('flex');
+      } else {
+        customContainer.classList.add('hidden');
+        customContainer.classList.remove('flex');
+      }
+    }
 
     function loadAnalytics() {
-      const days = parseInt(document.getElementById('analyticsDateRange').value, 10);
+      const preset = document.getElementById('analyticsDateRange').value;
+      let startDateStr = null;
+      let endDateStr = null;
+
+      const today = new Date();
+      let start = new Date(today);
+      let end = new Date(today);
+
+      if (preset === 'today') {
+        // default
+      } else if (preset === 'yesterday') {
+        start.setDate(today.getDate() - 1);
+        end = new Date(start);
+      } else if (preset === 'this_week') {
+        const day = today.getDay();
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        start = new Date(today.setDate(diff));
+      } else if (preset === 'this_month') {
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+      } else if (preset === '7') {
+        start.setDate(today.getDate() - 6);
+      } else if (preset === '30') {
+        start.setDate(today.getDate() - 29);
+      } else if (preset === 'custom') {
+        startDateStr = document.getElementById('analyticsStartDate').value;
+        endDateStr = document.getElementById('analyticsEndDate').value;
+      }
+
+      if (preset !== 'custom') {
+        // Format to YYYY-MM-DD
+        const offsetStart = new Date(start.getTime() - (start.getTimezoneOffset() * 60000));
+        startDateStr = offsetStart.toISOString().split('T')[0];
+
+        const offsetEnd = new Date(end.getTime() - (end.getTimezoneOffset() * 60000));
+        endDateStr = offsetEnd.toISOString().split('T')[0];
+      }
 
       // Visual loading state
       document.getElementById('kpi-valid-today').innerText = '...';
@@ -1569,7 +1627,7 @@ function refreshAccess() {
       google.script.run
         .withSuccessHandler(renderAnalytics)
         .withFailureHandler(err => showToast("Error loading analytics.", "error"))
-        .getAnalyticsData(days);
+        .getAnalyticsData(startDateStr, endDateStr);
     }
 
     function renderAnalytics(data) {
@@ -1687,7 +1745,9 @@ function refreshAccess() {
       }
 
       // 6. Render OT Timeline Line Chart
-      const otTimelineLabels = Object.keys(data.otTimelineMap).sort((a, b) => {
+      let otTimelineLabels = [];
+      if (data && data.otTimelineMap) {
+         otTimelineLabels = Object.keys(data.otTimelineMap).sort((a, b) => {
         // Parse "M/d/yyyy|H:00 AM/PM" to actual date objects for precise chronological sorting
         const parseDate = (str) => {
           const [datePart, timePart] = str.split('|');
@@ -1703,7 +1763,8 @@ function refreshAccess() {
         };
         return parseDate(a) - parseDate(b);
       });
-      const otTimelineSeriesData = otTimelineLabels.map(k => data.otTimelineMap[k]);
+      }
+      const otTimelineSeriesData = data && data.otTimelineMap ? otTimelineLabels.map(k => data.otTimelineMap[k]) : [];
 
       const otTimelineOptions = {
         series: [{ name: 'OT Cases', data: otTimelineSeriesData }],
@@ -1728,7 +1789,7 @@ function refreshAccess() {
 
       // 7. Render OT Leaderboard
       const otLeaderboardDiv = document.getElementById('otLeaderboardContainer');
-      const sortedOtAgents = Object.entries(data.otLeaderboard).sort((a, b) => b[1] - a[1]);
+      const sortedOtAgents = data && data.otLeaderboard ? Object.entries(data.otLeaderboard).sort((a, b) => b[1] - a[1]) : [];
 
       if (sortedOtAgents.length === 0) {
         otLeaderboardDiv.innerHTML = '<div class="text-center text-gray-400 py-8">No OT data available.</div>';
