@@ -48,6 +48,28 @@ function toISODateStringFast(dateObj) {
   return y + '-' + m + '-' + d;
 }
 
+// Normalizes any interval-hour representation — a Date object, "16:00" (24-hour
+// text), or "4:00 PM" (12-hour text) — to a 0-23 integer. Comparisons should
+// always go through this instead of comparing formatted strings directly,
+// since different call sites (UI vs. escalationSweep vs. Sheets auto-typing)
+// don't agree on which text format they're using.
+function parseHourToInt(val) {
+  if (val instanceof Date) return val.getHours();
+  const str = String(val).trim();
+
+  let m = str.match(/^(\d{1,2}):\d{2}\s*(AM|PM)$/i);
+  if (m) {
+    let h = parseInt(m[1], 10) % 12;
+    if (m[2].toUpperCase() === 'PM') h += 12;
+    return h;
+  }
+
+  m = str.match(/^(\d{1,2}):\d{2}$/);
+  if (m) return parseInt(m[1], 10);
+
+  return null;
+}
+
 // --- COLUMN MAP FOR Raw_Cases (0-indexed, matches getValues() output) ---
 const RAW_COLS = {
   TIMESTAMP: 0, DATE: 1, INTERVAL: 2, AGENT: 3, NAME: 4, SITE: 5, LOB: 6, WORKFLOW: 7,
@@ -422,8 +444,6 @@ function resolveAuditsBulk(auditsToProcess, resolution) {
 
 // 7. Fetch User's Submissions for "My Submissions" Tab
 function getMySubmissions(dateStr, targetLdap) {
-  const realEmail = Session.getActiveUser().getEmail();
-  logError('ENTRY_CHECK_V2', 'ACTUAL_LOGGED_IN_EMAIL=' + realEmail + ' | dateStr=' + dateStr + ' targetLdap=' + targetLdap, 'entry');
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const rawSheet = ss.getSheetByName('Raw_Cases');
@@ -553,6 +573,9 @@ function escalationSweep() {
     const graceMinutes = parseInt(props.getProperty('GRACE_PERIOD_MINUTES') || '30', 10);
     const now = new Date();
 
+    // Read the log once per sweep run, not once per hour-offset checked below.
+    const logData = escalationLogSheet.getDataRange().getValues();
+
     for (let offset = 0; offset <= 6; offset++) {
       const targetTime = new Date(now.getTime() - (offset * 60 * 60 * 1000));
       const targetDateStr = toDateStringFast(targetTime);
@@ -562,16 +585,20 @@ function escalationSweep() {
       const graceThreshold = new Date(intervalEnd.getTime() + (graceMinutes * 60000));
 
       if (now.getTime() > graceThreshold.getTime()) {
+        // Canonical 24-hour form ("16:00") — the same shape the UI's <select>
+        // sends, and the only form getIntervalData / getCheckInStatus /
+        // getIntervalStatusOverrides expect. A separate 12-hour label is built
+        // just for the human-readable email below.
         const intervalHourObj = new Date(targetTime);
         intervalHourObj.setHours(h, 0, 0, 0);
-        const intervalHourStr = Utilities.formatDate(intervalHourObj, Session.getScriptTimeZone(), "h:00 a");
+        const intervalHourStr = Utilities.formatDate(intervalHourObj, Session.getScriptTimeZone(), "H:00");
+        const intervalHourLabel = Utilities.formatDate(intervalHourObj, Session.getScriptTimeZone(), "h:00 a");
 
-        const logData = escalationLogSheet.getDataRange().getValues();
         let alreadyEscalated = false;
         for (let i = 1; i < logData.length; i++) {
           const rowDate = logData[i][0];
           const formattedRowDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
-          if (formattedRowDate == targetDateStr && logData[i][1] == intervalHourStr) {
+          if (formattedRowDate == targetDateStr && parseHourToInt(logData[i][1]) === parseHourToInt(intervalHourStr)) {
             alreadyEscalated = true;
             break;
           }
@@ -601,17 +628,17 @@ function escalationSweep() {
           let scheduledPOC = "Unknown";
           const pocResult = getPOCSchedule();
           if (pocResult && pocResult.success && pocResult.schedule) {
-            const match = pocResult.schedule.find(s => s.time === intervalHourStr);
+            const match = pocResult.schedule.find(s => parseHourToInt(s.time) === parseHourToInt(intervalHourStr));
             if (match) scheduledPOC = match.poc;
           } else if (Array.isArray(pocResult)) {
-            const match = pocResult.find(s => s.time === intervalHourStr);
+            const match = pocResult.find(s => parseHourToInt(s.time) === parseHourToInt(intervalHourStr));
             if (match) scheduledPOC = match.poc;
           }
 
           const escalatedAt = new Date();
           escalationLogSheet.appendRow([targetDateStr, intervalHourStr, escalatedAt, scheduledPOC, unresolvedAgents.length, agents.length]);
 
-          sendEscalationEmail(targetDateStr, intervalHourStr, scheduledPOC, escalatedAt, unresolvedAgents, agents.length);
+          sendEscalationEmail(targetDateStr, intervalHourLabel, scheduledPOC, escalatedAt, unresolvedAgents, agents.length);
         }
       }
     }
@@ -938,9 +965,8 @@ function getIntervalStatusOverrides(dateStr, intervalHourStr) {
       const rowDate = data[i][0];
       const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
       const rowInterval = data[i][1];
-      const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
 
-      if (formattedDate === dateStr && formattedInterval === intervalHourStr) {
+      if (formattedDate === dateStr && parseHourToInt(rowInterval) === parseHourToInt(intervalHourStr)) {
         const ldap = String(data[i][2]).trim().toLowerCase();
         overrides[ldap] = data[i][3];
       }
@@ -977,10 +1003,9 @@ function setIntervalStatusBulk(dateStr, intervalHourStr, updates) {
         const rowDate = data[i][0];
         const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
         const rowInterval = data[i][1];
-        const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
         const rowLdap = String(data[i][2]).trim().toLowerCase();
 
-        if (formattedDate === dateStr && formattedInterval === intervalHourStr && rowLdap === targetLdap) {
+        if (formattedDate === dateStr && parseHourToInt(rowInterval) === parseHourToInt(intervalHourStr) && rowLdap === targetLdap) {
           foundRow = i + 1;
           break;
         }
@@ -1027,10 +1052,9 @@ function setIntervalStatus(dateStr, intervalHourStr, ldap, status) {
       const rowDate = data[i][0];
       const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
       const rowInterval = data[i][1];
-      const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
       const rowLdap = String(data[i][2]).trim().toLowerCase();
 
-      if (formattedDate === dateStr && formattedInterval === intervalHourStr && rowLdap === targetLdap) {
+      if (formattedDate === dateStr && parseHourToInt(rowInterval) === parseHourToInt(intervalHourStr) && rowLdap === targetLdap) {
         foundRow = i + 1;
         break;
       }
@@ -1065,9 +1089,8 @@ function getCheckInStatus(dateStr, intervalHourStr) {
       const rowDate = data[i][0];
       const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
       const rowInterval = data[i][1];
-      const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
 
-      if (formattedDate === dateStr && formattedInterval === intervalHourStr) {
+      if (formattedDate === dateStr && parseHourToInt(rowInterval) === parseHourToInt(intervalHourStr)) {
         return {
           date: formattedDate,
           interval: formattedInterval,
@@ -1135,10 +1158,10 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
     let scheduledPOC = "Unknown";
     const pocResult = getPOCSchedule();
     if (pocResult && pocResult.success && pocResult.schedule) {
-      const match = pocResult.schedule.find(s => s.time === intervalHourStr);
+      const match = pocResult.schedule.find(s => parseHourToInt(s.time) === parseHourToInt(intervalHourStr));
       if (match) scheduledPOC = match.poc;
     } else if (Array.isArray(pocResult)) {
-      const match = pocResult.find(s => s.time === intervalHourStr);
+      const match = pocResult.find(s => parseHourToInt(s.time) === parseHourToInt(intervalHourStr));
       if (match) scheduledPOC = match.poc;
     }
 
