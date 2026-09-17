@@ -76,7 +76,11 @@ function initializeDatabase() {
       'Raw_Cases': ['Timestamp', 'Date', 'Interval', 'Agent', 'Name', 'Site', 'LOB', 'Workflow', 'Shift Type', 'Case Type', 'Total', 'Valid', 'Flagged', 'Case IDs', 'Audit Notes', 'Interval Activity', 'OT Type'],
       'Index_CaseIDs': ['Case ID', 'Type Logged', 'Date Logged', 'Agent'],
       'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef'],
-      'Error_Logs': ['Timestamp', 'Function', 'User', 'Error Message']
+      'Error_Logs': ['Timestamp', 'Function', 'User', 'Error Message'],
+      'Interval_Status': ['Date', 'Interval', 'LDAP', 'Status', 'SetBy', 'Timestamp'],
+      'Interval_CheckIns': ['Date', 'Interval', 'ScheduledPOC', 'CheckedInBy', 'Timestamp', 'Result', 'UnresolvedLDAPs', 'Notes'],
+      'Escalation_Log': ['Date', 'Interval', 'EscalatedAt', 'ScheduledPOC', 'UnresolvedCount', 'TotalAgents'],
+      'Escalation_Config': ['Role', 'Name', 'Email']
     };
 
     for (const [sheetName, headers] of Object.entries(sheetsConfig)) {
@@ -512,6 +516,254 @@ function getAllAgents() {
   }
 }
 
+
+// --- ESCALATION SWEEP LOGIC ---
+
+function setupEscalationSweepTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'escalationSweep') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  const props = PropertiesService.getScriptProperties();
+  const freqStr = props.getProperty('SWEEP_FREQUENCY_MINUTES') || '15';
+  const freq = parseInt(freqStr, 10);
+
+  ScriptApp.newTrigger('escalationSweep')
+    .timeBased()
+    .everyMinutes(freq)
+    .create();
+}
+
+function escalationSweep() {
+  try {
+    const lock = LockService.getScriptLock();
+    if (!lock.tryLock(5000)) return;
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const escalationLogSheet = ss.getSheetByName('Escalation_Log');
+    if (!escalationLogSheet) return;
+
+    const props = PropertiesService.getScriptProperties();
+    const graceMinutes = parseInt(props.getProperty('GRACE_PERIOD_MINUTES') || '30', 10);
+    const now = new Date();
+
+    for (let offset = 0; offset <= 6; offset++) {
+      const targetTime = new Date(now.getTime() - (offset * 60 * 60 * 1000));
+      const targetDateStr = toDateStringFast(targetTime);
+      const h = targetTime.getHours();
+
+      const intervalEnd = new Date(targetTime.getFullYear(), targetTime.getMonth(), targetTime.getDate(), h + 1, 0, 0, 0);
+      const graceThreshold = new Date(intervalEnd.getTime() + (graceMinutes * 60000));
+
+      if (now.getTime() > graceThreshold.getTime()) {
+        const intervalHourObj = new Date(targetTime);
+        intervalHourObj.setHours(h, 0, 0, 0);
+        const intervalHourStr = Utilities.formatDate(intervalHourObj, Session.getScriptTimeZone(), "h:00 a");
+
+        const logData = escalationLogSheet.getDataRange().getValues();
+        let alreadyEscalated = false;
+        for (let i = 1; i < logData.length; i++) {
+          const rowDate = logData[i][0];
+          const formattedRowDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
+          if (formattedRowDate == targetDateStr && logData[i][1] == intervalHourStr) {
+            alreadyEscalated = true;
+            break;
+          }
+        }
+        if (alreadyEscalated) continue;
+
+        const checkIn = getCheckInStatus(targetDateStr, intervalHourStr);
+        if (checkIn) continue;
+
+        const agents = getIntervalData(targetDateStr, intervalHourStr);
+        if (!agents || agents.length === 0) continue;
+
+        const statusOverrides = getIntervalStatusOverrides(targetDateStr, intervalHourStr);
+        let unresolvedAgents = [];
+
+        agents.forEach(agent => {
+          const hasOverride = (agent.ldap in statusOverrides) && statusOverrides[agent.ldap] !== "";
+          const hasComputed = agent.computedStatus && agent.computedStatus !== "";
+          const hasCases = agent.casesLogged > 0;
+
+          if (!hasOverride && !hasComputed && !hasCases) {
+            unresolvedAgents.push(agent.ldap);
+          }
+        });
+
+        if (unresolvedAgents.length > 0) {
+          let scheduledPOC = "Unknown";
+          const pocResult = getPOCSchedule();
+          if (pocResult && pocResult.success && pocResult.schedule) {
+            const match = pocResult.schedule.find(s => s.time === intervalHourStr);
+            if (match) scheduledPOC = match.poc;
+          } else if (Array.isArray(pocResult)) {
+            const match = pocResult.find(s => s.time === intervalHourStr);
+            if (match) scheduledPOC = match.poc;
+          }
+
+          const escalatedAt = new Date();
+          escalationLogSheet.appendRow([targetDateStr, intervalHourStr, escalatedAt, scheduledPOC, unresolvedAgents.length, agents.length]);
+
+          sendEscalationEmail(targetDateStr, intervalHourStr, scheduledPOC, escalatedAt, unresolvedAgents, agents.length);
+        }
+      }
+    }
+  } catch (e) {
+    logError('escalationSweep', e.toString(), 'SYSTEM');
+  } finally {
+    try { LockService.getScriptLock().releaseLock(); } catch(e){}
+  }
+}
+
+function sendEscalationEmail(dateStr, intervalHourStr, scheduledPOC, escalatedAt, unresolvedAgents, totalAgents) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  const rosterSheet = ss.getSheetByName('Roster');
+  let toEmails = [];
+  if (rosterSheet && rosterSheet.getLastRow() > 1) {
+    const rosterData = rosterSheet.getRange(2, 2, rosterSheet.getLastRow() - 1, 1).getValues();
+    rosterData.forEach(row => {
+      const ldap = String(row[0]).trim();
+      if (ldap) toEmails.push(ldap + '@google.com');
+    });
+  }
+
+  if (toEmails.length === 0) {
+     logError('sendEscalationEmail', 'No recipients configured in Roster tab.', 'SYSTEM');
+     return;
+  }
+
+  let ccEmails = [];
+  if (scheduledPOC !== 'Unknown' && scheduledPOC !== 'Unassigned') {
+    ccEmails.push(scheduledPOC.toLowerCase() + '@google.com');
+  }
+
+  const timestampStr = Utilities.formatDate(escalatedAt, Session.getScriptTimeZone(), "MMM d, yyyy 'at' h:mm a");
+
+  const maxVisible = 10;
+  const visible = unresolvedAgents.slice(0, maxVisible);
+  const hiddenCount = unresolvedAgents.length - maxVisible;
+
+  let chipsHtml = visible.map(ldap =>
+    '<span style="display:inline-block; background-color:#f8f9fa; border:1px solid #dadce0; color:#3c4043; border-radius:16px; padding:4px 12px; margin:0 6px 6px 0; font-size:13px; font-weight:500;">' + ldap + '</span>'
+  ).join('');
+
+  if (hiddenCount > 0) {
+    chipsHtml += '<span style="display:inline-block; background-color:#e8eaed; color:#5f6368; border-radius:16px; padding:4px 12px; margin:0 6px 6px 0; font-size:13px; font-weight:500;">+' + hiddenCount + ' more</span>';
+  }
+
+  const appUrl = ScriptApp.getService().getUrl() || PropertiesService.getScriptProperties().getProperty('WEB_APP_URL') || '';
+
+  const body = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <style>
+    body { font-family: 'Google Sans', Roboto, Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+  </style>
+  </head>
+  <body style="font-family: 'Google Sans', Roboto, Arial, sans-serif; background-color: #f8f9fa; padding: 24px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; border: 1px solid #dadce0; overflow: hidden;">
+
+      <!-- Header -->
+      <tr>
+        <td style="background: linear-gradient(90deg, #fbbc04 0%, #ea4335 100%); padding: 24px 32px;">
+          <div style="color: #ffffff; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">Case Tracker · Automated Escalation</div>
+          <div style="color: #ffffff; font-size: 24px; font-weight: 400; margin: 0;">Interval Not Checked In</div>
+        </td>
+      </tr>
+
+      <!-- Warning Banner -->
+      <tr>
+        <td style="padding: 24px 32px 0 32px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fff8e1; border: 1px solid #fbbc04; border-radius: 8px;">
+            <tr>
+              <td width="40" style="padding: 16px 0 16px 16px; font-size: 20px;">⚠️</td>
+              <td style="padding: 16px; color: #b06000; font-size: 14px; font-weight: 500;">This interval was not checked in within the designated grace period.</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Content -->
+      <tr>
+        <td style="padding: 32px;">
+          <h2 style="margin: 0 0 4px 0; font-size: 20px; color: #202124; font-weight: 400;">${intervalHourStr} Interval — ${dateStr}</h2>
+
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 24px; margin-bottom: 32px;">
+            <tr>
+              <td width="50%" valign="top">
+                <div style="font-size: 11px; text-transform: uppercase; color: #5f6368; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px;">Scheduled POC</div>
+                <div style="font-size: 14px; color: #202124;">${scheduledPOC}</div>
+              </td>
+              <td width="50%" valign="top">
+                <div style="font-size: 11px; text-transform: uppercase; color: #5f6368; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px;">Escalated At</div>
+                <div style="font-size: 14px; color: #202124;">${timestampStr}</div>
+              </td>
+            </tr>
+          </table>
+
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 32px;">
+            <tr>
+              <td width="48%" valign="top" style="border: 1px solid #dadce0; border-radius: 8px; padding: 20px; text-align: center;">
+                <div style="font-size: 32px; color: #202124; margin-bottom: 8px;">👥 ${totalAgents}</div>
+                <div style="font-size: 12px; color: #5f6368; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Agents Scheduled</div>
+              </td>
+              <td width="4%"></td>
+              <td width="48%" valign="top" style="border: 1px solid #fad2cf; background-color: #fce8e6; border-radius: 8px; padding: 20px; text-align: center;">
+                <div style="font-size: 32px; color: #c5221f; margin-bottom: 8px; font-weight: 500;">${unresolvedAgents.length}</div>
+                <div style="font-size: 12px; color: #c5221f; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">No Status / Cases Logged</div>
+              </td>
+            </tr>
+          </table>
+
+          <div style="margin-bottom: 32px;">
+            <div style="font-size: 13px; color: #202124; font-weight: 500; margin-bottom: 12px;">Unresolved LDAPs</div>
+            <div>
+              ${chipsHtml}
+            </div>
+          </div>
+
+          ${appUrl ? `
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td align="center">
+                <a href="${appUrl}" style="display: inline-block; background-color: #1a73e8; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 500; padding: 12px 32px; border-radius: 24px;">Open Case Tracker</a>
+              </td>
+            </tr>
+          </table>` : ''}
+
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background-color: #f8f9fa; border-top: 1px solid #dadce0; padding: 20px 32px; text-align: center;">
+          <div style="font-size: 11px; color: #5f6368; line-height: 1.5;">
+            This is an automated notice generated by the Case Tracking Portal. <br>
+            Note: The Scheduled POC listed above reflects the master schedule, but they may have been substituted without the schedule being updated.
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+  `;
+
+  MailApp.sendEmail({
+    to: toEmails.join(','),
+    cc: ccEmails.join(','),
+    subject: "⚠️ Interval Not Checked In — " + dateStr + " " + intervalHourStr,
+    htmlBody: body,
+    name: "Case Tracking Portal",
+    noReply: true
+  });
+}
+
 // --- 10. Fetch Analytics Data ---
 function getAnalyticsData(startDateStr, endDateStr) {
   try {
@@ -663,6 +915,197 @@ function getAnalyticsData(startDateStr, endDateStr) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
     logError('getAnalyticsData', e.toString(), user);
     throw new Error("Unable to fetch analytics data. Check network and retry.");
+  }
+}
+
+
+// --- INTERVAL STATUS & CHECK-IN LOGIC ---
+
+function getIntervalStatusOverrides(dateStr, intervalHourStr) {
+  try {
+    requireManagerOrThrow();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Interval_Status');
+    if (!sheet) return {};
+
+    const data = sheet.getDataRange().getValues();
+    const overrides = {};
+
+    for (let i = 1; i < data.length; i++) {
+      const rowDate = data[i][0];
+      const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
+      const rowInterval = data[i][1];
+      const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
+
+      if (formattedDate === dateStr && formattedInterval === intervalHourStr) {
+        const ldap = String(data[i][2]).trim().toLowerCase();
+        overrides[ldap] = data[i][3];
+      }
+    }
+    return overrides;
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getIntervalStatusOverrides', e.toString(), user);
+    return {};
+  }
+}
+
+function setIntervalStatus(dateStr, intervalHourStr, ldap, status) {
+  const profile = requireManagerOrThrow();
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Interval_Status');
+    if (!sheet) {
+      initializeDatabase();
+      sheet = ss.getSheetByName('Interval_Status');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    let foundRow = -1;
+    const targetLdap = String(ldap).trim().toLowerCase();
+
+    for (let i = 1; i < data.length; i++) {
+      const rowDate = data[i][0];
+      const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
+      const rowInterval = data[i][1];
+      const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
+      const rowLdap = String(data[i][2]).trim().toLowerCase();
+
+      if (formattedDate === dateStr && formattedInterval === intervalHourStr && rowLdap === targetLdap) {
+        foundRow = i + 1;
+        break;
+      }
+    }
+
+    const now = new Date();
+    if (foundRow !== -1) {
+      sheet.getRange(foundRow, 4).setValue(status);
+      sheet.getRange(foundRow, 5).setValue(profile.ldap);
+      sheet.getRange(foundRow, 6).setValue(now);
+    } else {
+      sheet.appendRow([dateStr, intervalHourStr, targetLdap, status, profile.ldap, now]);
+    }
+    return { success: true };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('setIntervalStatus', e.toString(), user);
+    throw new Error("Failed to save status override.");
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getCheckInStatus(dateStr, intervalHourStr) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Interval_CheckIns');
+    if (!sheet) return null;
+
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const rowDate = data[i][0];
+      const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
+      const rowInterval = data[i][1];
+      const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
+
+      if (formattedDate === dateStr && formattedInterval === intervalHourStr) {
+        return {
+          date: formattedDate,
+          interval: formattedInterval,
+          scheduledPOC: data[i][2],
+          checkedInBy: data[i][3],
+          timestamp: (data[i][4] instanceof Date) ? data[i][4].getTime() : data[i][4],
+          result: data[i][5],
+          unresolvedLDAPs: data[i][6],
+          notes: data[i][7]
+        };
+      }
+    }
+    return null;
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getCheckInStatus', e.toString(), user);
+    return null;
+  }
+}
+
+function checkInInterval(dateStr, intervalHourStr, overrideNote) {
+  const profile = requireManagerOrThrow();
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Interval_CheckIns');
+    if (!sheet) {
+      initializeDatabase();
+      sheet = ss.getSheetByName('Interval_CheckIns');
+    }
+
+    const existingCheckIn = getCheckInStatus(dateStr, intervalHourStr);
+    if (existingCheckIn) {
+      return { alreadyCheckedIn: true, record: existingCheckIn };
+    }
+
+    const agents = getIntervalData(dateStr, intervalHourStr);
+    if (!agents || agents.length === 0) {
+      return { error: "No agents scheduled for this interval — check-in not applicable." };
+    }
+
+    const unresolved = [];
+    const statusOverrides = getIntervalStatusOverrides(dateStr, intervalHourStr);
+
+    agents.forEach(agent => {
+      const hasOverride = (agent.ldap in statusOverrides) && statusOverrides[agent.ldap] !== "";
+      const hasComputed = agent.computedStatus && agent.computedStatus !== "";
+      const hasCases = agent.casesLogged > 0;
+
+      if (!hasOverride && !hasComputed && !hasCases) {
+        unresolved.push(agent.ldap);
+      }
+    });
+
+    if (unresolved.length > 0 && (!overrideNote || overrideNote.trim() === "")) {
+      return { needsNote: true, unresolvedLDAPs: unresolved };
+    }
+
+    let result = (unresolved.length > 0) ? "Complete w/ Exceptions" : "Complete";
+    const unresolvedStr = unresolved.join(', ');
+    const noteStr = overrideNote || "";
+
+    let scheduledPOC = "Unknown";
+    const pocResult = getPOCSchedule();
+    if (pocResult && pocResult.success && pocResult.schedule) {
+      const match = pocResult.schedule.find(s => s.time === intervalHourStr);
+      if (match) scheduledPOC = match.poc;
+    } else if (Array.isArray(pocResult)) {
+      const match = pocResult.find(s => s.time === intervalHourStr);
+      if (match) scheduledPOC = match.poc;
+    }
+
+    const now = new Date();
+    sheet.appendRow([dateStr, intervalHourStr, scheduledPOC, profile.ldap, now, result, unresolvedStr, noteStr]);
+
+    return {
+      success: true,
+      record: {
+        date: dateStr,
+        interval: intervalHourStr,
+        scheduledPOC: scheduledPOC,
+        checkedInBy: profile.ldap,
+        timestamp: now.getTime(),
+        result: result,
+        unresolvedLDAPs: unresolvedStr,
+        notes: noteStr
+      }
+    };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('checkInInterval', e.toString(), user);
+    return { error: "System encountered an error during check-in." };
+  } finally {
+    lock.releaseLock();
   }
 }
 
