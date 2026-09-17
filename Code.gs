@@ -78,7 +78,7 @@ function initializeDatabase() {
       'Audit Queue': ['Status', 'Timestamp', 'Agent', 'Site', 'Case Type', 'Total Logged', 'Flagged IDs', 'Audit Reason', 'Resolution', 'RawRowRef'],
       'Error_Logs': ['Timestamp', 'Function', 'User', 'Error Message'],
       'Interval_Status': ['Date', 'Interval', 'LDAP', 'Status', 'SetBy', 'Timestamp'],
-      'Interval_CheckIns': ['Date', 'Interval', 'ScheduledPOC', 'CheckedInBy', 'Timestamp', 'Result', 'UnresolvedLDAPs', 'Notes'],
+      'Interval_CheckIns': ['Date', 'Interval', 'ScheduledPOC', 'CheckedInBy', 'Timestamp', 'Result', 'UnresolvedLDAPs', 'Notes', 'IsSubstitute'],
       'Escalation_Log': ['Date', 'Interval', 'EscalatedAt', 'ScheduledPOC', 'UnresolvedCount', 'TotalAgents'],
       'Escalation_Config': ['Role', 'Name', 'Email']
     };
@@ -952,6 +952,60 @@ function getIntervalStatusOverrides(dateStr, intervalHourStr) {
   }
 }
 
+function setIntervalStatusBulk(dateStr, intervalHourStr, updates) {
+  const profile = requireManagerOrThrow();
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Interval_Status');
+    if (!sheet) {
+      initializeDatabase();
+      sheet = ss.getSheetByName('Interval_Status');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const now = new Date();
+
+    // Process updates
+    updates.forEach(update => {
+      const targetLdap = String(update.ldap).trim().toLowerCase();
+      let foundRow = -1;
+
+      for (let i = 1; i < data.length; i++) {
+        const rowDate = data[i][0];
+        const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
+        const rowInterval = data[i][1];
+        const formattedInterval = (rowInterval instanceof Date) ? Utilities.formatDate(rowInterval, Session.getScriptTimeZone(), "h:mm a") : String(rowInterval);
+        const rowLdap = String(data[i][2]).trim().toLowerCase();
+
+        if (formattedDate === dateStr && formattedInterval === intervalHourStr && rowLdap === targetLdap) {
+          foundRow = i + 1;
+          break;
+        }
+      }
+
+      if (foundRow !== -1) {
+        sheet.getRange(foundRow, 4).setValue(update.status);
+        sheet.getRange(foundRow, 5).setValue(profile.ldap);
+        sheet.getRange(foundRow, 6).setValue(now);
+        data[foundRow - 1][3] = update.status; // Update local array to prevent duplicate searches acting incorrectly
+      } else {
+        sheet.appendRow([dateStr, intervalHourStr, targetLdap, update.status, profile.ldap, now]);
+        data.push([dateStr, intervalHourStr, targetLdap, update.status, profile.ldap, now]);
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('setIntervalStatusBulk', e.toString(), user);
+    return { error: "Failed to process bulk status updates." };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function setIntervalStatus(dateStr, intervalHourStr, ldap, status) {
   const profile = requireManagerOrThrow();
   const lock = LockService.getScriptLock();
@@ -1021,7 +1075,8 @@ function getCheckInStatus(dateStr, intervalHourStr) {
           timestamp: (data[i][4] instanceof Date) ? data[i][4].getTime() : data[i][4],
           result: data[i][5],
           unresolvedLDAPs: data[i][6],
-          notes: data[i][7]
+          notes: data[i][7],
+          isSubstitute: data[i][8] === true || data[i][8] === 'true'
         };
       }
     }
@@ -1086,8 +1141,13 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
       if (match) scheduledPOC = match.poc;
     }
 
+    let isSubstitute = false;
+    if (scheduledPOC !== "Unknown" && scheduledPOC.toLowerCase() !== profile.ldap.toLowerCase()) {
+       isSubstitute = true;
+    }
+
     const now = new Date();
-    sheet.appendRow([dateStr, intervalHourStr, scheduledPOC, profile.ldap, now, result, unresolvedStr, noteStr]);
+    sheet.appendRow([dateStr, intervalHourStr, scheduledPOC, profile.ldap, now, result, unresolvedStr, noteStr, isSubstitute]);
 
     return {
       success: true,
@@ -1099,7 +1159,8 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
         timestamp: now.getTime(),
         result: result,
         unresolvedLDAPs: unresolvedStr,
-        notes: noteStr
+        notes: noteStr,
+        isSubstitute: isSubstitute
       }
     };
   } catch (e) {
