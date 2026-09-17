@@ -189,6 +189,14 @@
     @keyframes viewFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .view-enter { animation: viewFadeIn 0.22s ease-out; }
 
+    /* POC Guide button — pulsing glow ring, follows whatever palette/primary color is active */
+    @keyframes pocGuidePulseGlow {
+      0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 55%, transparent); }
+      70%  { box-shadow: 0 0 0 10px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    .poc-guide-glow { animation: pocGuidePulseGlow 2.4s ease-in-out infinite; }
+
     #tutorialOverlay { z-index: 70; }
     #tutorialHighlight { box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); border: 2px solid #1a73e8; box-sizing: border-box; z-index: 71; }
     #tutorialCard { z-index: 72; }
@@ -592,6 +600,16 @@
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 z-10"></div>
         <!-- Controls Header -->
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 items-end bg-theme-accent-muted/30 dark:bg-theme-accent-muted/30 relative">
+          <div class="flex flex-col justify-end">
+            <button onclick="openPocGuideModal()" id="pocGuideBtn" title="POC Interval Guide — how to work this tab" class="poc-guide-glow relative flex items-center gap-2 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 text-white font-medium text-sm px-4 py-2 rounded-full shadow-md hover:brightness-110 transition-all">
+              <span class="material-symbols-outlined text-[18px]">auto_stories</span>
+              POC Guide
+              <span class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 border-2 border-white dark:border-gray-800"></span>
+              </span>
+            </button>
+          </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Select Date</label>
             <input type="date" id="intervalDate" onchange="syncDateAcrossTabs('intervalDate')" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
@@ -703,13 +721,13 @@
 
         <!-- Interval Table (scrollable body, frozen header) -->
         <div class="overflow-auto" style="max-height: 65vh;">
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-separate border-spacing-0">
             <thead>
               <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
                 <th class="p-4 font-medium sticky top-0 z-10 bg-slate-900 border-b border-slate-800 w-10">
                   <input type="checkbox" id="selectAllInterval" onchange="toggleAllIntervals(this)" class="w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
                 </th>
-                <th class="p-4 font-medium text-left sticky top-0 z-10 bg-slate-900 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition rounded-tl-xl" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-left sticky top-0 z-10 bg-slate-900 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center gap-1"> Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">SOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">EOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Site <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
@@ -921,6 +939,53 @@
           <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
         </button>
         <div id="helpAccordion" class="divide-y divide-gray-100 dark:divide-gray-700 border border-theme-card-border rounded-theme-sm overflow-hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POC Interval Guide Modal -->
+  <div id="pocGuideModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closePocGuideModal()"></div>
+    <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 shrink-0">
+        <h2 class="text-lg font-medium flex items-center gap-2 text-white">
+          <span class="material-symbols-outlined">auto_stories</span>
+          POC Interval Guide
+        </h2>
+        <button onclick="closePocGuideModal()" class="text-white/80 hover:text-white p-1 rounded hover:bg-white/10">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-6">
+        <!-- Why this tab exists -->
+        <div class="bg-theme-accent-muted dark:bg-theme-accent-muted/20 border border-theme-primary/20 rounded-theme-sm p-4">
+          <p class="text-sm cell-strong leading-relaxed">
+            <span class="font-semibold">Your job here:</span> make sure every agent scheduled this hour either logged cases, or has a clear, honest reason on record for why they didn't &mdash; break, coaching, leave, absence, pulled to another channel, etc. This tab isn't about catching people out; it's about having a real answer ready if someone later asks "what happened at 3 PM?"
+          </p>
+        </div>
+
+        <!-- Quick Start Steps -->
+        <div>
+          <h3 class="text-sm font-semibold cell-strong mb-3 uppercase tracking-wide flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-theme-primary">checklist</span>
+            Quick Start &mdash; do this every interval
+          </h3>
+          <div class="space-y-3" id="pocGuideSteps"></div>
+        </div>
+
+        <!-- Deep dive accordion -->
+        <div>
+          <h3 class="text-sm font-semibold cell-strong mb-3 uppercase tracking-wide flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-theme-primary">menu_book</span>
+            Details &amp; Reference
+          </h3>
+          <div id="pocGuideAccordion" class="divide-y divide-gray-100 dark:divide-gray-700 border border-theme-card-border rounded-theme-sm overflow-hidden"></div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-gray-100 dark:border-gray-700 bg-theme-canvas/50 dark:bg-gray-800/50 shrink-0 flex justify-end">
+        <button onclick="closePocGuideModal()" class="bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-5 py-2 rounded-theme shadow-sm transition">Got it</button>
       </div>
     </div>
   </div>
@@ -2029,6 +2094,96 @@ function refreshAccess() {
       document.getElementById('helpModal').classList.add('hidden');
     }
 
+    // --- POC INTERVAL GUIDE ---
+    const POC_GUIDE_STEPS = [
+      { title: 'Load the interval', text: 'Pick the date and hour, click "Load Interval." Check the summary bar at the top &mdash; scheduled, flagged, on OT, cases logged &mdash; for a quick read on how busy this hour is.' },
+      { title: 'Find the red rows', text: 'Rows highlighted in light red have no status and zero cases logged &mdash; those are the only ones that actually need you. Everything else (green Assigned-7, teal SKIP-EOS, etc.) is already accounted for automatically.' },
+      { title: 'Investigate, then tag', text: 'Not sure why someone shows no activity? Check "Agent Submissions" for that LDAP to see if they logged under a different case type. Once you know the reason, set their Status dropdown accordingly &mdash; Absent, VL/SL, on Live Channel, whatever fits.' },
+      { title: 'Use Bulk Actions for groups', text: 'If several agents were pulled for the same reason at once (e.g. a floor meeting), check their boxes and use "Bulk Actions" instead of tagging one by one.' },
+      { title: 'Check In the interval', text: 'Once you\u2019ve worked through the red rows, click "Check In Interval." If anything is still unresolved, it will ask you for a short note before letting you proceed &mdash; that note is your record of why.' }
+    ];
+
+    function renderPocGuideSteps() {
+      const container = document.getElementById('pocGuideSteps');
+      container.innerHTML = POC_GUIDE_STEPS.map((s, i) => `
+        <div class="flex gap-3">
+          <div class="shrink-0 w-7 h-7 rounded-full bg-theme-primary text-white flex items-center justify-center text-xs font-bold shadow-sm">${i + 1}</div>
+          <div class="min-w-0">
+            <div class="text-sm font-medium cell-strong">${s.title}</div>
+            <div class="text-sm cell-muted leading-relaxed">${s.text}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    const POC_GUIDE_SECTIONS = [
+      {
+        title: 'What actually counts as "Unresolved"?',
+        body: `An agent is flagged (red row) only when <b>all three</b> are true: no manual status has been set, nothing was auto-computed for them, and they logged zero valid cases this hour.
+        <br><br>Important: the moment you set <b>any</b> status &mdash; even "Absent" &mdash; that agent is resolved. The tool doesn't judge whether the reason is a good one; it just needs a reason on record. Use your judgment on what to actually tag.`
+      },
+      {
+        title: 'Status cheat-sheet',
+        body: `
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#1e8e3e] text-white w-32 text-center shrink-0">Assigned - 7</span><span class="cell-muted">Auto &mdash; hit 7+ valid cases this hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#f29900] text-white w-32 text-center shrink-0">Break - 3</span><span class="cell-muted">Auto &mdash; on Break/Lunch but still logged 3+ cases.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#5d4037] text-white w-32 text-center shrink-0">Closing Reopens</span><span class="cell-muted">Auto &mdash; all logged cases this hour were Reopened (7+).</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#fce8e6] text-red-900 w-32 text-center shrink-0">SKIP SOS</span><span class="cell-muted">Auto &mdash; this is their Start-of-Shift hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#cbf0f8] text-teal-900 w-32 text-center shrink-0">SKIP - EOS</span><span class="cell-muted">Auto &mdash; this is their End-of-Shift hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#681da8] text-white w-32 text-center shrink-0">on Coaching/Training</span><span class="cell-muted">Auto &mdash; logged this interval's activity as Coaching/Training.</span></div>
+            <div class="border-t border-gray-100 dark:border-gray-700 my-2"></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#d2e3fc] text-gray-800 w-32 text-center shrink-0">VL/SL</span><span class="cell-muted">Manual only &mdash; approved leave. Tag it yourself.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#f3e8fd] text-purple-900 w-32 text-center shrink-0">on Live Channel</span><span class="cell-muted">Manual only &mdash; pulled onto Chat/Phone for the hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#d93025] text-white w-32 text-center shrink-0">Absent</span><span class="cell-muted">Manual only &mdash; no-show, no excuse logged yet.</span></div>
+          </div>
+          <p class="text-xs cell-faint mt-3">The top six are computed automatically by the system. The bottom three only ever appear because a POC set them &mdash; that's you.</p>
+        `
+      },
+      {
+        title: 'Why does Check In sometimes ask for a note?',
+        body: `If you try to check in while red rows still remain, the system won't let you proceed silently. You'll be asked for a short note explaining the gap. This is intentional &mdash; it means every unresolved interval has a written reason attached, even if you genuinely couldn't get a status for everyone in time.`
+      },
+      {
+        title: 'What happens if I don\u2019t check in at all?',
+        body: `About 30 minutes after an hour ends, an automated sweep checks for intervals that still have unresolved agents and no check-in on record. If it finds one, it emails the whole roster (and the scheduled POC) flagging it. Checking in as you go means you'll simply never see that email for your own intervals &mdash; it only fires on slots that got missed entirely.`
+      },
+      {
+        title: 'My edits disappeared when I came back from another tab!',
+        body: `This shouldn't happen anymore &mdash; status changes save to the sheet the moment you make them, and switching tabs and back will reload the latest saved values. If you ever do see an edit revert, it likely means the save hadn't finished before you switched away; give it a second after changing a dropdown before navigating off.`
+      }
+    ];
+
+    function buildPocGuideAccordion() {
+      const acc = document.getElementById('pocGuideAccordion');
+      acc.innerHTML = POC_GUIDE_SECTIONS.map((s, i) => `
+        <div>
+          <button onclick="togglePocGuideItem(${i})" class="w-full flex items-center justify-between p-4 text-left hover:bg-theme-canvas dark:hover:bg-gray-700/50 transition">
+            <span class="text-sm font-medium cell-strong">${s.title}</span>
+            <span class="material-symbols-outlined text-[18px] cell-faint poc-guide-chevron-${i}">expand_more</span>
+          </button>
+          <div id="pocGuideItem-${i}" class="hidden px-4 pb-4 text-sm cell-muted leading-relaxed">${s.body}</div>
+        </div>
+      `).join('');
+    }
+
+    function togglePocGuideItem(i) {
+      const el = document.getElementById('pocGuideItem-' + i);
+      const chevrons = document.querySelectorAll('.poc-guide-chevron-' + i);
+      el.classList.toggle('hidden');
+      chevrons.forEach(c => c.textContent = el.classList.contains('hidden') ? 'expand_more' : 'expand_less');
+    }
+
+    function openPocGuideModal() {
+      renderPocGuideSteps();
+      buildPocGuideAccordion();
+      document.getElementById('pocGuideModal').classList.remove('hidden');
+    }
+
+    function closePocGuideModal() {
+      document.getElementById('pocGuideModal').classList.add('hidden');
+    }
+
     // --- GUIDED TOUR ---
     let tutorialSteps = [];
     let tutorialIndex = 0;
@@ -2422,6 +2577,7 @@ function refreshAccess() {
         const STATUS_OPTIONS = ['', 'Assigned - 7', 'Break - 3', 'VL/SL', 'on Live Channel', 'SKIP - EOS', 'SKIP SOS', 'Absent', 'on Coaching/Training', 'Closing Reopens'];
     let intervalStatusKey = '';
     let intervalStatusOverrides = {};
+    let pendingStatusSaves = {}; // { ldap: status } - edits sent to the server but not yet confirmed
 
     function toggleAllIntervals(selectAllCheckbox) {
       const checkboxes = document.querySelectorAll('.interval-checkbox');
@@ -2492,6 +2648,7 @@ function refreshAccess() {
              selectEl.value = newStatus;
              if (newStatus === computed) delete intervalStatusOverrides[ldap];
              else intervalStatusOverrides[ldap] = newStatus;
+             pendingStatusSaves[ldap] = newStatus;
              updateStatusColor(selectEl);
           }
       });
@@ -2509,6 +2666,7 @@ function refreshAccess() {
           btn.disabled = false;
           btn.classList.remove('opacity-50', 'cursor-not-allowed');
           btn.innerHTML = originalHtml;
+          updates.forEach(u => delete pendingStatusSaves[u.ldap]);
           if(res.success) {
             showToast(`Bulk updated ${updates.length} agents.`, "success");
             renderIntervalRows(allIntervalAgents); // Full re-render to update row colors (red backgrounds)
@@ -2521,6 +2679,7 @@ function refreshAccess() {
           btn.disabled = false;
           btn.classList.remove('opacity-50', 'cursor-not-allowed');
           btn.innerHTML = originalHtml;
+          updates.forEach(u => delete pendingStatusSaves[u.ldap]);
           showToast("Network error.", "error");
           loadIntervalData(); // Revert optimistics
         })
@@ -2534,6 +2693,7 @@ function refreshAccess() {
       if (newStatus === computed) delete intervalStatusOverrides[ldap];
       else intervalStatusOverrides[ldap] = newStatus;
 
+      pendingStatusSaves[ldap] = newStatus;
       updateStatusColor(selectEl);
 
       const d = document.getElementById('intervalDate').value;
@@ -2548,6 +2708,7 @@ function refreshAccess() {
 
       google.script.run
         .withSuccessHandler(() => {
+          delete pendingStatusSaves[ldap];
           selectEl.disabled = false;
           selectEl.classList.remove('opacity-50', 'cursor-not-allowed');
           showToast("Status saved.", "success");
@@ -2560,6 +2721,7 @@ function refreshAccess() {
           }
         })
         .withFailureHandler((err) => {
+          delete pendingStatusSaves[ldap];
           selectEl.disabled = false;
           selectEl.classList.remove('opacity-50', 'cursor-not-allowed');
           showToast("Failed to save status.", "error");
@@ -2690,6 +2852,10 @@ function refreshAccess() {
       google.script.run
         .withSuccessHandler((overrides) => {
           intervalStatusOverrides = overrides || {};
+          // Re-apply any edits still in flight so a reload can't race ahead of their save and revert them
+          Object.keys(pendingStatusSaves).forEach(ldap => {
+            intervalStatusOverrides[ldap] = pendingStatusSaves[ldap];
+          });
           google.script.run
             .withSuccessHandler(renderIntervalTable)
             .withFailureHandler(err => {
