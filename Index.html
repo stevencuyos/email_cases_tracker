@@ -674,11 +674,11 @@
                 </button>
                 <div class="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-theme-sm shadow-theme-lg border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
                    <div class="py-1">
-                      <button onclick="handleBulkAction('Absent')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set empty to 'Absent'</button>
-                      <button onclick="handleBulkAction('Assigned - 7')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set empty to 'Assigned - 7'</button>
-                      <button onclick="handleBulkAction('Break - 3')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set empty to 'Break - 3'</button>
+                      <button onclick="handleBulkAction('Absent')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Absent'</button>
+                      <button onclick="handleBulkAction('Assigned - 7')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Assigned - 7'</button>
+                      <button onclick="handleBulkAction('Break - 3')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Break - 3'</button>
                       <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                      <button onclick="handleBulkAction('Clear')" class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Clear all overrides</button>
+                      <button onclick="handleBulkAction('Clear')" class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Clear selected overrides</button>
                    </div>
                 </div>
              </div>
@@ -706,15 +706,18 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 0)"><div class="flex items-center gap-1">LDAP <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center justify-center gap-1">SOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">EOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">Site <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Status <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 5, true)"><div class="flex items-center justify-center gap-1">Regular <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Manual <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Reopened <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 8, true)"><div class="flex items-center justify-center gap-1">Total <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium sticky top-0 z-10 bg-slate-900 border-b border-slate-800 w-10">
+                  <input type="checkbox" id="selectAllInterval" onchange="toggleAllIntervals(this)" class="w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                </th>
+                <th class="p-4 font-medium text-left sticky top-0 z-10 bg-slate-900 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition rounded-tl-xl" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">SOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">EOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Site <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 5)"><div class="flex items-center justify-center gap-1">Status <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Regular <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Manual <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 8, true)"><div class="flex items-center justify-center gap-1">Reopened <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 9, true)"><div class="flex items-center justify-center gap-1">Total <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
               </tr>
             </thead>
             <tbody id="intervalTableBody" class="text-sm divide-y divide-gray-200 dark:divide-gray-700">
@@ -2420,6 +2423,27 @@ function refreshAccess() {
     let intervalStatusKey = '';
     let intervalStatusOverrides = {};
 
+    function toggleAllIntervals(selectAllCheckbox) {
+      const checkboxes = document.querySelectorAll('.interval-checkbox');
+      checkboxes.forEach(cb => {
+        // Only toggle checkboxes that are currently visible (unfiltered)
+        if (cb.closest('tr').style.display !== 'none') {
+          cb.checked = selectAllCheckbox.checked;
+        }
+      });
+      updateBulkIntervalButtons();
+    }
+
+    function updateBulkIntervalButtons() {
+      const checkboxes = document.querySelectorAll('.interval-checkbox:checked');
+      const selectAllCb = document.getElementById('selectAllInterval');
+      const allVisibleCheckboxes = Array.from(document.querySelectorAll('.interval-checkbox')).filter(cb => cb.closest('tr').style.display !== 'none');
+
+      if (selectAllCb && allVisibleCheckboxes.length > 0) {
+        selectAllCb.checked = allVisibleCheckboxes.length === checkboxes.length;
+      }
+    }
+
     function handleBulkAction(action) {
       const d = document.getElementById('intervalDate').value;
       const h = document.getElementById('intervalHour').value;
@@ -2436,20 +2460,29 @@ function refreshAccess() {
 
       let updates = []; // Array of {ldap, status}
 
-      const tbody = document.getElementById('intervalTableBody');
-      const selects = tbody.querySelectorAll('select');
+      const checkedBoxes = document.querySelectorAll('.interval-checkbox:checked');
+      if (checkedBoxes.length === 0) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerHTML = originalHtml;
+        showToast("Please select at least one agent to update.", "warning");
+        return;
+      }
 
-      selects.forEach(selectEl => {
-          const ldap = selectEl.getAttribute('onchange').match(/'([^']+)'/)[1];
+      checkedBoxes.forEach(cb => {
+          const ldap = cb.dataset.ldap;
+          const tr = cb.closest('tr');
+          const selectEl = tr.querySelector('select');
+          if (!selectEl) return;
+
           const currentStatus = selectEl.value;
           const computed = selectEl.dataset.computed || '';
-          const cases = parseInt(selectEl.parentElement.parentElement.querySelector('td:last-child').innerText) || 0;
 
           let newStatus = currentStatus;
 
           if (action === 'Clear') {
              newStatus = computed;
-          } else if (currentStatus === '' && cases === 0) {
+          } else {
              newStatus = action;
           }
 
@@ -2731,6 +2764,9 @@ function refreshAccess() {
           const needsAttention = !status && a.casesLogged === 0;
           return `
           <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'bg-red-50/40 dark:bg-red-900/10' : ''}">
+            <td class="p-3">
+              <input type="checkbox" class="interval-checkbox w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700" onchange="updateBulkIntervalButtons()" data-ldap="${a.ldap}">
+            </td>
             <td class="p-3">
               <div class="flex items-center gap-2">
                 ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
