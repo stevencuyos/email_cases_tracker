@@ -22,7 +22,26 @@
               red: '#ea4335',
               yellow: '#fbbc04',
               green: '#34a853',
+            },
+            theme: {
+              canvas: 'var(--color-canvas)',
+              sidebar: 'var(--color-sidebar)',
+              card: 'var(--color-card)',
+              primary: 'var(--color-primary)',
+              'primary-hover': 'var(--color-primary-hover)',
+              'card-border': 'var(--color-card-border)',
+              'accent-muted': 'var(--color-accent-muted)'
             }
+          },
+          borderRadius: {
+            theme: 'var(--radius-card)',
+            'theme-sm': 'var(--radius-sm)'
+          },
+          boxShadow: {
+            theme: 'var(--shadow-card)'
+          },
+          backdropBlur: {
+            theme: 'var(--blur-card)'
           }
         }
       }
@@ -33,8 +52,84 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <style>
-    body { font-family: 'Roboto', sans-serif; background-color: #f8f9fa; }
-    .dark body { background-color: #111827; color: #f3f4f6; }
+    /* Theme Variables */
+    :root {
+      /* Theme 1: Default */
+      --color-canvas: #f8f9fa;
+      --color-sidebar: #ffffff;
+      --color-card: rgba(255, 255, 255, 0.8);
+      --color-primary: #1a73e8;
+      --color-primary-hover: #1557b0;
+      --color-card-border: rgba(229, 231, 235, 0.5); /* gray-200/50 */
+      --color-accent-muted: #e8f0fe;
+
+      --radius-card: 0.75rem; /* rounded-theme */
+      --radius-sm: 0.5rem; /* rounded-theme-sm */
+      --shadow-card: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+      --blur-card: 12px; /* backdrop-blur-md */
+    }
+
+    /* Dark Mode Defaults */
+    html.dark {
+      --color-canvas: #111827; /* gray-900 */
+      --color-sidebar: #1f2937; /* gray-800 */
+      --color-card: rgba(31, 41, 55, 0.8); /* gray-800/80 */
+      --color-card-border: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+      --color-accent-muted: #1e3a8a; /* blue-900 */
+    }
+
+    /* Theme 2: Fintech (Stripe-style) */
+    .theme-fintech {
+      --color-canvas: #f6f9fc;
+      --color-sidebar: #ffffff;
+      --color-card: #ffffff; /* Solid white, no blur */
+      --color-primary: #635bff;
+      --color-primary-hover: #5851df;
+      --color-card-border: #e6ebf1;
+      --color-accent-muted: #f6f9fc;
+
+      --radius-card: 0.5rem; /* rounded-theme-sm (sharp) */
+      --radius-sm: 0.375rem; /* rounded-md */
+      --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.04), 0 4px 15px rgba(0,0,0,0.02); /* subtle, diffuse shadow */
+      --blur-card: 0px; /* No blur for crisp look */
+    }
+
+    html.dark.theme-fintech {
+      --color-canvas: #0b0f19;
+      --color-sidebar: #121826;
+      --color-card: #121826;
+      --color-card-border: #1e293b;
+      --color-accent-muted: #1e293b;
+      --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Theme 3: Apple HIG (Glassmorphism) */
+    .theme-hig {
+      --color-canvas: #e5e5ea; /* Apple light gray */
+      --color-sidebar: rgba(255, 255, 255, 0.6);
+      --color-card: rgba(255, 255, 255, 0.7);
+      --color-primary: #007aff;
+      --color-primary-hover: #005bb5;
+      --color-card-border: rgba(255, 255, 255, 0.4);
+      --color-accent-muted: rgba(0, 122, 255, 0.1);
+
+      --radius-card: 1.5rem; /* rounded-3xl (heavy rounding) */
+      --radius-sm: 1rem; /* rounded-2xl */
+      --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
+      --blur-card: 24px; /* Heavy frosted glass */
+    }
+
+    html.dark.theme-hig {
+      --color-canvas: #1c1c1e;
+      --color-sidebar: rgba(44, 44, 46, 0.6);
+      --color-card: rgba(44, 44, 46, 0.7);
+      --color-card-border: rgba(255, 255, 255, 0.1);
+      --color-accent-muted: rgba(10, 132, 255, 0.2);
+      --color-primary: #0a84ff;
+    }
+
+    body { font-family: 'Roboto', sans-serif; background-color: var(--color-canvas); }
+    .dark body { background-color: var(--color-canvas); color: #f3f4f6; }
 
     .material-symbols-outlined {
       font-variation-settings:
@@ -45,10 +140,10 @@
     }
 
     /* Modern SaaS Nav Styles */
-    .nav-active { background-color: #e8f0fe; color: #1a73e8; font-weight: 500; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
-    .dark .nav-active { background-color: #1e3a8a; color: #60a5fa; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
-    .nav-active .material-symbols-outlined { color: #1a73e8; }
-    .dark .nav-active .material-symbols-outlined { color: #60a5fa; }
+    .nav-active { background-color: var(--color-accent-muted); color: var(--color-primary); font-weight: 500; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
+    .dark .nav-active { background-color: var(--color-accent-muted); color: var(--color-primary); border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
+    .nav-active .material-symbols-outlined { color: var(--color-primary); }
+    .dark .nav-active .material-symbols-outlined { color: var(--color-primary); }
 
     .nav-inactive { color: #5f6368; font-weight: 400; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); transition: background-color 0.2s, color 0.2s; }
     .dark .nav-inactive { color: #9ca3af; }
@@ -99,15 +194,15 @@
     #tutorialCard { z-index: 72; }
   </style>
 </head>
-<body class="text-gray-800 dark:text-gray-200 antialiased h-screen overflow-hidden flex bg-[#f8f9fa] dark:bg-gray-900 transition-colors">
+<body class="text-gray-800 dark:text-gray-200 antialiased h-screen overflow-hidden flex bg-theme-canvas transition-colors">
 
   <!-- Left Sidebar (SaaS Pattern) -->
-  <aside id="sidebar" class="sidebar-expanded bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col justify-between shadow-sm z-50 h-full shrink-0 transition-colors">
+  <aside id="sidebar" class="sidebar-expanded bg-theme-sidebar border-r border-gray-200 dark:border-gray-700 flex flex-col justify-between shadow-sm z-50 h-full shrink-0 transition-colors">
     <div>
       <!-- Header / Logo -->
       <div class="h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-700">
         <div class="flex items-center gap-3 overflow-hidden">
-          <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[28px] shrink-0">track_changes</span>
+          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[28px] shrink-0">track_changes</span>
           <h1 class="text-lg font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap nav-text tracking-tight">Case Tracker</h1>
         </div>
         <div class="flex items-center gap-1 shrink-0">
@@ -160,7 +255,7 @@
         <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px]">calendar_clock</span> Live POC
         </span>
-        <button onclick="loadPOCSchedule()" title="Refresh POC Schedule" class="text-gray-400 hover:text-blue-600 transition p-1">
+        <button onclick="loadPOCSchedule()" title="Refresh POC Schedule" class="text-gray-400 hover:text-theme-primary transition p-1">
           <span class="material-symbols-outlined text-[16px]">sync</span>
         </button>
       </div>
@@ -174,17 +269,35 @@
     <div class="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800 flex-shrink-0">
       <div class="flex items-center justify-between mb-3 nav-text px-2">
         <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Account</span>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 relative">
+          <!-- Palette Toggle -->
+          <button onclick="togglePaletteDropdown(event)" title="Change Theme Palette" class="text-gray-400 hover:text-purple-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span class="material-symbols-outlined text-[18px]">palette</span>
+          </button>
+          <!-- Palette Dropdown -->
+          <div id="paletteDropdown" class="hidden absolute bottom-8 left-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-theme shadow-lg overflow-hidden z-50 transition-opacity">
+            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+              <li>
+                <button onclick="changeThemePalette('default')" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Default</button>
+              </li>
+              <li>
+                <button onclick="changeThemePalette('fintech')" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Fintech</button>
+              </li>
+              <li>
+                <button onclick="changeThemePalette('hig')" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">macOS</button>
+              </li>
+            </ul>
+          </div>
           <button onclick="toggleTheme()" title="Toggle Dark/Light Mode" class="text-gray-400 hover:text-amber-500 transition p-1">
             <span id="themeIcon" class="material-symbols-outlined text-[18px]">light_mode</span>
           </button>
-          <button onclick="refreshAccess()" title="Refresh my access/role" class="text-gray-400 hover:text-blue-600 transition p-1">
+          <button onclick="refreshAccess()" title="Refresh my access/role" class="text-gray-400 hover:text-theme-primary transition p-1">
             <span class="material-symbols-outlined text-[18px]">sync</span>
           </button>
         </div>
       </div>
 
-      <div id="identityChip" onclick="switchTab('profileView')" tabindex="0" role="button" title="View my profile" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('profileView');}" class="flex items-center gap-3 bg-white dark:bg-gray-900 p-2 rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse overflow-hidden shadow-sm cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:ring-2 hover:ring-blue-100 dark:hover:ring-blue-900/40 transition">
+      <div id="identityChip" onclick="switchTab('profileView')" tabindex="0" role="button" title="View my profile" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('profileView');}" class="flex items-center gap-3 bg-white dark:bg-gray-900 p-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 animate-pulse overflow-hidden shadow-sm cursor-pointer hover:border-theme-primary hover:ring-2 hover:ring-theme-accent-muted dark:hover:ring-blue-900/40 transition">
         <div class="w-8 h-8 rounded-full bg-gray-200 shrink-0 identity-avatar"></div>
         <div class="flex flex-col identity-text min-w-0">
           <div class="h-3 bg-gray-200 rounded w-20 mb-1"></div>
@@ -201,8 +314,8 @@
     <div class="w-full px-8 py-8 mx-auto max-w-7xl pb-24 flex flex-col items-center">
 
     <!-- VIEW 1: Submission Form -->
-    <div id="submissionView" class="hidden w-full max-w-3xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 relative">
-      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+    <div id="submissionView" class="hidden w-full max-w-3xl bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden transition-all duration-300 relative">
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
       <div class="p-8 pt-10 pb-6 border-b border-gray-100 dark:border-gray-700">
         <h2 class="text-2xl font-normal mb-1 text-gray-800 dark:text-gray-100">Log Your Interval</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">Paste your Case IDs separated by commas or new lines. Duplicates will be automatically audited.</p>
@@ -217,14 +330,14 @@
           <div class="grid grid-cols-2 gap-3">
             <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">work</span>
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">work</span>
                 <span class="text-sm font-medium">Regular Shift</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">timer</span>
                 <span class="text-sm font-medium">Overtime</span>
               </div>
@@ -233,19 +346,19 @@
           <div id="otTypeContainer" class="hidden mt-3 grid grid-cols-3 gap-3">
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="Pre-Shift OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
+              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">Pre-Shift</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="Post-Shift OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
+              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">Post-Shift</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="RD OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
+              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">RD OT</span>
               </div>
             </label>
@@ -258,21 +371,21 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-emerald-500">task_alt</span>
                 <span class="text-sm font-medium">Normal Production</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">coffee</span>
                 <span class="text-sm font-medium">Break/Lunch</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/30 peer-checked:text-purple-700 dark:peer-checked:text-purple-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/30 peer-checked:text-purple-700 dark:peer-checked:text-purple-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-purple-500">school</span>
                 <span class="text-sm font-medium">Coaching/Training</span>
               </div>
@@ -286,36 +399,36 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">mail</span>
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">mail</span>
                 <span class="text-sm font-medium">Regular (Take Next)</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">refresh</span>
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">refresh</span>
                 <span class="text-sm font-medium">Reopened Cases</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">headset_mic</span>
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">headset_mic</span>
                 <span class="text-sm font-medium">Telus Cases</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">back_hand</span>
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">back_hand</span>
                 <span class="text-sm font-medium">Manual Assignment</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">assignment</span>
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">assignment</span>
                 <span class="text-sm font-medium">Cimba Cases</span>
               </div>
             </label>
@@ -328,7 +441,7 @@
              <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Tracked Case IDs <span class="text-red-500">*</span></h3>
              <span id="caseIdDetectedBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">0 IDs detected</span>
           </div>
-          <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints()" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-y shadow-inner bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
+          <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints()" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-theme focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent text-sm resize-y shadow-inner bg-theme-sidebar text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
           <div id="caseIdHints" class="mt-2 text-xs cell-muted min-h-[1rem]"></div>
         </div>
 
@@ -337,7 +450,7 @@
           <button type="button" onclick="clearForm()" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-4 py-2 rounded transition">
             Clear form
           </button>
-          <button type="submit" id="submitBtn" class="bg-google-blue text-white font-medium text-sm px-6 py-2.5 rounded shadow hover:bg-blue-700 transition flex items-center gap-2">
+          <button type="submit" id="submitBtn" class="bg-theme-primary hover:bg-theme-primary-hover text-white font-medium text-sm px-6 py-2.5 rounded-theme shadow  transition flex items-center gap-2">
             <span>Submit Cases</span>
             <span id="spinner" class="material-symbols-outlined animate-spin hidden text-[20px]">progress_activity</span>
           </button>
@@ -347,23 +460,23 @@
 
     <!-- VIEW: My Submissions / Agent Submissions -->
     <div id="mySubmissionsView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
           <div>
             <h2 id="mySubmissionsTitle" class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <span class="material-symbols-outlined text-blue-500 dark:text-blue-400">list_alt</span>
+              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">list_alt</span>
               My Submissions
             </h2>
             <p id="mySubmissionsDesc" class="text-sm text-gray-500 dark:text-gray-400 mt-1">View your tracked cases per interval for the selected date.</p>
           </div>
           <div class="flex items-center gap-4">
             <div id="managerLdapSearch" class="hidden relative">
-              <input type="text" id="targetAgentLdap" list="agentList" placeholder="Agent LDAP" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 w-36 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+              <input type="text" id="targetAgentLdap" list="agentList" placeholder="Agent LDAP" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary w-36 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
               <datalist id="agentList"></datalist>
             </div>
-            <input type="date" id="mySubmissionsDate" onchange="syncDateAcrossTabs('mySubmissionsDate')" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
-            <button onclick="loadMySubmissions()" id="mySubmissionsSearchBtn" class="bg-google-blue text-white text-sm font-medium px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-1">
+            <input type="date" id="mySubmissionsDate" onchange="syncDateAcrossTabs('mySubmissionsDate')" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+            <button onclick="loadMySubmissions()" id="mySubmissionsSearchBtn" class="bg-theme-primary text-white text-sm font-medium px-4 py-2 rounded-theme shadow-sm hover:bg-theme-primary-hover transition flex items-center gap-1">
               <span class="material-symbols-outlined text-[18px]">search</span>
               Search
             </button>
@@ -392,8 +505,8 @@
     <div id="dashboardView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
       
       <!-- Section 1: Audit Queue -->
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 z-10"></div>
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 z-10"></div>
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-red-50/30 dark:bg-red-900/20 relative">
           <div>
             <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
@@ -409,7 +522,7 @@
             <button onclick="handleBulkAudit('Reject')" class="hidden bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition items-center gap-1 bulk-audit-btn">
               <span class="material-symbols-outlined text-[18px]">close</span> Reject Selected (<span class="bulk-audit-count">0</span>)
             </button>
-            <button onclick="loadDashboard()" class="text-gray-500 hover:text-blue-600 transition p-1" title="Refresh Data">
+            <button onclick="loadDashboard()" class="text-gray-500 hover:text-theme-primary transition p-1" title="Refresh Data">
               <span class="material-symbols-outlined">refresh</span>
             </button>
           </div>
@@ -419,7 +532,7 @@
             <thead>
               <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 w-10">
-                  <input type="checkbox" id="selectAllAudits" onchange="toggleAllAudits(this)" class="w-4 h-4 text-blue-600 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                  <input type="checkbox" id="selectAllAudits" onchange="toggleAllAudits(this)" class="w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
                 </th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 1)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 2)"><div class="flex items-center gap-1">Time / Type <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
@@ -436,8 +549,8 @@
       </div>
 
       <!-- Section 2: Today's Metrics -->
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700">
           <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
             <span class="material-symbols-outlined text-green-600 dark:text-green-400">bar_chart</span>
@@ -463,17 +576,17 @@
 
     <!-- VIEW 3: Interval Management -->
     <div id="intervalView" class="hidden w-full max-w-7xl space-y-6 transition-all duration-300 pb-12 w-full">
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
-        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 z-10"></div>
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 z-10"></div>
         <!-- Controls Header -->
-        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 items-end bg-blue-50/30 dark:bg-blue-900/20 relative">
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 items-end bg-theme-accent-muted/30 dark:bg-theme-accent-muted/30 relative">
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Select Date</label>
-            <input type="date" id="intervalDate" onchange="syncDateAcrossTabs('intervalDate')" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+            <input type="date" id="intervalDate" onchange="syncDateAcrossTabs('intervalDate')" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Select Interval Hour</label>
-            <select id="intervalHour" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 min-w-[120px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+            <select id="intervalHour" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[120px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
               <option value="0:00">12:00 AM</option>
               <option value="1:00">1:00 AM</option>
               <option value="2:00">2:00 AM</option>
@@ -504,7 +617,7 @@
             <button onclick="loadIntervalData()" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-2">
               Load Interval
             </button>
-            <button onclick="copyIntervalReport()" id="copyReportBtn" class="bg-blue-600 border border-blue-600 text-white font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-blue-700 transition flex items-center gap-2 hidden">
+            <button onclick="copyIntervalReport()" id="copyReportBtn" class="bg-theme-primary border border-theme-primary text-white font-medium text-sm px-4 py-2 rounded-full shadow-sm  transition flex items-center gap-2 hidden">
               <span class="material-symbols-outlined text-[18px]">content_copy</span>
               Copy Report
             </button>
@@ -517,13 +630,13 @@
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <span class="material-symbols-outlined text-gray-400 text-[18px]">search</span>
             </div>
-            <input type="text" id="intervalFilterInput" oninput="debounceIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-56 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+            <input type="text" id="intervalFilterInput" oninput="debounceIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none w-56 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
           </div>
         </div>
 
         <!-- Summary Stats Bar -->
         <div id="intervalSummaryBar" class="hidden px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/60 flex flex-wrap items-center gap-3 text-xs">
-          <div class="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-full font-medium">
+          <div class="flex items-center gap-1.5 bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary dark:text-theme-primary px-3 py-1.5 rounded-full font-medium">
              <span class="material-symbols-outlined text-[16px]">groups</span>
              <span id="summaryTotalAgents">0</span> scheduled
           </div>
@@ -575,13 +688,13 @@
       <div class="flex justify-between items-end mb-2">
         <div>
           <h2 class="text-2xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">insights</span>
+            <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">insights</span>
             Performance Analytics
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Review operational output, workflows, and top performers.</p>
         </div>
         <div class="flex items-center gap-3">
-          <select id="analyticsDateRange" onchange="updateDateRangePicker(); loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+          <select id="analyticsDateRange" onchange="updateDateRangePicker(); loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
             <option value="today">Today</option>
             <option value="yesterday">Yesterday</option>
             <option value="this_week">This Week</option>
@@ -591,11 +704,11 @@
             <option value="custom">Custom Range</option>
           </select>
           <div id="customDateRangeContainer" class="hidden items-center gap-2">
-            <input type="date" id="analyticsStartDate" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
+            <input type="date" id="analyticsStartDate" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
             <span class="text-gray-500 dark:text-gray-400">to</span>
-            <input type="date" id="analyticsEndDate" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
+            <input type="date" id="analyticsEndDate" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
           </div>
-          <button onclick="loadAnalytics()" class="bg-google-blue text-white font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-2">
+          <button onclick="loadAnalytics()" class="bg-theme-primary text-white font-medium text-sm px-4 py-2 rounded-theme shadow-sm hover:bg-theme-primary-hover transition flex items-center gap-2">
             <span class="material-symbols-outlined text-[18px]">refresh</span> Refresh
           </button>
         </div>
@@ -603,21 +716,21 @@
 
       <!-- Row 1: Executive KPI Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-center">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px] text-google-green">done_all</span> Total Valid (<span id="kpi-range-label">Today</span>)
           </span>
           <span id="kpi-valid-today" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
         </div>
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-center">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px] text-google-yellow">pending_actions</span> Pending Audits
           </span>
           <span id="kpi-pending-audits" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
         </div>
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-center">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">group</span> Active Staff (<span id="kpi-range-label-2">Today</span> / Now)
+            <span class="material-symbols-outlined text-[16px] text-theme-primary dark:text-theme-primary">group</span> Active Staff (<span id="kpi-range-label-2">Today</span> / Now)
           </span>
           <span class="text-4xl font-normal text-gray-800 dark:text-gray-100">
             <span id="kpi-staff-today">--</span> <span class="text-xl text-gray-400">/ <span id="kpi-staff-hour">--</span></span>
@@ -626,25 +739,25 @@
       </div>
 
       <!-- Row 2: Heatmap -->
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
         <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Hourly Productivity Heatmap</h3>
         <div id="heatmapChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
       </div>
 
       <!-- Row 3: Donut & Bar Charts -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Workflow Distribution</h3>
           <div id="donutChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
         </div>
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Site Throughput</h3>
           <div id="barChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
         </div>
       </div>
 
       <!-- Row 4: Agent Leaderboard -->
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
         <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-[#fbbc04]">social_leaderboard</span> Top Performers
         </h3>
@@ -655,14 +768,14 @@
 
       <!-- Row 5: Overtime Insights -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">show_chart</span> OT Spikes Timeline
           </h3>
           <div id="otTimelineChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
         </div>
 
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2">
             <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">social_leaderboard</span> Top OT Performers
           </h3>
@@ -693,10 +806,10 @@
   <!-- Help Modal -->
   <div id="helpModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40" onclick="closeHelpModal()"></div>
-    <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+    <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
       <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
-          <span class="material-symbols-outlined text-blue-500 dark:text-blue-400">help</span>
+          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">help</span>
           Help &amp; Guide
         </h2>
         <button onclick="closeHelpModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -704,22 +817,22 @@
         </button>
       </div>
       <div class="p-5 overflow-y-auto space-y-2">
-        <button onclick="closeHelpModal(); startTutorial();" class="w-full flex items-center justify-between bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-lg p-4 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition text-left mb-2">
+        <button onclick="closeHelpModal(); startTutorial();" class="w-full flex items-center justify-between bg-theme-accent-muted dark:bg-theme-accent-muted/30 border border-theme-primary dark:border-theme-primary text-theme-primary dark:text-theme-primary rounded-theme-sm p-4 hover:bg-theme-accent-muted dark:hover:bg-theme-accent-muted/50 transition text-left mb-2">
           <span class="font-medium flex items-center gap-2">
             <span class="material-symbols-outlined text-[20px]">play_circle</span>
             Take the guided tour
           </span>
           <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
         </button>
-        <div id="helpAccordion" class="divide-y divide-gray-100 dark:divide-gray-700 border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden"></div>
+        <div id="helpAccordion" class="divide-y divide-gray-100 dark:divide-gray-700 border border-theme-card-border rounded-theme-sm overflow-hidden"></div>
       </div>
     </div>
   </div>
 
   <!-- Tutorial Overlay -->
   <div id="tutorialOverlay" class="hidden fixed inset-0">
-    <div id="tutorialHighlight" class="fixed rounded-lg pointer-events-none transition-all duration-300"></div>
-    <div id="tutorialCard" class="fixed bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-5 w-80 transition-all duration-300">
+    <div id="tutorialHighlight" class="fixed rounded-theme-sm pointer-events-none transition-all duration-300"></div>
+    <div id="tutorialCard" class="fixed bg-theme-sidebar rounded-theme shadow-2xl p-5 w-80 transition-all duration-300">
       <div class="flex items-center justify-between mb-2">
         <span id="tutorialStepCount" class="text-xs font-medium cell-muted uppercase tracking-wide"></span>
         <button onclick="endTutorial()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -732,7 +845,7 @@
         <button id="tutorialBackBtn" onclick="prevTutorialStep()" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-1.5 rounded transition">Back</button>
         <div class="flex items-center gap-2">
           <button onclick="endTutorial()" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-1.5 rounded transition">Skip</button>
-          <button id="tutorialNextBtn" onclick="nextTutorialStep()" class="bg-google-blue text-white text-sm font-medium px-4 py-1.5 rounded shadow hover:bg-blue-700 transition">Next</button>
+          <button id="tutorialNextBtn" onclick="nextTutorialStep()" class="bg-theme-primary text-white text-sm font-medium px-4 py-1.5 rounded-theme shadow hover:bg-theme-primary-hover transition">Next</button>
         </div>
       </div>
     </div>
@@ -788,7 +901,39 @@ function refreshAccess() {
         .clearAccessCache();
     }
 
-    // --- THEME / DARK MODE LOGIC ---
+    // --- THEME / PALETTE LOGIC ---
+    function togglePaletteDropdown(e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById('paletteDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('paletteDropdown');
+      if (dropdown && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    function changeThemePalette(paletteName) {
+      const htmlEl = document.documentElement;
+
+      // Remove existing palettes
+      htmlEl.classList.remove('theme-fintech', 'theme-hig', 'theme-default');
+
+      // Apply new palette if not default
+      if (paletteName === 'fintech') {
+        htmlEl.classList.add('theme-fintech');
+      } else if (paletteName === 'hig') {
+        htmlEl.classList.add('theme-hig');
+      } else {
+        htmlEl.classList.add('theme-default');
+      }
+
+      localStorage.setItem('themePalette', paletteName);
+    }
+
     function toggleTheme() {
       const htmlEl = document.documentElement;
       const themeIcon = document.getElementById('themeIcon');
@@ -814,13 +959,22 @@ function refreshAccess() {
 
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
+      const savedPalette = localStorage.getItem('themePalette');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const htmlEl = document.documentElement;
 
+      // Dark Mode
       if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
         htmlEl.classList.add('dark');
         const themeIcon = document.getElementById('themeIcon');
         if (themeIcon) themeIcon.innerText = 'dark_mode';
+      }
+
+      // Palette
+      if (savedPalette) {
+        changeThemePalette(savedPalette);
+      } else {
+        changeThemePalette('default');
       }
     }
 
@@ -958,12 +1112,12 @@ function refreshAccess() {
 
       pocContainer.innerHTML = `
         <!-- Previous -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 mb-1">
+        <div class="flex items-center justify-between px-3 py-1.5 rounded-theme-sm bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 mb-1">
           <span class="text-[10px] font-medium">${prevTarget}</span>
           <span class="text-xs font-medium truncate max-w-[100px]">${prevPOC.poc}</span>
         </div>
         <!-- Current -->
-        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 mb-1 border border-green-200/50 dark:border-green-800/50 relative overflow-hidden">
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-theme-sm bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 mb-1 border border-green-200/50 dark:border-green-800/50 relative overflow-hidden">
           <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
           <span class="text-[11px] font-medium flex items-center gap-1.5 ml-1">
              <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -972,7 +1126,7 @@ function refreshAccess() {
           <span class="text-sm font-bold truncate max-w-[100px]">${currPOC.poc}</span>
         </div>
         <!-- Next -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400">
+        <div class="flex items-center justify-between px-3 py-1.5 rounded-theme-sm bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400">
           <span class="text-[10px] font-medium">${nextTarget}</span>
           <span class="text-xs font-medium truncate max-w-[100px]">${nextPOC.poc}</span>
         </div>
@@ -1010,7 +1164,7 @@ function refreshAccess() {
        document.getElementById('mySubmissionsNavText').innerText = 'Agent Submissions';
         document.getElementById('tab-mySubmissionsView').title = 'Agent Submissions';
         document.getElementById('mySubmissionsTitle').innerHTML = `
-          <span class="material-symbols-outlined text-blue-500">manage_search</span>
+          <span class="material-symbols-outlined text-theme-primary">manage_search</span>
           Agent Submissions
         `;
         document.getElementById('mySubmissionsDesc').innerText = "View tracked cases per interval for any agent.";
@@ -1195,7 +1349,7 @@ function refreshAccess() {
           badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors';
         } else {
           badge.textContent = p.raw.length + ' IDs detected';
-          badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 transition-colors';
+          badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-theme-accent-muted dark:bg-theme-accent-muted/40 text-theme-primary dark:text-theme-primary transition-colors';
         }
       }
 
@@ -1451,15 +1605,15 @@ function refreshAccess() {
         if (caseCount === 0) {
           opacityClass = 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500';
         } else if (caseCount <= t1 || maxCountForMonth === 0) {
-          opacityClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300';
+          opacityClass = 'bg-theme-accent-muted text-theme-primary dark:bg-theme-accent-muted/40 dark:text-theme-primary';
         } else if (caseCount <= t2) {
-          opacityClass = 'bg-blue-300 text-blue-800 dark:bg-blue-600 dark:text-blue-100';
+          opacityClass = 'bg-theme-primary/70 text-white dark:bg-theme-primary dark:text-blue-100';
         } else {
-          opacityClass = 'bg-blue-500 text-white dark:bg-blue-500 dark:text-white';
+          opacityClass = 'bg-theme-primary text-white dark:bg-theme-primary dark:text-white';
         }
 
         const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
-        const borderClass = isToday ? 'border-2 border-blue-500' : 'border border-gray-200 dark:border-gray-700';
+        const borderClass = isToday ? 'border-2 border-theme-primary' : 'border border-gray-200 dark:border-gray-700';
 
         let tooltipText = '';
         if (caseCount > 0) {
@@ -1471,7 +1625,7 @@ function refreshAccess() {
         }
 
         html += `
-          <div class="h-20 bg-white dark:bg-gray-800 rounded-xl ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md group" title="${tooltipText}">
+          <div class="h-20 bg-theme-sidebar rounded-theme ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md group" title="${tooltipText}">
             <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
             <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm">
                ${caseCount > 0 ? caseCount : '-'}
@@ -1521,7 +1675,7 @@ function refreshAccess() {
         return `
           <div class="flex-1 flex flex-col items-center gap-1">
             <div class="w-full flex items-end" style="height:96px;">
-              <div class="w-full bg-blue-400 dark:bg-blue-600 rounded-t" style="height:${pct}%"></div>
+              <div class="w-full bg-theme-primary/80 dark:bg-theme-primary rounded-t" style="height:${pct}%"></div>
             </div>
             <div class="text-[10px] cell-faint">${t.label}</div>
           </div>`;
@@ -1538,7 +1692,7 @@ function refreshAccess() {
       }
 
       container.innerHTML = `
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
+        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
           <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-emerald-400 to-amber-400"></div>
           <div class="p-6 pt-8 flex flex-col sm:flex-row gap-6">
             <div class="flex items-center gap-4 sm:w-64 shrink-0">
@@ -1553,21 +1707,21 @@ function refreshAccess() {
               </div>
             </div>
             <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm items-start">
-              <div class="bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800/30">
-                <div class="text-[10px] uppercase tracking-wide text-blue-600 dark:text-blue-400 mb-0.5 font-semibold">Tenure</div>
+              <div class="bg-theme-accent-muted dark:bg-theme-accent-muted/30 px-3 py-2 rounded-theme-sm border border-theme-primary/20">
+                <div class="text-[10px] uppercase tracking-wide text-theme-primary dark:text-theme-primary mb-0.5 font-semibold">Tenure</div>
                 <div class="font-medium cell-strong">${escAttr(data.tenureText || '\u2014')}</div>
-                <div class="text-[10px] text-blue-500/70 dark:text-blue-400/70">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
+                <div class="text-[10px] text-theme-primary/70 dark:text-theme-primary/70">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
               </div>
-              <div class="bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800/30">
+              <div class="bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-theme-sm border border-emerald-100 dark:border-emerald-800/30">
                 <div class="text-[10px] uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-0.5 font-semibold">Site</div>
                 <div class="font-medium cell-strong">${escAttr(data.site || '\u2014')}</div>
               </div>
-              <div class="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-800/30">
+              <div class="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-theme-sm border border-amber-100 dark:border-amber-800/30">
                 <div class="text-[10px] uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-0.5 font-semibold">Team</div>
                 <div class="font-medium cell-strong">${escAttr(data.team || '\u2014')}</div>
                 <div class="text-[10px] text-amber-600/70 dark:text-amber-400/70 truncate">${escAttr(data.workflow || '')}</div>
               </div>
-              <div class="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-lg border border-purple-100 dark:border-purple-800/30">
+              <div class="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-theme-sm border border-purple-100 dark:border-purple-800/30">
                 <div class="text-[10px] uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-0.5 font-semibold">Grade</div>
                 <div class="font-medium cell-strong">${escAttr(data.gradeLevel || '\u2014')}</div>
               </div>
@@ -1580,21 +1734,21 @@ function refreshAccess() {
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
-               <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+               <div class="w-10 h-10 rounded-theme bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary dark:text-theme-primary flex items-center justify-center">
                  <span class="material-symbols-outlined">today</span>
                </div>
-               ${data.stats.today > 0 ? `<span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full">+${data.stats.today}</span>` : ''}
+               ${data.stats.today > 0 ? `<span class="bg-theme-accent-muted dark:bg-theme-accent-muted/50 text-theme-primary dark:text-theme-primary text-[10px] font-bold px-2 py-0.5 rounded-full">+${data.stats.today}</span>` : ''}
             </div>
             <div>
               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">Today</div>
               <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.today}</div>
             </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
-               <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+               <div class="w-10 h-10 rounded-theme bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                  <span class="material-symbols-outlined">date_range</span>
                </div>
             </div>
@@ -1603,9 +1757,9 @@ function refreshAccess() {
               <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisWeek}</div>
             </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
-               <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+               <div class="w-10 h-10 rounded-theme bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                  <span class="material-symbols-outlined">calendar_month</span>
                </div>
             </div>
@@ -1614,10 +1768,10 @@ function refreshAccess() {
               <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisMonth}</div>
             </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border ${data.stats.pendingAudits > 0 ? 'border-amber-200 dark:border-amber-800/50' : 'border-gray-200/50 dark:border-gray-700/50'} flex flex-col justify-between relative overflow-hidden">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border ${data.stats.pendingAudits > 0 ? 'border-amber-200 dark:border-amber-800/50' : 'border-gray-200/50 dark:border-gray-700/50'} flex flex-col justify-between relative overflow-hidden">
             ${data.stats.pendingAudits > 0 ? '<div class="absolute top-0 right-0 w-16 h-16 bg-amber-100 dark:bg-amber-900/20 rounded-bl-full -mr-8 -mt-8 animate-pulse"></div>' : ''}
             <div class="flex items-center justify-between mb-3 relative z-10">
-               <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+               <div class="w-10 h-10 rounded-theme bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                  <span class="material-symbols-outlined">gavel</span>
                </div>
                ${data.stats.pendingAudits > 0 ? `<span class="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Action</span>` : ''}
@@ -1630,34 +1784,34 @@ function refreshAccess() {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md sm:col-span-2 p-5 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md sm:col-span-2 p-5 rounded-theme shadow border border-theme-card-border">
             <div class="text-sm font-medium mb-3 cell-strong">Last 7 Days</div>
             <div class="flex items-end gap-2">${trendBars}</div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border">
             <div class="text-sm font-medium mb-3 cell-strong">This Month by Type</div>
             <div class="space-y-2">
-              ${breakdownRow('Regular', data.breakdown.Regular, 'bg-blue-500')}
+              ${breakdownRow('Regular', data.breakdown.Regular, 'bg-theme-primary')}
               ${breakdownRow('Reopened', data.breakdown.Reopened, 'bg-amber-400')}
               ${breakdownRow('Manual', data.breakdown.Manual, 'bg-purple-400')}
             </div>
           </div>
         </div>
 
-        <button onclick="switchTab('mySubmissionsView')" class="w-full flex items-center justify-between bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50 hover:border-blue-400 dark:hover:border-blue-500 transition text-left">
+        <button onclick="switchTab('mySubmissionsView')" class="w-full flex items-center justify-between bg-theme-card p-4 rounded-theme shadow-theme backdrop-blur-theme border border-theme-card-border hover:border-theme-primary transition text-left">
           <span class="text-sm font-medium flex items-center gap-2 cell-strong">
-            <span class="material-symbols-outlined text-blue-500 dark:text-blue-400 text-[20px]">list_alt</span>
+            <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[20px]">list_alt</span>
             View my full submissions
           </span>
           <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
         </button>
 
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50 mt-6">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border mt-6">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">calendar_month</span>
+              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">calendar_month</span>
               <h3 class="text-base font-medium text-gray-700 dark:text-gray-200" id="calendarMonthLabel">Loading...</h3>
-              <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg ml-2">
+              <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-theme-sm ml-2">
                 <button onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-l-lg transition text-gray-500 dark:text-gray-300">
                   <span class="material-symbols-outlined text-[18px]">chevron_left</span>
                 </button>
@@ -1667,7 +1821,7 @@ function refreshAccess() {
               </div>
             </div>
             <div>
-              <select id="calendarTypeFilter" onchange="renderCalendarHeatmap()" class="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-xs focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm">
+              <select id="calendarTypeFilter" onchange="renderCalendarHeatmap()" class="p-1.5 border border-gray-300 dark:border-gray-600 rounded-theme-sm text-xs focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm">
                 <option value="All">All Case Types</option>
                 <option value="Regular">Regular</option>
                 <option value="Reopened">Reopened</option>
@@ -1877,7 +2031,7 @@ function refreshAccess() {
         auditTbody.innerHTML = data.audits.map(a => `
           <tr class="row-hover transition" id="audit-row-${a.row}">
             <td class="p-4">
-              <input type="checkbox" class="audit-checkbox w-4 h-4 text-blue-600 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700" onchange="updateBulkAuditButtons()" data-audit-row="${a.row}" data-raw-row="${a.rawRowRef}">
+              <input type="checkbox" class="audit-checkbox w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700" onchange="updateBulkAuditButtons()" data-audit-row="${a.row}" data-raw-row="${a.rawRowRef}">
             </td>
             <td class="p-4">
               <div class="flex items-center gap-3">
@@ -2232,11 +2386,11 @@ function refreshAccess() {
             <td class="p-3 text-center cell-muted">${a.eos}</td>
             <td class="p-3 text-center cell-muted">${a.site}</td>
             <td class="p-3 text-center">
-              <select onchange="setIntervalStatus(this, '${a.ldap}')" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors select-default">
+              <select onchange="setIntervalStatus(this, '${a.ldap}')" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary w-36 font-medium cursor-pointer transition-colors select-default">
                 ${statusOptionsHtml(status)}
               </select>
             </td>
-            <td class="p-3 text-center font-medium ${a.regularCount > 0 ? 'text-blue-600 dark:text-blue-400' : ''}">${n(a.regularCount)}</td>
+            <td class="p-3 text-center font-medium ${a.regularCount > 0 ? 'text-theme-primary dark:text-theme-primary' : ''}">${n(a.regularCount)}</td>
             <td class="p-3 text-center font-medium ${a.manualCount > 0 ? 'text-purple-600 dark:text-purple-400' : ''}">${n(a.manualCount)}</td>
             <td class="p-3 text-center font-medium ${a.reopenedCount > 0 ? 'text-teal-600 dark:text-teal-400' : ''}">${n(a.reopenedCount)}</td>
             <td class="p-3 text-center font-semibold ${a.casesLogged > 0 ? 'text-green-600 dark:text-green-400' : ''}">${n(a.casesLogged)}</td>
@@ -2315,7 +2469,7 @@ function refreshAccess() {
     function updateStatusColor(selectElement) {
       const val = selectElement.value;
       // Reset classes
-      selectElement.className = "text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36 font-medium cursor-pointer transition-colors ";
+      selectElement.className = "text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary w-36 font-medium cursor-pointer transition-colors ";
       
       // Apply Google Sheets Chip Colors
       if (val === 'Assigned - 7') selectElement.classList.add('bg-[#1e8e3e]', 'text-white');
@@ -2526,7 +2680,7 @@ function refreshAccess() {
                   <span class="text-sm font-bold text-gray-800 dark:text-gray-100">${score}</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                  <div class="bg-blue-600 dark:bg-blue-400 h-2 rounded-full" style="width: ${percentage}%"></div>
+                  <div class="bg-theme-primary dark:bg-theme-primary h-2 rounded-full" style="width: ${percentage}%"></div>
                 </div>
               </div>
             </div>
