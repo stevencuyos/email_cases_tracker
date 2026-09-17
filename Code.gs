@@ -1003,6 +1003,7 @@ function getMyProfileData() {
 
     const stats = { today: 0, thisWeek: 0, thisMonth: 0, pendingAudits: 0 };
     const breakdown = { Regular: 0, Reopened: 0, Manual: 0 };
+    const history = {}; // DateStr -> { All, Regular, Reopened, Manual, Telus, Cimba }
 
     const now = new Date();
     const todayStr = toDateStringFast(now);
@@ -1035,11 +1036,27 @@ function getMyProfileData() {
         if (rowDateObj >= monthStart) stats.thisMonth += validCases;
         if (trendMap.hasOwnProperty(rowDateStr)) trendMap[rowDateStr] += validCases;
 
+        const caseType = r[RAW_COLS.CASE_TYPE] || '';
+        let typeCategory = 'Regular';
+        if (caseType === 'Manual Assignment') typeCategory = 'Manual';
+        else if (caseType === 'Reopened Cases') typeCategory = 'Reopened';
+        else if (caseType === 'Telus') typeCategory = 'Telus';
+        else if (caseType === 'Cimba') typeCategory = 'Cimba';
+
         if (rowDateObj >= monthStart) {
-          const caseType = r[RAW_COLS.CASE_TYPE];
-          if (caseType === 'Manual Assignment') breakdown.Manual += validCases;
-          else if (caseType === 'Reopened Cases') breakdown.Reopened += validCases;
+          if (typeCategory === 'Manual') breakdown.Manual += validCases;
+          else if (typeCategory === 'Reopened') breakdown.Reopened += validCases;
           else breakdown.Regular += validCases;
+        }
+
+        if (!history[rowDateStr]) {
+          history[rowDateStr] = { All: 0, Regular: 0, Reopened: 0, Manual: 0, Telus: 0, Cimba: 0 };
+        }
+        history[rowDateStr].All += validCases;
+        if (history[rowDateStr][typeCategory] !== undefined) {
+          history[rowDateStr][typeCategory] += validCases;
+        } else {
+          history[rowDateStr].Regular += validCases; // Fallback
         }
       });
     }
@@ -1066,7 +1083,8 @@ function getMyProfileData() {
       reportsTo: details.reportsTo,
       stats: stats,
       trend: trendMeta.map(function(t) { return { label: t.label, count: trendMap[t.key] }; }),
-      breakdown: breakdown
+      breakdown: breakdown,
+      history: history
     };
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';

@@ -1377,10 +1377,21 @@ function refreshAccess() {
 
     // --- MY PROFILE LOGIC ---
     let currentCalendarDate = new Date();
+    let profileHistoryData = null; // Caches daily heatmap data
 
     function changeCalendarMonth(offset) {
       currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
       renderCalendarHeatmap();
+    }
+
+    // Helper to format Date to YYYY-MM-DD
+    function toDateStringFastClient(date) {
+      const year = date.getFullYear();
+      let month = date.getMonth() + 1;
+      let day = date.getDate();
+      if (month < 10) month = '0' + month;
+      if (day < 10) day = '0' + day;
+      return year + '-' + month + '-' + day;
     }
 
     function renderCalendarHeatmap() {
@@ -1410,42 +1421,65 @@ function refreshAccess() {
 
       const filterType = document.getElementById('calendarTypeFilter') ? document.getElementById('calendarTypeFilter').value : 'All';
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        // Mock data logic based on date and filter
-        // We ensure data is stable per day for demo purposes
-        const seed = (year + month * 13 + day * 7);
-        let caseCount = 0;
-
-        // Randomly assign zero days
-        if (seed % 5 !== 0 && seed % 8 !== 0) {
-           caseCount = (seed % 30) + 1; // 1 to 30 cases
+      // Find max case count for the month for dynamic color scaling
+      let maxCountForMonth = 0;
+      if (profileHistoryData) {
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dStr = toDateStringFastClient(new Date(year, month, day));
+          const dayData = profileHistoryData[dStr];
+          if (dayData) {
+            const count = dayData[filterType] || 0;
+            if (count > maxCountForMonth) maxCountForMonth = count;
+          }
         }
+      }
 
-        // Apply filter logic to mocked data
-        if (filterType !== 'All') {
-            if (caseCount > 0) {
-                // Mock reduction based on type
-                if (filterType === 'Regular') caseCount = Math.floor(caseCount * 0.8);
-                else if (filterType === 'Reopened') caseCount = Math.floor(caseCount * 0.1);
-                else if (filterType === 'Manual') caseCount = Math.floor(caseCount * 0.1);
-                else caseCount = 0;
-            }
+      const t1 = maxCountForMonth * 0.33;
+      const t2 = maxCountForMonth * 0.66;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dStr = toDateStringFastClient(new Date(year, month, day));
+        let caseCount = 0;
+        let allCount = 0;
+
+        if (profileHistoryData && profileHistoryData[dStr]) {
+          caseCount = profileHistoryData[dStr][filterType] || 0;
+          allCount = profileHistoryData[dStr]['All'] || 0;
         }
 
         let opacityClass = '';
-        if (caseCount === 0) opacityClass = 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500';
-        else if (caseCount < 10) opacityClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300';
-        else if (caseCount < 20) opacityClass = 'bg-blue-300 text-blue-800 dark:bg-blue-600 dark:text-blue-100';
-        else opacityClass = 'bg-blue-500 text-white dark:bg-blue-500 dark:text-white';
+        if (caseCount === 0) {
+          opacityClass = 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500';
+        } else if (caseCount <= t1 || maxCountForMonth === 0) {
+          opacityClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300';
+        } else if (caseCount <= t2) {
+          opacityClass = 'bg-blue-300 text-blue-800 dark:bg-blue-600 dark:text-blue-100';
+        } else {
+          opacityClass = 'bg-blue-500 text-white dark:bg-blue-500 dark:text-white';
+        }
 
         const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
         const borderClass = isToday ? 'border-2 border-blue-500' : 'border border-gray-200 dark:border-gray-700';
 
+        let tooltipText = '';
+        if (caseCount > 0) {
+           tooltipText = filterType !== 'All'
+             ? `${caseCount} ${filterType} Cases (${allCount} Total)`
+             : `${allCount} Cases Total`;
+        } else {
+           tooltipText = 'No Cases';
+        }
+
         html += `
-          <div class="h-20 bg-white dark:bg-gray-800 rounded-xl ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md">
+          <div class="h-20 bg-white dark:bg-gray-800 rounded-xl ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md group" title="${tooltipText}">
             <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
             <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm">
                ${caseCount > 0 ? caseCount : '-'}
+            </div>
+
+            <!-- Custom tooltip on hover -->
+            <div class="absolute bottom-full mb-2 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10">
+              ${tooltipText}
             </div>
           </div>
         `;
@@ -1467,6 +1501,10 @@ function refreshAccess() {
     }
 
     function renderMyProfile(data) {
+      // Store history data for calendar usage
+      profileHistoryData = data.history || {};
+      renderCalendarHeatmap();
+
       const container = document.getElementById('profileCardContainer');
       const avatarHTML = getMomaImgClass(data.ldap, 'w-16 h-16 rounded-full border border-gray-200 dark:border-gray-600 object-cover shrink-0', 128);
       const statusColor = (data.employeeStatus || '').toLowerCase() === 'active'
