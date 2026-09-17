@@ -36,13 +36,21 @@
     body { font-family: 'Roboto', sans-serif; background-color: #f8f9fa; }
     .dark body { background-color: #111827; color: #f3f4f6; }
 
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 1,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+
     /* Modern SaaS Nav Styles */
-    .nav-active { background-color: #e8f0fe; color: #1a73e8; font-weight: 500; border-right: 3px solid #1a73e8; }
-    .dark .nav-active { background-color: #1e3a8a; color: #60a5fa; border-right: 3px solid #60a5fa; }
+    .nav-active { background-color: #e8f0fe; color: #1a73e8; font-weight: 500; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
+    .dark .nav-active { background-color: #1e3a8a; color: #60a5fa; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); }
     .nav-active .material-symbols-outlined { color: #1a73e8; }
     .dark .nav-active .material-symbols-outlined { color: #60a5fa; }
 
-    .nav-inactive { color: #5f6368; font-weight: 400; border-right: 3px solid transparent; }
+    .nav-inactive { color: #5f6368; font-weight: 400; border-radius: 9999px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px); transition: background-color 0.2s, color 0.2s; }
     .dark .nav-inactive { color: #9ca3af; }
     .nav-inactive:hover { background-color: #f1f3f4; color: #202124; }
     .dark .nav-inactive:hover { background-color: #374151; color: #f3f4f6; }
@@ -113,12 +121,12 @@
       </div>
       <!-- Navigation Links -->
       <nav class="flex flex-col mt-4 space-y-1">
-        <button onclick="switchTab('submissionView')" id="tab-submissionView" title="Submit Cases" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+        <button onclick="switchTab('submissionView')" id="tab-submissionView" title="Submit Cases" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">edit_square</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Submit Cases</span>
         </button>
 
-        <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" title="My Submissions" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+        <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" title="My Submissions" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">list_alt</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text" id="mySubmissionsNavText">My Submissions</span>
         </button>
@@ -128,17 +136,17 @@
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Management</span>
           </div>
 
-          <button onclick="switchTab('analyticsView')" id="tab-analyticsView" title="Performance Analytics" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('analyticsView')" id="tab-analyticsView" title="Performance Analytics" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">insights</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Performance Analytics</span>
           </button>
 
-          <button onclick="switchTab('dashboardView')" id="tab-dashboardView" title="Manager Dashboard" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('dashboardView')" id="tab-dashboardView" title="Manager Dashboard" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">dashboard</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Manager Dashboard</span>
           </button>
 
-          <button onclick="switchTab('intervalView')" id="tab-intervalView" title="Interval View" class="w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group">
+          <button onclick="switchTab('intervalView')" id="tab-intervalView" title="Interval View" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">view_timeline</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Interval View</span>
           </button>
@@ -190,11 +198,12 @@
   <main class="flex-1 flex flex-col h-full overflow-y-auto relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
 
     <!-- View Containers -->
-    <div class="w-full px-8 py-8 mx-auto max-w-6xl pb-24 flex flex-col items-center">
+    <div class="w-full px-8 py-8 mx-auto max-w-7xl pb-24 flex flex-col items-center">
 
     <!-- VIEW 1: Submission Form -->
-    <div id="submissionView" class="hidden w-full max-w-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300">
-      <div class="p-8 pb-6 border-b border-gray-100 dark:border-gray-700">
+    <div id="submissionView" class="hidden w-full max-w-3xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transition-all duration-300 relative">
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+      <div class="p-8 pt-10 pb-6 border-b border-gray-100 dark:border-gray-700">
         <h2 class="text-2xl font-normal mb-1 text-gray-800 dark:text-gray-100">Log Your Interval</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">Paste your Case IDs separated by commas or new lines. Duplicates will be automatically audited.</p>
         <p id="lastSubmittedNote" class="text-xs cell-muted mt-2"></p>
@@ -206,15 +215,17 @@
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Is this Regular Shift or OT? <span class="text-red-500">*</span></h3>
           <div class="grid grid-cols-2 gap-3">
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">work</span>
                 <span class="text-sm font-medium">Regular Shift</span>
               </div>
             </label>
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">timer</span>
                 <span class="text-sm font-medium">Overtime</span>
               </div>
             </label>
@@ -222,19 +233,19 @@
           <div id="otTypeContainer" class="hidden mt-3 grid grid-cols-3 gap-3">
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="Pre-Shift OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">Pre-Shift</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="Post-Shift OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">Post-Shift</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="RD OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center">
+              <div class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">RD OT</span>
               </div>
             </label>
@@ -245,21 +256,24 @@
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Activity for this interval? <span class="text-red-500">*</span></h3>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-emerald-500">task_alt</span>
                 <span class="text-sm font-medium">Normal Production</span>
               </div>
             </label>
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">coffee</span>
                 <span class="text-sm font-medium">Break/Lunch</span>
               </div>
             </label>
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/30 peer-checked:text-purple-700 dark:peer-checked:text-purple-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-purple-500">school</span>
                 <span class="text-sm font-medium">Coaching/Training</span>
               </div>
             </label>
@@ -270,33 +284,38 @@
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Email Cases type <span class="text-red-500">*</span></h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">mail</span>
                 <span class="text-sm font-medium">Regular (Take Next)</span>
               </div>
             </label>
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">refresh</span>
                 <span class="text-sm font-medium">Reopened Cases</span>
               </div>
             </label>
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">headset_mic</span>
                 <span class="text-sm font-medium">Telus Cases</span>
               </div>
             </label>
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">back_hand</span>
                 <span class="text-sm font-medium">Manual Assignment</span>
               </div>
             </label>
-            <label class="cursor-pointer">
+            <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900 peer-checked:text-blue-700 dark:peer-checked:text-blue-300 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex items-center justify-center">
+              <div class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-blue-500">assignment</span>
                 <span class="text-sm font-medium">Cimba Cases</span>
               </div>
             </label>
@@ -305,8 +324,11 @@
 
         <!-- Bulk Case IDs -->
         <div>
-          <h3 class="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Tracked Case IDs <span class="text-red-500">*</span></h3>
-          <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints()" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-y shadow-inner bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
+          <div class="flex items-center justify-between mb-2">
+             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Tracked Case IDs <span class="text-red-500">*</span></h3>
+             <span id="caseIdDetectedBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">0 IDs detected</span>
+          </div>
+          <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints()" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-y shadow-inner bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
           <div id="caseIdHints" class="mt-2 text-xs cell-muted min-h-[1rem]"></div>
         </div>
 
@@ -324,9 +346,10 @@
     </div>
 
     <!-- VIEW: My Submissions / Agent Submissions -->
-    <div id="mySubmissionsView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12 w-full">
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+    <div id="mySubmissionsView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
           <div>
             <h2 id="mySubmissionsTitle" class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <span class="material-symbols-outlined text-blue-500 dark:text-blue-400">list_alt</span>
@@ -366,11 +389,12 @@
     </div>
 
     <!-- VIEW 2: Manager Dashboard -->
-    <div id="dashboardView" class="hidden w-full max-w-5xl space-y-6 transition-all duration-300 pb-12 w-full">
+    <div id="dashboardView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
       
       <!-- Section 1: Audit Queue -->
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-red-50/30 dark:bg-red-900/20">
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 z-10"></div>
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-red-50/30 dark:bg-red-900/20 relative">
           <div>
             <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <span class="material-symbols-outlined text-red-500 dark:text-red-400">gavel</span>
@@ -412,8 +436,9 @@
       </div>
 
       <!-- Section 2: Today's Metrics -->
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600"></div>
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700">
           <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
             <span class="material-symbols-outlined text-green-600 dark:text-green-400">bar_chart</span>
             Today's Live Metrics
@@ -437,11 +462,11 @@
     </div>
 
     <!-- VIEW 3: Interval Management -->
-    <div id="intervalView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
-      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-        
+    <div id="intervalView" class="hidden w-full max-w-7xl space-y-6 transition-all duration-300 pb-12 w-full">
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 z-10"></div>
         <!-- Controls Header -->
-        <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 items-end bg-blue-50/30 dark:bg-blue-900/20">
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 items-end bg-blue-50/30 dark:bg-blue-900/20 relative">
           <div>
             <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Select Date</label>
             <input type="date" id="intervalDate" onchange="syncDateAcrossTabs('intervalDate')" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
@@ -476,47 +501,64 @@
             </select>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="loadIntervalData()" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-2">
+            <button onclick="loadIntervalData()" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-2">
               Load Interval
             </button>
-            <button onclick="copyIntervalReport()" id="copyReportBtn" class="bg-google-blue border border-google-blue text-white font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-blue-700 transition flex items-center gap-2 hidden">
+            <button onclick="copyIntervalReport()" id="copyReportBtn" class="bg-blue-600 border border-blue-600 text-white font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-blue-700 transition flex items-center gap-2 hidden">
               <span class="material-symbols-outlined text-[18px]">content_copy</span>
               Copy Report
             </button>
-            <button onclick="copyChatReport()" id="copyChatReportBtn" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm px-4 py-2 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-2 hidden">
-              <span class="material-symbols-outlined text-[18px]">chat</span>
+            <button onclick="copyChatReport()" id="copyChatReportBtn" class="bg-emerald-600 border border-emerald-600 text-white font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-emerald-700 transition flex items-center gap-2 hidden">
+              <span class="material-symbols-outlined text-[18px]">forum</span>
               Copy Chat Report
             </button>
           </div>
           <div class="ml-auto relative">
-            <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
-            <input type="text" id="intervalFilterInput" oninput="debounceIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-56 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="material-symbols-outlined text-gray-400 text-[18px]">search</span>
+            </div>
+            <input type="text" id="intervalFilterInput" oninput="debounceIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-56 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
           </div>
         </div>
 
         <!-- Summary Stats Bar -->
-        <div id="intervalSummaryBar" class="hidden px-6 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/60 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
-          <span><span class="font-semibold text-gray-800 dark:text-gray-200" id="summaryTotalAgents">0</span> agents scheduled</span>
-          <span><span class="font-semibold text-amber-600 dark:text-amber-500" id="summarySkipCount">0</span> flagged (SOS/EOS skip)</span>
-          <span><span class="font-semibold text-purple-700 dark:text-purple-400" id="summaryOtCount">0</span> on OT</span>
-          <span><span class="font-semibold text-green-700 dark:text-green-500" id="summaryTotalCases">0</span> total cases logged</span>
-          <span class="ml-auto italic text-gray-400">Status edits are saved on this device only</span>
+        <div id="intervalSummaryBar" class="hidden px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/60 flex flex-wrap items-center gap-3 text-xs">
+          <div class="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-full font-medium">
+             <span class="material-symbols-outlined text-[16px]">groups</span>
+             <span id="summaryTotalAgents">0</span> scheduled
+          </div>
+          <div class="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-1.5 rounded-full font-medium">
+             <span class="material-symbols-outlined text-[16px]">warning</span>
+             <span id="summarySkipCount">0</span> flagged
+          </div>
+          <div class="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-3 py-1.5 rounded-full font-medium">
+             <span class="material-symbols-outlined text-[16px]">timer</span>
+             <span id="summaryOtCount">0</span> on OT
+          </div>
+          <div class="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full font-medium">
+             <span class="material-symbols-outlined text-[16px]">done_all</span>
+             <span id="summaryTotalCases">0</span> cases logged
+          </div>
+          <span class="ml-auto italic text-gray-400 flex items-center gap-1">
+             <span class="material-symbols-outlined text-[14px]">save</span>
+             Status edits saved locally
+          </span>
         </div>
 
         <!-- Interval Table (scrollable body, frozen header) -->
         <div class="overflow-auto" style="max-height: 65vh;">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-gray-800 dark:bg-gray-900 text-white text-xs tracking-wider">
-                <th class="p-3 font-medium sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 0)"><div class="flex items-center gap-1">LDAP <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center justify-center gap-1">SOS <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">EOS <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">Site <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Status <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 5, true)"><div class="flex items-center justify-center gap-1">Regular <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Manual <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Reopened <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-3 font-medium text-center sticky top-0 z-10 bg-gray-800 dark:bg-gray-900 cursor-pointer hover:bg-gray-700 dark:hover:bg-gray-800 transition" onclick="sortTable('intervalTableBody', this, 8, true)"><div class="flex items-center justify-center gap-1">Total <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+              <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                <th class="p-4 font-medium sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 0)"><div class="flex items-center gap-1">LDAP <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center justify-center gap-1">SOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">EOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">Site <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Status <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 5, true)"><div class="flex items-center justify-center gap-1">Regular <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Manual <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Reopened <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 8, true)"><div class="flex items-center justify-center gap-1">Total <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
               </tr>
             </thead>
             <tbody id="intervalTableBody" class="text-sm divide-y divide-gray-200 dark:divide-gray-700">
@@ -528,7 +570,7 @@
     </div>
 
     <!-- VIEW 4: Performance Analytics -->
-    <div id="analyticsView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
+    <div id="analyticsView" class="hidden w-full max-w-7xl space-y-6 transition-all duration-300 pb-12 w-full">
       <!-- Header Controls -->
       <div class="flex justify-between items-end mb-2">
         <div>
@@ -632,7 +674,7 @@
    </div>
 
     <!-- VIEW: My Profile -->
-    <div id="profileView" class="hidden w-full max-w-4xl space-y-6 pb-12">
+    <div id="profileView" class="hidden w-full max-w-5xl space-y-6 pb-12">
       <div id="profileCardContainer" class="space-y-6">
         <div class="text-center text-gray-400 py-12">Loading profile...</div>
       </div>
@@ -916,19 +958,23 @@ function refreshAccess() {
 
       pocContainer.innerHTML = `
         <!-- Previous -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded bg-google-red text-white shadow-sm mb-1">
-          <span class="text-[10px] font-medium opacity-90">${prevTarget}</span>
-          <span class="text-xs font-bold truncate max-w-[100px]">${prevPOC.poc}</span>
+        <div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 mb-1">
+          <span class="text-[10px] font-medium">${prevTarget}</span>
+          <span class="text-xs font-medium truncate max-w-[100px]">${prevPOC.poc}</span>
         </div>
         <!-- Current -->
-        <div class="flex items-center justify-between px-3 py-2.5 rounded bg-google-green text-white shadow-sm mb-1 ring-1 ring-white/20">
-          <span class="text-[11px] font-medium opacity-90">${currTarget}</span>
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 mb-1 border border-green-200/50 dark:border-green-800/50 relative overflow-hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
+          <span class="text-[11px] font-medium flex items-center gap-1.5 ml-1">
+             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+             ${currTarget}
+          </span>
           <span class="text-sm font-bold truncate max-w-[100px]">${currPOC.poc}</span>
         </div>
         <!-- Next -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded bg-google-yellow text-gray-900 shadow-sm">
-          <span class="text-[10px] font-medium opacity-80">${nextTarget}</span>
-          <span class="text-xs font-bold truncate max-w-[100px]">${nextPOC.poc}</span>
+        <div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400">
+          <span class="text-[10px] font-medium">${nextTarget}</span>
+          <span class="text-xs font-medium truncate max-w-[100px]">${nextPOC.poc}</span>
         </div>
       `;
     }
@@ -1066,7 +1112,7 @@ function refreshAccess() {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
-        if (tabEl) tabEl.className = "w-full flex items-center px-6 py-3 nav-inactive transition-colors text-left group";
+        if (tabEl) tabEl.className = "flex items-center px-4 py-3 nav-inactive transition-colors text-left group";
       });
       
       let viewEl = document.getElementById(viewId);
@@ -1077,7 +1123,7 @@ function refreshAccess() {
         void viewEl.offsetWidth; // restart animation on repeat visits
         viewEl.classList.add('view-enter');
       }
-      if (tabViewEl) tabViewEl.className = "w-full flex items-center px-6 py-3 nav-active transition-colors text-left group";
+      if (tabViewEl) tabViewEl.className = "flex items-center px-4 py-3 nav-active transition-colors text-left group";
       
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
@@ -1138,8 +1184,21 @@ function refreshAccess() {
 
     function updateCaseIdHints() {
       const el = document.getElementById('caseIdHints');
+      const badge = document.getElementById('caseIdDetectedBadge');
       if (!el) return;
       const p = parseCaseIds(document.getElementById('caseIds').value);
+
+      // Update micro-badge
+      if (badge) {
+        if (p.raw.length === 0) {
+          badge.textContent = '0 IDs detected';
+          badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors';
+        } else {
+          badge.textContent = p.raw.length + ' IDs detected';
+          badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 transition-colors';
+        }
+      }
+
       if (p.raw.length === 0) { el.innerHTML = ''; return; }
       const parts = ['<span class="font-medium cell-strong">' + (p.unique.length - p.invalid.length) + '</span> valid ID(s)'];
       if (p.dupes.length) parts.push('<span class="text-amber-600">' + p.dupes.length + ' repeated in this paste</span>');
@@ -1317,6 +1376,118 @@ function refreshAccess() {
     }
 
     // --- MY PROFILE LOGIC ---
+    let currentCalendarDate = new Date();
+    let profileHistoryData = null; // Caches daily heatmap data
+
+    function changeCalendarMonth(offset) {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
+      renderCalendarHeatmap();
+    }
+
+    // Helper to format Date to YYYY-MM-DD
+    function toDateStringFastClient(date) {
+      const year = date.getFullYear();
+      let month = date.getMonth() + 1;
+      let day = date.getDate();
+      if (month < 10) month = '0' + month;
+      if (day < 10) day = '0' + day;
+      return year + '-' + month + '-' + day;
+    }
+
+    function renderCalendarHeatmap() {
+      const label = document.getElementById('calendarMonthLabel');
+      const grid = document.getElementById('calendarHeatmapGrid');
+      if (!label || !grid) return;
+
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+      const today = new Date();
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      label.textContent = `${monthNames[month]} ${year}`;
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstDay = new Date(year, month, 1).getDay();
+
+      let html = '';
+      const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      daysOfWeek.forEach(d => {
+        html += `<div class="font-medium text-gray-400 uppercase tracking-wider mb-2">${d}</div>`;
+      });
+
+      for (let i = 0; i < firstDay; i++) {
+        html += `<div></div>`;
+      }
+
+      const filterType = document.getElementById('calendarTypeFilter') ? document.getElementById('calendarTypeFilter').value : 'All';
+
+      // Find max case count for the month for dynamic color scaling
+      let maxCountForMonth = 0;
+      if (profileHistoryData) {
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dStr = toDateStringFastClient(new Date(year, month, day));
+          const dayData = profileHistoryData[dStr];
+          if (dayData) {
+            const count = dayData[filterType] || 0;
+            if (count > maxCountForMonth) maxCountForMonth = count;
+          }
+        }
+      }
+
+      const t1 = maxCountForMonth * 0.33;
+      const t2 = maxCountForMonth * 0.66;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dStr = toDateStringFastClient(new Date(year, month, day));
+        let caseCount = 0;
+        let allCount = 0;
+
+        if (profileHistoryData && profileHistoryData[dStr]) {
+          caseCount = profileHistoryData[dStr][filterType] || 0;
+          allCount = profileHistoryData[dStr]['All'] || 0;
+        }
+
+        let opacityClass = '';
+        if (caseCount === 0) {
+          opacityClass = 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500';
+        } else if (caseCount <= t1 || maxCountForMonth === 0) {
+          opacityClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300';
+        } else if (caseCount <= t2) {
+          opacityClass = 'bg-blue-300 text-blue-800 dark:bg-blue-600 dark:text-blue-100';
+        } else {
+          opacityClass = 'bg-blue-500 text-white dark:bg-blue-500 dark:text-white';
+        }
+
+        const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+        const borderClass = isToday ? 'border-2 border-blue-500' : 'border border-gray-200 dark:border-gray-700';
+
+        let tooltipText = '';
+        if (caseCount > 0) {
+           tooltipText = filterType !== 'All'
+             ? `${caseCount} ${filterType} Cases (${allCount} Total)`
+             : `${allCount} Cases Total`;
+        } else {
+           tooltipText = 'No Cases';
+        }
+
+        html += `
+          <div class="h-20 bg-white dark:bg-gray-800 rounded-xl ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md group" title="${tooltipText}">
+            <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
+            <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm">
+               ${caseCount > 0 ? caseCount : '-'}
+            </div>
+
+            <!-- Custom tooltip on hover -->
+            <div class="absolute bottom-full mb-2 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10">
+              ${tooltipText}
+            </div>
+          </div>
+        `;
+      }
+
+      grid.innerHTML = html;
+    }
+
     function loadMyProfile() {
       const container = document.getElementById('profileCardContainer');
       container.innerHTML = '<div class="text-center text-gray-400 py-12">Loading profile...</div>';
@@ -1330,6 +1501,10 @@ function refreshAccess() {
     }
 
     function renderMyProfile(data) {
+      // Store history data for calendar usage
+      profileHistoryData = data.history || {};
+      renderCalendarHeatmap();
+
       const container = document.getElementById('profileCardContainer');
       const avatarHTML = getMomaImgClass(data.ldap, 'w-16 h-16 rounded-full border border-gray-200 dark:border-gray-600 object-cover shrink-0', 128);
       const statusColor = (data.employeeStatus || '').toLowerCase() === 'active'
@@ -1363,59 +1538,94 @@ function refreshAccess() {
       }
 
       container.innerHTML = `
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-          <div class="p-6 flex flex-col sm:flex-row gap-6">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden relative">
+          <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-emerald-400 to-amber-400"></div>
+          <div class="p-6 pt-8 flex flex-col sm:flex-row gap-6">
             <div class="flex items-center gap-4 sm:w-64 shrink-0">
-              ${avatarHTML}
+              <div class="relative">
+                ${avatarHTML}
+                ${(data.employeeStatus || '').toLowerCase() === 'active' ? '<span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center"><span class="w-2.5 h-2.5 bg-emerald-300 rounded-full animate-ping"></span></span>' : ''}
+              </div>
               <div class="min-w-0">
                 <div class="font-medium text-lg leading-tight truncate cell-strong">${escAttr(data.name)}</div>
                 <div class="text-sm cell-muted truncate">${escAttr(data.position || '\u2014')}</div>
                 ${data.employeeStatus ? `<span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}">${escAttr(data.employeeStatus)}</span>` : ''}
               </div>
             </div>
-            <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Tenure</div>
+            <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm items-start">
+              <div class="bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-blue-600 dark:text-blue-400 mb-0.5 font-semibold">Tenure</div>
                 <div class="font-medium cell-strong">${escAttr(data.tenureText || '\u2014')}</div>
-                <div class="text-[11px] cell-faint">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
+                <div class="text-[10px] text-blue-500/70 dark:text-blue-400/70">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
               </div>
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Site</div>
+              <div class="bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-100 dark:border-emerald-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-0.5 font-semibold">Site</div>
                 <div class="font-medium cell-strong">${escAttr(data.site || '\u2014')}</div>
               </div>
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Team</div>
+              <div class="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-0.5 font-semibold">Team</div>
                 <div class="font-medium cell-strong">${escAttr(data.team || '\u2014')}</div>
-                <div class="text-[11px] cell-faint">${escAttr(data.workflow || '')}</div>
+                <div class="text-[10px] text-amber-600/70 dark:text-amber-400/70 truncate">${escAttr(data.workflow || '')}</div>
               </div>
-              <div>
-                <div class="text-[10px] uppercase tracking-wide cell-faint mb-0.5">Grade</div>
+              <div class="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                <div class="text-[10px] uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-0.5 font-semibold">Grade</div>
                 <div class="font-medium cell-strong">${escAttr(data.gradeLevel || '\u2014')}</div>
               </div>
-              <div class="col-span-2 sm:col-span-4 pt-2 border-t border-gray-100 dark:border-gray-700 mt-1">
-                <span class="text-[10px] uppercase tracking-wide cell-faint">Reports to</span>
-                <span class="text-sm ml-2">${reportsToHtml}</span>
+              <div class="col-span-2 sm:col-span-4 pt-3 mt-1 flex items-center gap-2">
+                <span class="text-[10px] uppercase tracking-wide cell-faint font-semibold bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">Reports to</span>
+                <span class="text-sm">${reportsToHtml}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">Today</div>
-            <div class="text-2xl font-normal cell-strong">${data.stats.today}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+               <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">today</span>
+               </div>
+               ${data.stats.today > 0 ? `<span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full">+${data.stats.today}</span>` : ''}
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">Today</div>
+              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.today}</div>
+            </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">This Week</div>
-            <div class="text-2xl font-normal cell-strong">${data.stats.thisWeek}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+               <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">date_range</span>
+               </div>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">This Week</div>
+              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisWeek}</div>
+            </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">This Month</div>
-            <div class="text-2xl font-normal cell-strong">${data.stats.thisMonth}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border border-gray-200/50 dark:border-gray-700/50 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+               <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">calendar_month</span>
+               </div>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">This Month</div>
+              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisMonth}</div>
+            </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-4 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50">
-            <div class="text-[10px] uppercase cell-faint mb-1">My Pending Audits</div>
-            <div class="text-2xl font-normal ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-500' : 'cell-strong'}">${data.stats.pendingAudits}</div>
+          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow-md border ${data.stats.pendingAudits > 0 ? 'border-amber-200 dark:border-amber-800/50' : 'border-gray-200/50 dark:border-gray-700/50'} flex flex-col justify-between relative overflow-hidden">
+            ${data.stats.pendingAudits > 0 ? '<div class="absolute top-0 right-0 w-16 h-16 bg-amber-100 dark:bg-amber-900/20 rounded-bl-full -mr-8 -mt-8 animate-pulse"></div>' : ''}
+            <div class="flex items-center justify-between mb-3 relative z-10">
+               <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                 <span class="material-symbols-outlined">gavel</span>
+               </div>
+               ${data.stats.pendingAudits > 0 ? `<span class="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Action</span>` : ''}
+            </div>
+            <div class="relative z-10">
+              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">My Pending Audits</div>
+              <div class="text-3xl font-bold ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-800 dark:text-gray-100'}">${data.stats.pendingAudits}</div>
+            </div>
           </div>
         </div>
 
@@ -1441,7 +1651,41 @@ function refreshAccess() {
           </span>
           <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
         </button>
+
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-xl shadow border border-gray-200/50 dark:border-gray-700/50 mt-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-blue-600 dark:text-blue-400">calendar_month</span>
+              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200" id="calendarMonthLabel">Loading...</h3>
+              <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg ml-2">
+                <button onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-l-lg transition text-gray-500 dark:text-gray-300">
+                  <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                <button onclick="changeCalendarMonth(1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-r-lg transition text-gray-500 dark:text-gray-300">
+                  <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+              </div>
+            </div>
+            <div>
+              <select id="calendarTypeFilter" onchange="renderCalendarHeatmap()" class="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-xs focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm">
+                <option value="All">All Case Types</option>
+                <option value="Regular">Regular</option>
+                <option value="Reopened">Reopened</option>
+                <option value="Manual">Manual</option>
+                <option value="Telus">Telus</option>
+                <option value="Cimba">Cimba</option>
+              </select>
+            </div>
+          </div>
+          <div id="calendarHeatmapGrid" class="grid grid-cols-7 gap-2 text-center text-xs">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
       `;
+
+      // Initialize Calendar
+      currentCalendarDate = new Date();
+      renderCalendarHeatmap();
     }
 
     // --- HELP MODAL ---
