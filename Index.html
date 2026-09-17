@@ -265,10 +265,10 @@
       </div>
 
       <!-- Manager Only: POC Planner Shortcut -->
-      <a href="https://script.google.com/a/macros/google.com/s/AKfycbzpFsp5ElMkJ6jwveJkoZJmBU1-YwhXKDCPHXyUh_TvCYNkiZ4UNs9Pn4ZBAleGR5YS/exec" target="_blank" id="pocPlannerBtn" class="hidden mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-theme-accent-muted/50 dark:bg-theme-accent-muted/20 text-theme-primary dark:text-theme-primary border border-theme-primary/20 rounded-theme-sm hover:bg-theme-primary hover:text-white dark:hover:bg-theme-primary dark:hover:text-white transition text-xs font-semibold nav-text shadow-sm">
+      <button onclick="switchTab('pocPlannerView')" id="pocPlannerBtn" class="hidden mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-theme-accent-muted/50 dark:bg-theme-accent-muted/20 text-theme-primary dark:text-theme-primary border border-theme-primary/20 rounded-theme-sm hover:bg-theme-primary hover:text-white dark:hover:bg-theme-primary dark:hover:text-white transition text-xs font-semibold nav-text shadow-sm">
         <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
         Launch POC Planner
-      </a>
+      </button>
     </div>
 
     <!-- User Identity & Settings -->
@@ -805,6 +805,27 @@
       </div>
     </div>
 
+    <!-- VIEW: POC Planner (Embedded) -->
+    <div id="pocPlannerView" class="hidden w-full max-w-7xl h-[85vh] space-y-6 transition-all duration-300 pb-12 w-full">
+      <div class="w-full h-full bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative flex flex-col">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 z-10"></div>
+        <div class="p-4 pt-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-theme-canvas/50 dark:bg-gray-800/50 shrink-0">
+          <div>
+            <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">edit_calendar</span>
+              Email POC Planner
+            </h2>
+          </div>
+          <a href="https://script.google.com/a/macros/google.com/s/AKfycbzpFsp5ElMkJ6jwveJkoZJmBU1-YwhXKDCPHXyUh_TvCYNkiZ4UNs9Pn4ZBAleGR5YS/exec" target="_blank" class="text-xs flex items-center gap-1 text-gray-500 hover:text-theme-primary transition">
+            Open in new tab <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+          </a>
+        </div>
+        <div class="flex-1 w-full bg-theme-canvas dark:bg-gray-900 rounded-b-theme overflow-hidden">
+          <iframe src="https://script.google.com/a/macros/google.com/s/AKfycbzpFsp5ElMkJ6jwveJkoZJmBU1-YwhXKDCPHXyUh_TvCYNkiZ4UNs9Pn4ZBAleGR5YS/exec" class="w-full h-full border-0"></iframe>
+        </div>
+      </div>
+    </div>
+
     </div> <!-- End View Containers Max-W Wrapper -->
 
   </main>
@@ -1123,26 +1144,55 @@ function refreshAccess() {
       const nextPOC = schedule.find(s => s.time === nextTarget) || { poc: 'Unknown' };
 
       pocContainer.innerHTML = `
-        <!-- Previous -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded-theme-sm bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 mb-1">
-          <span class="text-[10px] font-medium">${prevTarget}</span>
-          <span class="text-xs font-medium truncate max-w-[100px]">${prevPOC.poc}</span>
-        </div>
-        <!-- Current -->
-        <div class="flex items-center justify-between px-3 py-2.5 rounded-theme-sm bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 mb-1 border border-green-200/50 dark:border-green-800/50 relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1 bg-green-500"></div>
-          <span class="text-[11px] font-medium flex items-center gap-1.5 ml-1">
-             <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-             ${currTarget}
-          </span>
-          <span class="text-sm font-bold truncate max-w-[100px]">${currPOC.poc}</span>
-        </div>
-        <!-- Next -->
-        <div class="flex items-center justify-between px-3 py-1.5 rounded-theme-sm bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400">
-          <span class="text-[10px] font-medium">${nextTarget}</span>
-          <span class="text-xs font-medium truncate max-w-[100px]">${nextPOC.poc}</span>
+        <div class="relative flex flex-col gap-2 pl-3">
+          <!-- Vertical Timeline Line -->
+          <div class="absolute left-[22px] top-3 bottom-3 w-px bg-gray-200 dark:bg-gray-700"></div>
+
+          <!-- Previous -->
+          <div class="flex items-center gap-3 relative z-10 opacity-60">
+            <div class="w-8 flex-shrink-0 text-right text-[10px] text-gray-500 font-medium">${prevTarget.split(' ')[0]}</div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 ring-4 ring-theme-card"></div>
+            <div class="text-xs text-gray-600 dark:text-gray-400 font-medium truncate">${prevPOC.poc}</div>
+          </div>
+
+          <!-- Current -->
+          <div class="flex items-center gap-3 relative z-10 py-1">
+            <div class="w-8 flex-shrink-0 text-right text-[11px] font-bold text-theme-primary">${currTarget.split(' ')[0]}</div>
+            <div class="relative w-2 h-2 flex-shrink-0">
+               <div class="absolute inset-0 rounded-full bg-theme-primary animate-ping opacity-75"></div>
+               <div class="relative w-2 h-2 rounded-full bg-theme-primary ring-4 ring-theme-card"></div>
+            </div>
+            <div class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">${currPOC.poc}</div>
+          </div>
+
+          <!-- Next -->
+          <div class="flex items-center gap-3 relative z-10 opacity-60">
+            <div class="w-8 flex-shrink-0 text-right text-[10px] text-gray-500 font-medium">${nextTarget.split(' ')[0]}</div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 ring-4 ring-theme-card"></div>
+            <div class="text-xs text-gray-600 dark:text-gray-400 font-medium truncate">${nextPOC.poc}</div>
+          </div>
         </div>
       `;
+
+      // Auto-update mechanism: Refresh every 30 minutes.
+      // Calculate milliseconds until the next half-hour or hour mark.
+      const msNow = now.getTime();
+      const minutes = now.getMinutes();
+      let nextMinuteTarget = minutes < 30 ? 30 : 60;
+
+      const nextUpdateDate = new Date(now);
+      nextUpdateDate.setMinutes(nextMinuteTarget, 0, 0);
+
+      const msUntilNextUpdate = nextUpdateDate.getTime() - msNow;
+
+      // Clear any existing timeout to avoid duplicates
+      if (window.pocUpdateTimeout) {
+         clearTimeout(window.pocUpdateTimeout);
+      }
+
+      window.pocUpdateTimeout = setTimeout(() => {
+         loadPOCSchedule();
+      }, msUntilNextUpdate);
     }
 
     // 2. Setup UI based on profile
@@ -1278,7 +1328,7 @@ function refreshAccess() {
 
     // 3. Tab Switching Logic
     function switchTab(viewId) {
-      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView', 'profileView'].forEach(id => {
+      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView', 'profileView', 'pocPlannerView'].forEach(id => {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
@@ -2392,10 +2442,17 @@ function refreshAccess() {
           return `
           <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'bg-red-50/40 dark:bg-red-900/10' : ''}">
             <td class="p-3">
-              <div class="flex items-center gap-2">
-                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
-                <span class="font-medium case-link">${a.ldap}</span>
-                ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
+              <div class="flex items-center gap-2 relative group cursor-pointer">
+                ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600 shrink-0', 50)}
+                <a href="https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20${a.ldap}%20state%3Aassigned" target="_blank" class="font-medium text-theme-primary hover:underline truncate z-10 block">${a.ldap}</a>
+                ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded z-10">OT</span>' : ''}
+                <!-- Tooltip -->
+                <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 pointer-events-none w-max max-w-xs">
+                   <div class="bg-gray-800 dark:bg-gray-700 text-white text-xs rounded shadow-lg p-2 flex flex-col gap-1 border border-gray-700 dark:border-gray-600">
+                     <div class="flex items-center gap-1"><span class="text-gray-400">Supervisor:</span> <span class="font-medium">${a.supervisor || 'Unknown'}</span></div>
+                     <div class="flex items-center gap-1"><span class="text-gray-400">Site:</span> <span class="font-medium">${a.site || 'Unknown'}</span></div>
+                   </div>
+                </div>
               </div>
             </td>
             <td class="p-3 text-center cell-muted">${a.sos}</td>

@@ -1,15 +1,14 @@
-import re
+import sys
 
-with open('Index.html', 'r') as f:
-    content = f.read()
+def replace_in_file(filepath, search_str, replace_str):
+    with open(filepath, 'r') as f:
+        content = f.read()
 
-# Make sure `changeThemePalette` prevents click propagation to document properly
-target = r'''function togglePaletteDropdown(e) {
-      if (e) e.stopPropagation();'''
-replacement = r'''function togglePaletteDropdown(e) {
-      if (e) e.stopPropagation();'''
+    if search_str in content:
+        new_content = content.replace(search_str, replace_str)
+        with open(filepath, 'w') as f:
+            f.write(new_content)
+        print("Success")
+    else:
+        print("Search string not found")
 
-if target in content:
-    content = content.replace(target, replacement)
-    with open('Index.html', 'w') as f:
-        f.write(content)
