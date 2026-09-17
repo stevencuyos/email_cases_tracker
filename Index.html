@@ -1732,7 +1732,6 @@ function refreshAccess() {
 
       google.script.run
         .withSuccessHandler(function(data) {
-          console.log('RAW DATA FROM SERVER:', JSON.stringify(data));
           if (thisRequestId !== mySubmissionsRequestId) return; // stale response, ignore
           setMySubmissionsLoading(false);
           renderMySubmissions(data);
