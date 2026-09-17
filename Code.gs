@@ -288,6 +288,7 @@ function getDashboardData() {
         row: i + 2, 
         status: r[0],
         timestamp: (r[1] instanceof Date) ? Utilities.formatDate(r[1], Session.getScriptTimeZone(), "h:mm a") : String(r[1]),
+        rawTs: (r[1] instanceof Date) ? r[1].getTime() : null,
         agent: r[2],
         site: r[3],
         caseType: r[4],
@@ -581,15 +582,14 @@ function getAnalyticsData(startDateStr, endDateStr) {
       const isOT = r[RAW_COLS.SHIFT_TYPE] === 'Overtime';
       const validCases = Number(r[RAW_COLS.VALID]) || 0;
 
-      // KPI: Today's Metrics
-      if (rowDateStr === todayStr && validCases > 0) {
+      // KPI: metrics for the selected range (out-of-range rows already returned above)
+      if (validCases > 0) {
         data.kpis.totalValidToday += validCases;
         activeAgentsToday.add(agent);
-        if (rowInterval === currentHourStr) {
+        if (rowDateStr === todayStr && rowInterval === currentHourStr) {
           activeAgentsThisHour.add(agent);
         }
       }
-
       // Populate Heatmap Data
       if (!heatmapDataMap[rowDateStr]) heatmapDataMap[rowDateStr] = {};
       heatmapDataMap[rowDateStr][rowInterval] = (heatmapDataMap[rowDateStr][rowInterval] || 0) + validCases;
@@ -622,8 +622,15 @@ function getAnalyticsData(startDateStr, endDateStr) {
     // Transform Heatmap data for ApexCharts
     // Sort dates ascending
     const sortedDates = Object.keys(heatmapDataMap).sort((a, b) => new Date(a) - new Date(b));
-    const allHours = ["12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM"];
-
+    const HOUR_LABELS = ["12:00 AM","1:00 AM","2:00 AM","3:00 AM","4:00 AM","5:00 AM","6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM","10:00 PM","11:00 PM"];
+    // Only render the active hour window so the chart isn't 60% dead space
+    let activeIdx = [];
+    Object.keys(heatmapDataMap).forEach(function(d) {
+      HOUR_LABELS.forEach(function(h, i) { if (heatmapDataMap[d][h]) activeIdx.push(i); });
+    });
+    const minH = activeIdx.length ? Math.min.apply(null, activeIdx) : 0;
+    const maxH = activeIdx.length ? Math.max.apply(null, activeIdx) : 23;
+    const allHours = HOUR_LABELS.slice(minH, maxH + 1);
     // Reverse the dates so newest is on top of the Y-axis for standard heatmap look
     sortedDates.reverse().forEach(dateStr => {
       // Get a short friendly name (e.g. "Mon, Sep 24")
@@ -931,4 +938,160 @@ function getIntervalData(dateStr, intervalHourStr) {
     logError('getIntervalData', e.toString(), user);
     throw new Error("Unable to fetch interval schedule. Please try again.");
   }
+}
+// 11. Fetch "My Profile" data — identity + personal stats, always scoped to the caller's own LDAP
+function getMyProfileData() {
+  try {
+    const profile = getUserProfile();
+    const ldap = profile.ldap;
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const masterSheet = ss.getSheetByName('Masterlist');
+
+    let details = {
+      position: '', gradeLevel: '', employeeStatus: '', team: '',
+      hireDateStr: '', tenureText: '',
+      reportsTo: []
+    };
+
+    if (masterSheet && masterSheet.getLastRow() > 1) {
+      // Through Col AC (Immediate Superior LDAP) — 29 columns
+      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 29).getValues();
+      const byLdap = {};
+      masterData.forEach(function(r) {
+        const rowLdap = r[0] ? r[0].toString().trim().toLowerCase() : '';
+        if (rowLdap) byLdap[rowLdap] = r;
+      });
+
+      const myRow = byLdap[ldap.toLowerCase()];
+      if (myRow) {
+        details.position = myRow[15] || '';        // Col P
+        details.gradeLevel = myRow[16] || '';       // Col Q
+        details.employeeStatus = myRow[18] || '';   // Col S
+        details.team = myRow[26] || '';              // Col AA
+
+        const hireDateVal = myRow[6]; // Col G — CNX Hire Date
+        if (hireDateVal) {
+          const hireDate = (hireDateVal instanceof Date) ? hireDateVal : new Date(hireDateVal);
+          if (!isNaN(hireDate.getTime())) {
+            details.hireDateStr = Utilities.formatDate(hireDate, Session.getScriptTimeZone(), 'MMM d, yyyy');
+            details.tenureText = computeTenureText(hireDate);
+          }
+        }
+
+        // Level 1: my Immediate Superior
+        const sup1Name = myRow[27] || '';           // Col AB
+        const sup1Ldap = myRow[28] ? myRow[28].toString().trim().toLowerCase() : ''; // Col AC
+        if (sup1Ldap && sup1Ldap !== '-') {
+          details.reportsTo.push({ name: sup1Name || sup1Ldap, ldap: sup1Ldap });
+
+          // Level 2: that superior's own Immediate Superior
+          const sup1Row = byLdap[sup1Ldap];
+          if (sup1Row) {
+            const sup2Name = sup1Row[27] || '';
+            const sup2Ldap = sup1Row[28] ? sup1Row[28].toString().trim().toLowerCase() : '';
+            if (sup2Ldap && sup2Ldap !== '-' && sup2Ldap !== sup1Ldap) {
+              details.reportsTo.push({ name: sup2Name || sup2Ldap, ldap: sup2Ldap });
+            }
+          }
+        }
+      }
+    }
+
+    // Personal stats — scoped strictly to this caller's own LDAP
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+    const auditSheet = ss.getSheetByName('Audit Queue');
+
+    const stats = { today: 0, thisWeek: 0, thisMonth: 0, pendingAudits: 0 };
+    const breakdown = { Regular: 0, Reopened: 0, Manual: 0 };
+
+    const now = new Date();
+    const todayStr = toDateStringFast(now);
+    const weekStart = getWeekStartMonday(now);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const trendMap = {};
+    const trendMeta = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = toDateStringFast(d);
+      trendMap[key] = 0;
+      trendMeta.push({ key: key, label: Utilities.formatDate(d, Session.getScriptTimeZone(), 'EEE') });
+    }
+
+    if (rawSheet && rawSheet.getLastRow() > 1) {
+      const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 17).getValues();
+      rawData.forEach(function(r) {
+        const rowLdap = r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : '';
+        if (rowLdap !== ldap.toLowerCase()) return;
+
+        const rowDateObj = (r[RAW_COLS.DATE] instanceof Date) ? r[RAW_COLS.DATE] : new Date(r[RAW_COLS.DATE]);
+        const rowDateStr = toDateStringFast(rowDateObj);
+        const validCases = Number(r[RAW_COLS.VALID]) || 0;
+        if (validCases <= 0) return;
+
+        if (rowDateStr === todayStr) stats.today += validCases;
+        if (rowDateObj >= weekStart) stats.thisWeek += validCases;
+        if (rowDateObj >= monthStart) stats.thisMonth += validCases;
+        if (trendMap.hasOwnProperty(rowDateStr)) trendMap[rowDateStr] += validCases;
+
+        if (rowDateObj >= monthStart) {
+          const caseType = r[RAW_COLS.CASE_TYPE];
+          if (caseType === 'Manual Assignment') breakdown.Manual += validCases;
+          else if (caseType === 'Reopened Cases') breakdown.Reopened += validCases;
+          else breakdown.Regular += validCases;
+        }
+      });
+    }
+
+    if (auditSheet && auditSheet.getLastRow() > 1) {
+      const auditData = auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 3).getValues();
+      auditData.forEach(function(r) {
+        const rowLdap = r[2] ? r[2].toString().trim().toLowerCase() : '';
+        if (rowLdap === ldap.toLowerCase() && String(r[0]).includes('PENDING')) stats.pendingAudits++;
+      });
+    }
+
+    return {
+      ldap: ldap,
+      name: profile.name,
+      site: profile.site,
+      workflow: profile.workflow,
+      position: details.position,
+      gradeLevel: details.gradeLevel,
+      employeeStatus: details.employeeStatus,
+      team: details.team,
+      hireDateStr: details.hireDateStr,
+      tenureText: details.tenureText,
+      reportsTo: details.reportsTo,
+      stats: stats,
+      trend: trendMeta.map(function(t) { return { label: t.label, count: trendMap[t.key] }; }),
+      breakdown: breakdown
+    };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getMyProfileData', e.toString(), user);
+    throw new Error("Unable to load profile. Please try again.");
+  }
+}
+
+function computeTenureText(hireDate) {
+  const now = new Date();
+  let years = now.getFullYear() - hireDate.getFullYear();
+  let months = now.getMonth() - hireDate.getMonth();
+  if (now.getDate() < hireDate.getDate()) months--;
+  if (months < 0) { years--; months += 12; }
+  if (years <= 0 && months <= 0) return 'Less than a month';
+  const yStr = years > 0 ? years + (years === 1 ? ' yr' : ' yrs') : '';
+  const mStr = months > 0 ? months + (months === 1 ? ' mo' : ' mos') : '';
+  return [yStr, mStr].filter(Boolean).join(' ');
+}
+
+function getWeekStartMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
