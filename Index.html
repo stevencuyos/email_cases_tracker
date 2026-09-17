@@ -666,7 +666,23 @@
           </div>
 
           <!-- Check-In Area -->
-          <div id="checkInArea" class="ml-auto flex items-center">
+          <div id="checkInArea" class="ml-auto flex items-center gap-2">
+             <!-- Bulk Actions Dropdown -->
+             <div class="relative group">
+                <button id="bulkActionsBtn" class="hidden bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-1.5">
+                   <span class="material-symbols-outlined text-[16px]">format_list_bulleted</span> Bulk Actions <span class="material-symbols-outlined text-[14px]">expand_more</span>
+                </button>
+                <div class="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-theme-sm shadow-theme-lg border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                   <div class="py-1">
+                      <button onclick="handleBulkAction('Absent')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set empty to 'Absent'</button>
+                      <button onclick="handleBulkAction('Assigned - 7')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set empty to 'Assigned - 7'</button>
+                      <button onclick="handleBulkAction('Break - 3')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set empty to 'Break - 3'</button>
+                      <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                      <button onclick="handleBulkAction('Clear')" class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Clear all overrides</button>
+                   </div>
+                </div>
+             </div>
+
              <button id="checkInBtn" onclick="handleCheckIn()" class="hidden bg-theme-primary text-white text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-theme-primary-hover transition flex items-center gap-1.5">
                <span class="material-symbols-outlined text-[16px]">verified</span> Check In Interval
              </button>
@@ -849,6 +865,35 @@
   <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded shadow-lg transition-opacity duration-300 opacity-0 hidden flex items-center gap-3 z-50">
     <span id="toastIcon" class="material-symbols-outlined">info</span>
     <span id="toastMessage" class="text-sm">Message</span>
+  </div>
+
+  <!-- Check-In Modal -->
+  <div id="checkInModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeCheckInModal()"></div>
+    <div class="bg-theme-canvas border border-theme dark:border-gray-700 w-full max-w-md rounded-theme-lg shadow-theme-xl overflow-hidden relative z-10 animate-fade-in text-theme-primary">
+      <div class="flex items-center justify-between p-4 border-b border-theme dark:border-gray-700">
+        <h3 class="font-semibold flex items-center gap-2">
+          <span class="material-symbols-outlined text-amber-500">warning</span> Action Required
+        </h3>
+        <button onclick="closeCheckInModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        <p class="text-sm">The following agents have no status or cases logged:</p>
+        <div id="checkInModalLdaps" class="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-theme-sm text-sm font-medium break-words text-theme-primary h-24 overflow-y-auto">
+          <!-- LDAPs go here -->
+        </div>
+        <div class="space-y-1">
+           <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Short Note</label>
+           <textarea id="checkInModalNote" rows="2" placeholder="Explain why these agents have no activity..." class="w-full text-sm p-3 border border-gray-200 dark:border-gray-600 rounded-theme-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary bg-white dark:bg-gray-700 transition resize-none"></textarea>
+        </div>
+      </div>
+      <div class="p-4 bg-gray-50 dark:bg-gray-800 border-t border-theme dark:border-gray-700 flex justify-end gap-3">
+        <button onclick="closeCheckInModal()" class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition">Cancel</button>
+        <button onclick="submitCheckInModal()" class="px-4 py-2 text-sm font-medium bg-theme-primary hover:bg-theme-primary-hover text-white rounded transition shadow-sm">Proceed with Check-In</button>
+      </div>
+    </div>
   </div>
 
   <!-- Help Modal -->
@@ -2375,33 +2420,78 @@ function refreshAccess() {
     let intervalStatusKey = '';
     let intervalStatusOverrides = {};
 
-    function loadIntervalOverrides() {
+    function handleBulkAction(action) {
       const d = document.getElementById('intervalDate').value;
       const h = document.getElementById('intervalHour').value;
-
-      if (!d) return;
+      if (!d) return showToast("Please select a date", "warning");
 
       const [year, month, day] = d.split('-');
       const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
 
+      const btn = document.getElementById('bulkActionsBtn');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Processing...';
+
+      let updates = []; // Array of {ldap, status}
+
+      const tbody = document.getElementById('intervalTableBody');
+      const selects = tbody.querySelectorAll('select');
+
+      selects.forEach(selectEl => {
+          const ldap = selectEl.getAttribute('onchange').match(/'([^']+)'/)[1];
+          const currentStatus = selectEl.value;
+          const computed = selectEl.dataset.computed || '';
+          const cases = parseInt(selectEl.parentElement.parentElement.querySelector('td:last-child').innerText) || 0;
+
+          let newStatus = currentStatus;
+
+          if (action === 'Clear') {
+             newStatus = computed;
+          } else if (currentStatus === '' && cases === 0) {
+             newStatus = action;
+          }
+
+          if (newStatus !== currentStatus) {
+             updates.push({ ldap: ldap, status: newStatus });
+             // Optimistically update UI
+             selectEl.value = newStatus;
+             if (newStatus === computed) delete intervalStatusOverrides[ldap];
+             else intervalStatusOverrides[ldap] = newStatus;
+             updateStatusColor(selectEl);
+          }
+      });
+
+      if (updates.length === 0) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btn.innerHTML = originalHtml;
+          showToast("No updates needed.", "info");
+          return;
+      }
+
       google.script.run
-        .withSuccessHandler((overrides) => {
-          intervalStatusOverrides = overrides || {};
-          // Re-render the rows with the new overrides if agents are already loaded
-          if (allIntervalAgents && allIntervalAgents.length > 0) {
-              const filterInput = document.getElementById('intervalFilterInput');
-              if (filterInput && filterInput.value.trim()) {
-                 applyIntervalFilter();
-              } else {
-                 renderIntervalRows(allIntervalAgents);
-              }
+        .withSuccessHandler((res) => {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btn.innerHTML = originalHtml;
+          if(res.success) {
+            showToast(`Bulk updated ${updates.length} agents.`, "success");
+            renderIntervalRows(allIntervalAgents); // Full re-render to update row colors (red backgrounds)
+          } else {
+            showToast("Bulk update failed.", "error");
+            loadIntervalData(); // Revert optimistics
           }
         })
         .withFailureHandler((err) => {
-          console.error("Failed to load status overrides", err);
-          intervalStatusOverrides = {};
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          btn.innerHTML = originalHtml;
+          showToast("Network error.", "error");
+          loadIntervalData(); // Revert optimistics
         })
-        .getIntervalStatusOverrides(formattedDate, h);
+        .setIntervalStatusBulk(formattedDate, h, updates);
     }
 
     function setIntervalStatus(selectEl, ldap) {
@@ -2428,6 +2518,13 @@ function refreshAccess() {
           selectEl.disabled = false;
           selectEl.classList.remove('opacity-50', 'cursor-not-allowed');
           showToast("Status saved.", "success");
+
+          // Re-render entirely to fix row background highlights
+          if (allIntervalAgents && allIntervalAgents.length > 0) {
+              const filterInput = document.getElementById('intervalFilterInput');
+              if (filterInput && filterInput.value.trim()) applyIntervalFilter();
+              else renderIntervalRows(allIntervalAgents);
+          }
         })
         .withFailureHandler((err) => {
           selectEl.disabled = false;
@@ -2477,7 +2574,31 @@ function refreshAccess() {
       }
 
       const timeStr = formatRelativeTime(record.timestamp);
-      details.innerText = `By ${record.checkedInBy} • ${timeStr}`;
+      let byStr = `By ${record.checkedInBy}`;
+      if (record.isSubstitute) {
+         byStr += ` (Substitute POC)`;
+      }
+      details.innerText = `${byStr} • ${timeStr}`;
+    }
+
+    function openCheckInModal(ldapsStr) {
+       document.getElementById('checkInModalLdaps').innerText = ldapsStr;
+       document.getElementById('checkInModalNote').value = "";
+       document.getElementById('checkInModal').classList.remove('hidden');
+    }
+
+    function closeCheckInModal() {
+       document.getElementById('checkInModal').classList.add('hidden');
+    }
+
+    function submitCheckInModal() {
+       const note = document.getElementById('checkInModalNote').value.trim();
+       if (!note) {
+          showToast("Please enter a short note to proceed.", "warning");
+          return;
+       }
+       closeCheckInModal();
+       handleCheckIn(note);
     }
 
     function handleCheckIn(overrideNote = "") {
@@ -2504,12 +2625,7 @@ function refreshAccess() {
              showToast(res.error, "error");
           } else if (res.needsNote) {
              const ldaps = res.unresolvedLDAPs.join(', ');
-             const note = window.prompt(`The following agents have no status or cases:\n\n${ldaps}\n\nPlease enter a short note to proceed with the check-in:`);
-             if (note !== null && note.trim() !== "") {
-                handleCheckIn(note);
-             } else {
-                showToast("Check-in cancelled.", "warning");
-             }
+             openCheckInModal(ldaps);
           } else if (res.alreadyCheckedIn || res.success) {
              showToast("Interval checked in successfully.", "success");
              renderCheckInStatus(res.record);
@@ -2535,13 +2651,33 @@ function refreshAccess() {
       const [year, month, day] = dateVal.split('-');
       const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
 
-      loadIntervalOverrides();
       document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">Loading schedule...</td></tr>';
       
+      // Chain the calls: first get overrides, then get agent data.
       google.script.run
-        .withSuccessHandler(renderIntervalTable)
-        .withFailureHandler(err => showToast("Error loading interval.", "error"))
-        .getIntervalData(formattedDate, timeVal);
+        .withSuccessHandler((overrides) => {
+          intervalStatusOverrides = overrides || {};
+          google.script.run
+            .withSuccessHandler(renderIntervalTable)
+            .withFailureHandler(err => {
+              document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="9" class="p-8 text-center text-red-400">Error loading interval data.</td></tr>';
+              showToast("Error loading interval data.", "error");
+            })
+            .getIntervalData(formattedDate, timeVal);
+        })
+        .withFailureHandler((err) => {
+          console.error("Failed to load status overrides", err);
+          intervalStatusOverrides = {};
+          // Fallback to loading data even if overrides fail
+          google.script.run
+            .withSuccessHandler(renderIntervalTable)
+            .withFailureHandler(err => {
+              document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="9" class="p-8 text-center text-red-400">Error loading interval data.</td></tr>';
+              showToast("Error loading interval data.", "error");
+            })
+            .getIntervalData(formattedDate, timeVal);
+        })
+        .getIntervalStatusOverrides(formattedDate, timeVal);
     }
 
     let allIntervalAgents = [];
@@ -2581,6 +2717,8 @@ function refreshAccess() {
         copyBtn.classList.add('hidden');
         document.getElementById('copyChatReportBtn').classList.add('hidden');
         summaryBar.classList.add('hidden');
+        const bulkBtn = document.getElementById('bulkActionsBtn');
+        if (bulkBtn) bulkBtn.classList.add('hidden');
         return;
       }
 
@@ -2604,7 +2742,7 @@ function refreshAccess() {
             <td class="p-3 text-center cell-muted">${a.eos}</td>
             <td class="p-3 text-center cell-muted">${a.site}</td>
             <td class="p-3 text-center">
-              <select onchange="setIntervalStatus(this, '${a.ldap}')" data-computed="${a.computedStatus}" class="text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary w-36 font-medium cursor-pointer transition-colors select-default">
+              <select tabindex="0" onchange="setIntervalStatus(this, '${a.ldap}')" data-computed="${a.computedStatus}" class="${getStatusColorClasses(status)}">
                 ${statusOptionsHtml(status)}
               </select>
             </td>
@@ -2634,6 +2772,8 @@ function refreshAccess() {
       document.getElementById('summaryOtCount').textContent = otCount;
       document.getElementById('summaryTotalCases').textContent = totalCases;
       summaryBar.classList.remove('hidden');
+
+      document.getElementById('bulkActionsBtn').classList.remove('hidden');
 
       // Fetch check-in status
       document.getElementById('checkInBtn').classList.add('hidden');
@@ -2696,22 +2836,25 @@ function refreshAccess() {
     }
 
     // --- STATUS DROPDOWN COLOR HELPER ---
-    function updateStatusColor(selectElement) {
-      const val = selectElement.value;
-      // Reset classes
-      selectElement.className = "text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary w-36 font-medium cursor-pointer transition-colors ";
-      
+    function getStatusColorClasses(val) {
+      // Added focus:border-theme-primary for better keyboard navigation visibility
+      let classes = "text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary w-36 font-medium cursor-pointer transition-colors ";
       // Apply Google Sheets Chip Colors
-      if (val === 'Assigned - 7') selectElement.classList.add('bg-[#1e8e3e]', 'text-white');
-      else if (val === 'Break - 3') selectElement.classList.add('bg-[#f29900]', 'text-white');
-      else if (val === 'VL/SL') selectElement.classList.add('bg-[#d2e3fc]', 'text-gray-800'); // Light Blue
-      else if (val === 'on Live Channel') selectElement.classList.add('bg-[#f3e8fd]', 'text-purple-900'); // Light Purple
-      else if (val === 'SKIP - EOS') selectElement.classList.add('bg-[#cbf0f8]', 'text-teal-900'); // Light Teal
-      else if (val === 'SKIP SOS') selectElement.classList.add('bg-[#fce8e6]', 'text-red-900'); // Light Pink
-      else if (val === 'Absent') selectElement.classList.add('bg-[#d93025]', 'text-white');
-      else if (val === 'on Coaching/Training') selectElement.classList.add('bg-[#681da8]', 'text-white');
-      else if (val === 'Closing Reopens') selectElement.classList.add('bg-[#5d4037]', 'text-white');
-      else selectElement.classList.add('bg-white', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-200');
+      if (val === 'Assigned - 7') classes += 'bg-[#1e8e3e] text-white';
+      else if (val === 'Break - 3') classes += 'bg-[#f29900] text-white';
+      else if (val === 'VL/SL') classes += 'bg-[#d2e3fc] text-gray-800'; // Light Blue
+      else if (val === 'on Live Channel') classes += 'bg-[#f3e8fd] text-purple-900'; // Light Purple
+      else if (val === 'SKIP - EOS') classes += 'bg-[#cbf0f8] text-teal-900'; // Light Teal
+      else if (val === 'SKIP SOS') classes += 'bg-[#fce8e6] text-red-900'; // Light Pink
+      else if (val === 'Absent') classes += 'bg-[#d93025] text-white';
+      else if (val === 'on Coaching/Training') classes += 'bg-[#681da8] text-white';
+      else if (val === 'Closing Reopens') classes += 'bg-[#5d4037] text-white';
+      else classes += 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 select-default';
+      return classes;
+    }
+
+    function updateStatusColor(selectElement) {
+      selectElement.className = getStatusColorClasses(selectElement.value);
     }
 
     // --- ANALYTICS LOGIC ---
@@ -3053,21 +3196,20 @@ function refreshAccess() {
       }
 
       function lineFor(a) {
-        if (a.activityLogged === 'Coaching/Training') return `${a.ldap} - Coaching/Training`;
-        if (a.activityLogged === 'Break/Lunch') return `${a.ldap} - ${a.casesLogged} cases, Break`;
-
-        // Grab manual dropdown status OR computed status
+        // Requested format: - LDAP - (Number only of valid cases submitted), Status
         const st = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus;
-        const otTag = a.isOT ? ` (${a.otType || 'OT'})` : '';
+        const statusText = st ? st : (a.casesLogged > 0 ? "Working Cases" : "No cases logged");
 
-        if (st) return `${a.ldap} - ${a.casesLogged} cases, ${st}${otTag}`;
+        // Handle the specific Coaching/Training requested format exception
+        if (st === 'on Coaching/Training' || a.activityLogged === 'Coaching/Training') {
+           return `- ${a.ldap} - 0, on Coaching/Training`;
+        }
 
-        const label = caseTypeLabel(a) || 'No cases logged';
-        return `${a.ldap} - ${a.casesLogged} cases, ${label}${otTag}`;
+        return `- ${a.ldap} - ${a.casesLogged}, ${statusText}`;
       }
 
-      let reportText = `Report for ${timeVal} Interval\n\n`;
-      reportText += allIntervalAgents.map(a => `* ${lineFor(a)}`).join('\n');
+      let reportText = `Interval Report for ${timeVal}:\n`;
+      reportText += allIntervalAgents.map(a => lineFor(a)).join('\n');
 
       navigator.clipboard.writeText(reportText).then(() => {
         showToast("Chat report copied to clipboard!", "success");
