@@ -89,7 +89,7 @@
       --color-accent-muted: #f6f9fc;
 
       --radius-card: 0.5rem; /* rounded-theme-sm (sharp) */
-      --radius-sm: 0.375rem; /* rounded-md */
+      --radius-sm: 0.375rem; /* rounded-theme-sm */
       --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.04), 0 4px 15px rgba(0,0,0,0.02); /* subtle, diffuse shadow */
       --blur-card: 0px; /* No blur for crisp look */
     }
@@ -114,7 +114,7 @@
       --color-accent-muted: rgba(0, 122, 255, 0.1);
 
       --radius-card: 1.5rem; /* rounded-3xl (heavy rounding) */
-      --radius-sm: 1rem; /* rounded-2xl */
+      --radius-sm: 1rem; /* rounded-theme */
       --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
       --blur-card: 24px; /* Heavy frosted glass */
     }
@@ -250,7 +250,7 @@
     </div>
 
     <!-- Live POC Schedule (Sidebar) -->
-    <div id="pocSidebarSection" class="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800 flex-shrink-0">
+    <div id="pocSidebarSection" class="p-4 border-t border-gray-100 dark:border-gray-700 bg-theme-canvas/50 dark:bg-gray-800 flex-shrink-0">
       <div class="flex items-center justify-between mb-2 nav-text px-2">
         <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px]">calendar_clock</span> Live POC
@@ -266,7 +266,7 @@
     </div>
 
     <!-- User Identity & Settings -->
-    <div class="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800 flex-shrink-0">
+    <div class="p-4 border-t border-gray-100 dark:border-gray-700 bg-theme-canvas/50 dark:bg-gray-800 flex-shrink-0">
       <div class="flex items-center justify-between mb-3 nav-text px-2">
         <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Account</span>
         <div class="flex items-center gap-1 relative">
@@ -275,16 +275,22 @@
             <span class="material-symbols-outlined text-[18px]">palette</span>
           </button>
           <!-- Palette Dropdown -->
-          <div id="paletteDropdown" class="hidden absolute bottom-8 left-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-theme shadow-lg overflow-hidden z-50 transition-opacity">
+          <div id="paletteDropdown" class="hidden absolute bottom-8 left-0 mt-2 w-36 bg-theme-sidebar border border-theme-card-border rounded-theme shadow-theme overflow-hidden z-50 transition-opacity">
             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
               <li>
-                <button onclick="changeThemePalette('default')" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Default</button>
+                <button onclick="changeThemePalette('default')" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-theme-canvas transition">
+                  <span class="material-symbols-outlined text-[16px]">web</span> Default
+                </button>
               </li>
               <li>
-                <button onclick="changeThemePalette('fintech')" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Fintech</button>
+                <button onclick="changeThemePalette('fintech')" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-theme-canvas transition">
+                  <span class="material-symbols-outlined text-[16px]">payments</span> Fintech
+                </button>
               </li>
               <li>
-                <button onclick="changeThemePalette('hig')" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">macOS</button>
+                <button onclick="changeThemePalette('hig')" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-theme-canvas transition">
+                  <span class="material-symbols-outlined text-[16px]">laptop_mac</span> macOS
+                </button>
               </li>
             </ul>
           </div>
@@ -330,14 +336,14 @@
           <div class="grid grid-cols-2 gap-3">
             <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">work</span>
                 <span class="text-sm font-medium">Regular Shift</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">timer</span>
                 <span class="text-sm font-medium">Overtime</span>
               </div>
@@ -346,19 +352,19 @@
           <div id="otTypeContainer" class="hidden mt-3 grid grid-cols-3 gap-3">
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="Pre-Shift OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
+              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">Pre-Shift</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="Post-Shift OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
+              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">Post-Shift</span>
               </div>
             </label>
             <label class="cursor-pointer">
               <input type="radio" name="otType" value="RD OT" onchange="saveSelections()" class="peer sr-only">
-              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
+              <div class="px-3 py-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center">
                 <span class="text-sm font-medium">RD OT</span>
               </div>
             </label>
@@ -371,21 +377,21 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-emerald-500">task_alt</span>
                 <span class="text-sm font-medium">Normal Production</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">coffee</span>
                 <span class="text-sm font-medium">Break/Lunch</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/30 peer-checked:text-purple-700 dark:peer-checked:text-purple-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/30 peer-checked:text-purple-700 dark:peer-checked:text-purple-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-purple-500">school</span>
                 <span class="text-sm font-medium">Coaching/Training</span>
               </div>
@@ -399,35 +405,35 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">mail</span>
                 <span class="text-sm font-medium">Regular (Take Next)</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">refresh</span>
                 <span class="text-sm font-medium">Reopened Cases</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">headset_mic</span>
                 <span class="text-sm font-medium">Telus Cases</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">back_hand</span>
                 <span class="text-sm font-medium">Manual Assignment</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
-              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-gray-50 dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
+              <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
                 <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">assignment</span>
                 <span class="text-sm font-medium">Cimba Cases</span>
               </div>
@@ -462,7 +468,7 @@
     <div id="mySubmissionsView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
       <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
-        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-theme-canvas/50 dark:bg-gray-800/50">
           <div>
             <h2 id="mySubmissionsTitle" class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
               <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">list_alt</span>
@@ -485,7 +491,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+              <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 0)"><div class="flex items-center gap-1">Interval <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 1)"><div class="flex items-center gap-1">Activity <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 2)"><div class="flex items-center gap-1">Case Type <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
@@ -530,7 +536,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+              <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 w-10">
                   <input type="checkbox" id="selectAllAudits" onchange="toggleAllAudits(this)" class="w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
                 </th>
@@ -561,7 +567,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+              <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 0)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 1, true)"><div class="flex items-center justify-center gap-1">Valid Cases <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 2, true)"><div class="flex items-center justify-center gap-1">Pending Flags <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
@@ -614,7 +620,7 @@
             </select>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="loadIntervalData()" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-2">
+            <button onclick="loadIntervalData()" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-theme-canvas dark:hover:bg-gray-600 transition flex items-center gap-2">
               Load Interval
             </button>
             <button onclick="copyIntervalReport()" id="copyReportBtn" class="bg-theme-primary border border-theme-primary text-white font-medium text-sm px-4 py-2 rounded-full shadow-sm  transition flex items-center gap-2 hidden">
@@ -635,7 +641,7 @@
         </div>
 
         <!-- Summary Stats Bar -->
-        <div id="intervalSummaryBar" class="hidden px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/60 flex flex-wrap items-center gap-3 text-xs">
+        <div id="intervalSummaryBar" class="hidden px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-theme-canvas/60 dark:bg-gray-800/60 flex flex-wrap items-center gap-3 text-xs">
           <div class="flex items-center gap-1.5 bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary dark:text-theme-primary px-3 py-1.5 rounded-full font-medium">
              <span class="material-symbols-outlined text-[16px]">groups</span>
              <span id="summaryTotalAgents">0</span> scheduled
@@ -716,19 +722,19 @@
 
       <!-- Row 1: Executive KPI Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+        <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px] text-google-green">done_all</span> Total Valid (<span id="kpi-range-label">Today</span>)
           </span>
           <span id="kpi-valid-today" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
         </div>
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+        <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px] text-google-yellow">pending_actions</span> Pending Audits
           </span>
           <span id="kpi-pending-audits" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
         </div>
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+        <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px] text-theme-primary dark:text-theme-primary">group</span> Active Staff (<span id="kpi-range-label-2">Today</span> / Now)
           </span>
@@ -1734,7 +1740,7 @@ function refreshAccess() {
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
+          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
                <div class="w-10 h-10 rounded-theme bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary dark:text-theme-primary flex items-center justify-center">
                  <span class="material-symbols-outlined">today</span>
@@ -1746,7 +1752,7 @@ function refreshAccess() {
               <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.today}</div>
             </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
+          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
                <div class="w-10 h-10 rounded-theme bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                  <span class="material-symbols-outlined">date_range</span>
@@ -1757,7 +1763,7 @@ function refreshAccess() {
               <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisWeek}</div>
             </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
+          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
                <div class="w-10 h-10 rounded-theme bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                  <span class="material-symbols-outlined">calendar_month</span>
@@ -1768,7 +1774,7 @@ function refreshAccess() {
               <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisMonth}</div>
             </div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow-md border ${data.stats.pendingAudits > 0 ? 'border-amber-200 dark:border-amber-800/50' : 'border-gray-200/50 dark:border-gray-700/50'} flex flex-col justify-between relative overflow-hidden">
+          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border ${data.stats.pendingAudits > 0 ? 'border-amber-200 dark:border-amber-800/50' : 'border-gray-200/50 dark:border-gray-700/50'} flex flex-col justify-between relative overflow-hidden">
             ${data.stats.pendingAudits > 0 ? '<div class="absolute top-0 right-0 w-16 h-16 bg-amber-100 dark:bg-amber-900/20 rounded-bl-full -mr-8 -mt-8 animate-pulse"></div>' : ''}
             <div class="flex items-center justify-between mb-3 relative z-10">
                <div class="w-10 h-10 rounded-theme bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -1784,11 +1790,11 @@ function refreshAccess() {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md sm:col-span-2 p-5 rounded-theme shadow border border-theme-card-border">
+          <div class="bg-theme-card backdrop-blur-md sm:col-span-2 p-5 rounded-theme shadow border border-theme-card-border">
             <div class="text-sm font-medium mb-3 cell-strong">Last 7 Days</div>
             <div class="flex items-end gap-2">${trendBars}</div>
           </div>
-          <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border">
+          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border">
             <div class="text-sm font-medium mb-3 cell-strong">This Month by Type</div>
             <div class="space-y-2">
               ${breakdownRow('Regular', data.breakdown.Regular, 'bg-theme-primary')}
@@ -1806,7 +1812,7 @@ function refreshAccess() {
           <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
         </button>
 
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border mt-6">
+        <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border mt-6">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">calendar_month</span>
@@ -1865,7 +1871,7 @@ function refreshAccess() {
       const acc = document.getElementById('helpAccordion');
       acc.innerHTML = sections.map((s, i) => `
         <div>
-          <button onclick="toggleHelpItem(${i})" class="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+          <button onclick="toggleHelpItem(${i})" class="w-full flex items-center justify-between p-4 text-left hover:bg-theme-canvas dark:hover:bg-gray-700/50 transition">
             <span class="text-sm font-medium cell-strong">${s.title}</span>
             <span class="material-symbols-outlined text-[18px] cell-faint help-chevron-${i}">expand_more</span>
           </button>
