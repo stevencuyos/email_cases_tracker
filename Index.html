@@ -1165,35 +1165,35 @@ function refreshAccess() {
           <div class="absolute left-[39px] top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
 
           <!-- Previous -->
-          <div class="flex items-center mb-5 relative">
-            <div class="w-[34px] text-right pr-3"><span class="text-[10px] text-gray-400 font-medium">${shortTime(prevTarget)}</span></div>
-            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 z-10 absolute left-[36px]"></div>
-            <div class="pl-4 flex items-center gap-2.5">
-              ${getMomaImgClass(prevPOC.poc, 'w-5 h-5 rounded-full grayscale opacity-60', 50)}
-              <span class="text-[11px] text-gray-500">${prevPOC.poc}</span>
+          <div class="flex items-center mb-6 relative">
+            <div class="w-[42px] text-right pr-3"><span class="text-sm text-gray-400 font-medium">${shortTime(prevTarget)}</span></div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 z-10 absolute left-[44px]"></div>
+            <div class="pl-5 flex items-center gap-3">
+              ${getMomaImgClass(prevPOC.poc, 'w-7 h-7 rounded-full grayscale opacity-60', 50)}
+              <span class="text-sm text-gray-500">${prevPOC.poc}</span>
             </div>
           </div>
 
           <!-- Current -->
-          <div class="flex items-center mb-5 relative">
-            <div class="w-[34px] text-right pr-3"><span class="text-[10px] font-bold text-theme-primary">${shortTime(currTarget)}</span></div>
-            <div class="w-2.5 h-2.5 rounded-full bg-theme-primary ring-4 ring-theme-accent-muted z-10 absolute left-[35px]"></div>
-            <div class="pl-4 flex items-center gap-2.5">
-              ${getMomaImgClass(currPOC.poc, 'w-7 h-7 rounded-full border border-theme-primary shadow-sm', 80)}
+          <div class="flex items-center mb-6 relative">
+            <div class="w-[42px] text-right pr-3"><span class="text-sm font-bold text-theme-primary">${shortTime(currTarget)}</span></div>
+            <div class="w-2.5 h-2.5 rounded-full bg-theme-primary ring-4 ring-theme-accent-muted z-10 absolute left-[43px]"></div>
+            <div class="pl-5 flex items-center gap-3">
+              ${getMomaImgClass(currPOC.poc, 'w-10 h-10 rounded-full border border-theme-primary shadow-sm', 80)}
               <div class="flex flex-col leading-none justify-center">
-                <span class="text-[12px] font-bold text-gray-800 dark:text-gray-100 mb-0.5">${currPOC.poc}</span>
-                ${currPOC.site ? `<span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">${currPOC.site}</span>` : ''}
+                <span class="text-base font-bold text-gray-800 dark:text-gray-100 mb-0.5">${currPOC.poc}</span>
+                ${currPOC.site ? `<span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">${currPOC.site}</span>` : ''}
               </div>
             </div>
           </div>
 
           <!-- Next -->
           <div class="flex items-center relative">
-            <div class="w-[34px] text-right pr-3"><span class="text-[10px] text-gray-400 font-medium">${shortTime(nextTarget)}</span></div>
-            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 z-10 absolute left-[36px]"></div>
-            <div class="pl-4 flex items-center gap-2.5">
-              ${getMomaImgClass(nextPOC.poc, 'w-5 h-5 rounded-full grayscale opacity-60', 50)}
-              <span class="text-[11px] text-gray-500">${nextPOC.poc}</span>
+            <div class="w-[42px] text-right pr-3"><span class="text-sm text-gray-400 font-medium">${shortTime(nextTarget)}</span></div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 z-10 absolute left-[44px]"></div>
+            <div class="pl-5 flex items-center gap-3">
+              ${getMomaImgClass(nextPOC.poc, 'w-7 h-7 rounded-full grayscale opacity-60', 50)}
+              <span class="text-sm text-gray-500">${nextPOC.poc}</span>
             </div>
           </div>
         </div>
