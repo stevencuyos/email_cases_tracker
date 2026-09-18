@@ -298,6 +298,14 @@ function submitCases(formObject) {
       auditSheet.appendRow(["🔴 PENDING", timestamp, ldap, site, caseType, totalCount, flaggedIds.join(', '), auditNotes, "", rawRowNumber]);
     }
     
+    // If this agent was tagged "Absent" for any interval earlier in today's
+    // shift, reclassify those specific intervals as "Late" now that they've
+    // logged cases. Regular Shift only — OT has no scheduled start to be
+    // "late" against.
+    if (shiftType === 'Regular Shift') {
+      convertAbsentToLate(ldap, dateStr, timestamp.getHours());
+    }
+
     return { success: true, valid: validCount, flagged: flaggedCount, rejected: malformedIds.length };
     
   } catch (error) {
@@ -646,6 +654,91 @@ function escalationSweep() {
     logError('escalationSweep', e.toString(), 'SYSTEM');
   } finally {
     try { LockService.getScriptLock().releaseLock(); } catch(e){}
+  }
+}
+
+// Returns the scheduled shift start hour (0-23) for ldap on dateStr from the
+// 'Agent Shifts' sheet, or null if off/VL/LOA/AWOL or not found. Used to
+// bound the Absent->Late conversion window below. OT agents have no entry
+// here — intentional, since "late" only makes sense against a scheduled SOS.
+function getAgentShiftStartHour(ldap, dateStr) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const shiftSheet = ss.getSheetByName('Agent Shifts');
+    if (!shiftSheet || shiftSheet.getLastRow() <= 2) return null;
+
+    const shiftData = shiftSheet.getDataRange().getValues();
+    const headers = shiftData[1];
+
+    let dateColIdx = -1;
+    for (let c = 8; c < headers.length; c++) {
+      let cellDate = headers[c];
+      let formattedCellDate = "";
+      try {
+        if (cellDate instanceof Date) formattedCellDate = toDateStringFast(cellDate);
+        else if (cellDate) formattedCellDate = toDateStringFast(new Date(cellDate));
+      } catch (e) {}
+      if (formattedCellDate === dateStr) { dateColIdx = c; break; }
+    }
+    if (dateColIdx === -1) return null;
+
+    for (let r = 2; r < shiftData.length; r++) {
+      const rowLdap = shiftData[r][0] ? shiftData[r][0].toString().trim().toLowerCase() : '';
+      if (rowLdap !== ldap.toLowerCase()) continue;
+
+      const shiftVal = shiftData[r][dateColIdx];
+      if (!shiftVal || shiftVal === "OFF" || shiftVal === "VL" || shiftVal === "LOA" || shiftVal === "AWOL") return null;
+
+      if (shiftVal instanceof Date) return shiftVal.getHours();
+      if (typeof shiftVal === 'string' && shiftVal.includes(':')) return parseInt(shiftVal.split(':')[0], 10);
+      if (typeof shiftVal === 'number') return Math.round(shiftVal * 24);
+      return null;
+    }
+    return null;
+  } catch (e) {
+    logError('getAgentShiftStartHour', e.toString(), ldap);
+    return null;
+  }
+}
+
+// When an agent who was tagged "Absent" for one or more intervals earlier in
+// their own shift today finally submits cases, those specific intervals are
+// reclassified as "Late" — they did show up, just later than scheduled.
+// Only intervals strictly BEFORE arrivalHour are touched; anything tagged
+// Absent from that point forward is left alone (a real mid-shift absence,
+// not tardiness). Statuses other than exactly "Absent" (VL/SL, on Live
+// Channel, etc.) were a deliberate POC call and are never overwritten here.
+function convertAbsentToLate(ldap, dateStr, arrivalHour) {
+  try {
+    const shiftStartHour = getAgentShiftStartHour(ldap, dateStr);
+    if (shiftStartHour === null) return; // OT or no scheduled shift — "Late" doesn't apply
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Interval_Status');
+    if (!sheet || sheet.getLastRow() <= 1) return;
+
+    const data = sheet.getDataRange().getValues();
+    const targetLdap = ldap.toLowerCase();
+
+    for (let i = 1; i < data.length; i++) {
+      const rowDate = data[i][0];
+      const formattedDate = (rowDate instanceof Date) ? toDateStringFast(rowDate) : rowDate;
+      if (formattedDate !== dateStr) continue;
+
+      const rowLdap = String(data[i][2]).trim().toLowerCase();
+      if (rowLdap !== targetLdap) continue;
+
+      const rowHour = parseHourToInt(data[i][1]);
+      if (rowHour === null || rowHour < shiftStartHour || rowHour >= arrivalHour) continue;
+
+      if (String(data[i][3]).trim() === 'Absent') {
+        sheet.getRange(i + 1, 4).setValue('Late');
+        sheet.getRange(i + 1, 5).setValue('System (auto)');
+        sheet.getRange(i + 1, 6).setValue(new Date());
+      }
+    }
+  } catch (e) {
+    logError('convertAbsentToLate', e.toString(), ldap);
   }
 }
 
@@ -1507,13 +1600,21 @@ function getIntervalData(dateStr, intervalHourStr) {
   }
 }
 // 11. Fetch "My Profile" data — identity + personal stats, always scoped to the caller's own LDAP
-function getMyProfileData() {
+function getMyProfileData(targetLdap) {
   try {
-    const profile = getUserProfile();
-    const ldap = profile.ldap;
+    const callerProfile = getUserProfile();
+    const isOwnProfile = !targetLdap || targetLdap.trim().toLowerCase() === callerProfile.ldap.toLowerCase();
+
+    if (!isOwnProfile && !callerProfile.isManager) {
+      throw new Error("Access denied: manager permissions required to view other agents' profiles.");
+    }
+
+    const ldap = isOwnProfile ? callerProfile.ldap.toLowerCase() : targetLdap.trim().toLowerCase();
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const masterSheet = ss.getSheetByName('Masterlist');
 
+    let name = ldap, site = 'Unknown', lob = '', workflow = '';
     let details = {
       position: '', gradeLevel: '', employeeStatus: '', team: '',
       hireDateStr: '', tenureText: '',
@@ -1521,22 +1622,30 @@ function getMyProfileData() {
     };
 
     if (masterSheet && masterSheet.getLastRow() > 1) {
-      // Through Col AC (Immediate Superior LDAP) — 29 columns
-      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 29).getValues();
+      // Through Col AS (Site) — 45 columns — covers both identity fields
+      // (name/lob/workflow/site) and the org-detail fields (position, grade,
+      // tenure, reports-to) in a single read, for either the caller's own
+      // LDAP or a manager-requested target LDAP.
+      const masterData = masterSheet.getRange(2, 1, masterSheet.getLastRow() - 1, 45).getValues();
       const byLdap = {};
       masterData.forEach(function(r) {
         const rowLdap = r[0] ? r[0].toString().trim().toLowerCase() : '';
         if (rowLdap) byLdap[rowLdap] = r;
       });
 
-      const myRow = byLdap[ldap.toLowerCase()];
+      const myRow = byLdap[ldap];
       if (myRow) {
+        name = myRow[1] || ldap;         // Col B
+        lob = myRow[21] || '';           // Col V
+        workflow = myRow[22] || '';      // Col W
+        site = myRow[44] || 'Unknown';   // Col AS
+
         details.position = myRow[15] || '';        // Col P
         details.gradeLevel = myRow[16] || '';       // Col Q
         details.employeeStatus = myRow[18] || '';   // Col S
         details.team = myRow[26] || '';              // Col AA
 
-        const hireDateVal = myRow[6]; // Col G — CNX Hire Date
+        const hireDateVal = myRow[6]; // Col G
         if (hireDateVal) {
           const hireDate = (hireDateVal instanceof Date) ? hireDateVal : new Date(hireDateVal);
           if (!isNaN(hireDate.getTime())) {
@@ -1545,13 +1654,11 @@ function getMyProfileData() {
           }
         }
 
-        // Level 1: my Immediate Superior
         const sup1Name = myRow[27] || '';           // Col AB
         const sup1Ldap = myRow[28] ? myRow[28].toString().trim().toLowerCase() : ''; // Col AC
         if (sup1Ldap && sup1Ldap !== '-') {
           details.reportsTo.push({ name: sup1Name || sup1Ldap, ldap: sup1Ldap });
 
-          // Level 2: that superior's own Immediate Superior
           const sup1Row = byLdap[sup1Ldap];
           if (sup1Row) {
             const sup2Name = sup1Row[27] || '';
@@ -1564,17 +1671,18 @@ function getMyProfileData() {
       }
     }
 
-    // Personal stats — scoped strictly to this caller's own LDAP
     const rawSheet = ss.getSheetByName('Raw_Cases');
     const auditSheet = ss.getSheetByName('Audit Queue');
 
-    const stats = { today: 0, thisWeek: 0, thisMonth: 0, pendingAudits: 0 };
-    const breakdown = { Regular: 0, Reopened: 0, Manual: 0 };
-    const history = {}; // DateStr -> { All, Regular, Reopened, Manual, Telus, Cimba }
+    const stats = { today: 0, thisWeek: 0, lastWeek: 0, thisMonth: 0, pendingAudits: 0 };
+    const breakdown = { Regular: 0, Reopened: 0, Manual: 0, Telus: 0, Cimba: 0 };
+    const history = {}; // dateKey -> { All, Regular, Reopened, Manual, Telus, Cimba, hasAbsent, hasLate }
 
     const now = new Date();
     const todayStr = toDateStringFast(now);
     const weekStart = getWeekStartMonday(now);
+    const lastWeekStart = new Date(weekStart); lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    const lastWeekEnd = new Date(weekStart); lastWeekEnd.setMilliseconds(-1);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const trendMap = {};
@@ -1587,11 +1695,18 @@ function getMyProfileData() {
       trendMeta.push({ key: key, label: Utilities.formatDate(d, Session.getScriptTimeZone(), 'EEE') });
     }
 
+    function ensureHistoryEntry(key) {
+      if (!history[key]) {
+        history[key] = { All: 0, Regular: 0, Reopened: 0, Manual: 0, Telus: 0, Cimba: 0, hasAbsent: false, hasLate: false };
+      }
+      return history[key];
+    }
+
     if (rawSheet && rawSheet.getLastRow() > 1) {
       const rawData = rawSheet.getRange(2, 1, rawSheet.getLastRow() - 1, 17).getValues();
       rawData.forEach(function(r) {
         const rowLdap = r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : '';
-        if (rowLdap !== ldap.toLowerCase()) return;
+        if (rowLdap !== ldap) return;
 
         const rowDateObj = (r[RAW_COLS.DATE] instanceof Date) ? r[RAW_COLS.DATE] : new Date(r[RAW_COLS.DATE]);
         const rowDateStr = toDateStringFast(rowDateObj);
@@ -1600,6 +1715,7 @@ function getMyProfileData() {
 
         if (rowDateStr === todayStr) stats.today += validCases;
         if (rowDateObj >= weekStart) stats.thisWeek += validCases;
+        if (rowDateObj >= lastWeekStart && rowDateObj <= lastWeekEnd) stats.lastWeek += validCases;
         if (rowDateObj >= monthStart) stats.thisMonth += validCases;
         if (trendMap.hasOwnProperty(rowDateStr)) trendMap[rowDateStr] += validCases;
 
@@ -1607,25 +1723,39 @@ function getMyProfileData() {
         let typeCategory = 'Regular';
         if (caseType === 'Manual Assignment') typeCategory = 'Manual';
         else if (caseType === 'Reopened Cases') typeCategory = 'Reopened';
-        else if (caseType === 'Telus') typeCategory = 'Telus';
-        else if (caseType === 'Cimba') typeCategory = 'Cimba';
+        else if (caseType === 'Telus Cases') typeCategory = 'Telus';
+        else if (caseType === 'Cimba Cases') typeCategory = 'Cimba';
 
-        if (rowDateObj >= monthStart) {
-          if (typeCategory === 'Manual') breakdown.Manual += validCases;
-          else if (typeCategory === 'Reopened') breakdown.Reopened += validCases;
-          else breakdown.Regular += validCases;
+        if (rowDateObj >= monthStart && breakdown.hasOwnProperty(typeCategory)) {
+          breakdown[typeCategory] += validCases;
         }
 
-        const historyKey = toISODateStringFast(rowDateObj);
-        if (!history[historyKey]) {
-          history[historyKey] = { All: 0, Regular: 0, Reopened: 0, Manual: 0, Telus: 0, Cimba: 0 };
-        }
-        history[historyKey].All += validCases;
-        if (history[historyKey][typeCategory] !== undefined) {
-          history[historyKey][typeCategory] += validCases;
-        } else {
-          history[historyKey].Regular += validCases; // Fallback
-        }
+        const entry = ensureHistoryEntry(toISODateStringFast(rowDateObj));
+        entry.All += validCases;
+        if (entry[typeCategory] !== undefined) entry[typeCategory] += validCases;
+        else entry.Regular += validCases;
+      });
+    }
+
+    // Merge Absent/Late tags so the calendar can flag a true no-show day
+    // distinctly from an ordinary zero-case day (rest day, VL, etc. with no
+    // tag at all), and mark days the agent started late.
+    const statusSheet = ss.getSheetByName('Interval_Status');
+    if (statusSheet && statusSheet.getLastRow() > 1) {
+      const statusData = statusSheet.getRange(2, 1, statusSheet.getLastRow() - 1, 4).getValues();
+      statusData.forEach(function(r) {
+        const rowLdap = r[2] ? r[2].toString().trim().toLowerCase() : '';
+        if (rowLdap !== ldap) return;
+        const val = String(r[3]).trim();
+        if (val !== 'Absent' && val !== 'Late') return;
+
+        const rowDate = r[0];
+        const rowDateObj = (rowDate instanceof Date) ? rowDate : new Date(rowDate);
+        if (isNaN(rowDateObj.getTime())) return;
+
+        const entry = ensureHistoryEntry(toISODateStringFast(rowDateObj));
+        if (val === 'Absent') entry.hasAbsent = true;
+        if (val === 'Late') entry.hasLate = true;
       });
     }
 
@@ -1633,15 +1763,17 @@ function getMyProfileData() {
       const auditData = auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 3).getValues();
       auditData.forEach(function(r) {
         const rowLdap = r[2] ? r[2].toString().trim().toLowerCase() : '';
-        if (rowLdap === ldap.toLowerCase() && String(r[0]).includes('PENDING')) stats.pendingAudits++;
+        if (rowLdap === ldap && String(r[0]).includes('PENDING')) stats.pendingAudits++;
       });
     }
 
     return {
       ldap: ldap,
-      name: profile.name,
-      site: profile.site,
-      workflow: profile.workflow,
+      isOwnProfile: isOwnProfile,
+      viewerIsManager: callerProfile.isManager,
+      name: name,
+      site: site,
+      workflow: workflow,
       position: details.position,
       gradeLevel: details.gradeLevel,
       employeeStatus: details.employeeStatus,
