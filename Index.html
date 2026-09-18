@@ -1556,6 +1556,7 @@ function refreshAccess() {
         .getPOCSchedule();
     }
 
+
     function renderPOCSchedule(res) {
       const pocContainer = document.getElementById('pocContainer');
       if (!res.success) {
@@ -1571,78 +1572,73 @@ function refreshAccess() {
 
       const now = new Date();
       let currentHour = now.getHours();
-      let previousHour = currentHour - 1;
-      let nextHour = currentHour + 1;
-
-      // Handle midnight wrapping for UI
-      if (previousHour < 0) previousHour = 23;
-      if (nextHour > 23) nextHour = 0;
 
       // Map 24hr to "h:00 a" format to match backend output strings
       function formatHourStr(h) {
-         const d = new Date();
-         d.setHours(h, 0, 0, 0);
-         // Build the string manually if standard libraries differ
          let ampm = h >= 12 ? 'PM' : 'AM';
          let hour12 = h % 12;
          hour12 = hour12 ? hour12 : 12; // the hour '0' should be '12'
          return `${hour12}:00 ${ampm}`;
       }
 
-      const prevTarget = formatHourStr(previousHour);
-      const currTarget = formatHourStr(currentHour);
-      const nextTarget = formatHourStr(nextHour);
-
-      const prevPOC = schedule.find(s => s.time === prevTarget) || { poc: 'Unknown' };
-      const currPOC = schedule.find(s => s.time === currTarget) || { poc: 'Unknown' };
-      const nextPOC = schedule.find(s => s.time === nextTarget) || { poc: 'Unknown' };
-
       const shortTime = (tStr) => tStr.replace(':00 AM', 'a').replace(':00 PM', 'p');
 
+      let itemsHtml = '';
+
+      for (let i = 0; i < 24; i++) {
+        const targetStr = formatHourStr(i);
+        const pocObj = schedule.find(s => s.time === targetStr) || { poc: 'Unknown' };
+        const isCurrent = i === currentHour;
+
+        if (isCurrent) {
+          itemsHtml += `
+            <!-- Current -->
+            <div id="current-poc-item" class="flex items-center gap-2 mb-4 relative">
+              <div class="w-8 text-right shrink-0"><span class="text-xs font-bold text-theme-primary">${shortTime(targetStr)}</span></div>
+              <div class="w-4 shrink-0 flex justify-center relative z-10"><span class="w-2.5 h-2.5 rounded-full bg-theme-primary ring-4 ring-theme-accent-muted block"></span></div>
+              <div class="flex items-center gap-2.5 min-w-0 flex-1 bg-theme-accent-muted/40 dark:bg-theme-accent-muted/15 rounded-theme-sm px-2 py-1.5">
+                ${getMomaImgClass(pocObj.poc, 'w-9 h-9 rounded-full border-2 border-theme-primary shadow-sm shrink-0', 80)}
+                <div class="min-w-0 leading-tight">
+                  <div class="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">${pocObj.poc}</div>
+                  ${pocObj.site ? `<div class="text-[10px] font-semibold text-theme-primary/80 dark:text-theme-primary uppercase tracking-wide truncate">${pocObj.site}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          // Check if this is the last item so we don't add margin bottom
+          const isLast = i === 23;
+          itemsHtml += `
+            <!-- Other -->
+            <div class="flex items-center gap-2 ${isLast ? '' : 'mb-4'} relative">
+              <div class="w-8 text-right shrink-0"><span class="text-xs text-gray-400 font-medium">${shortTime(targetStr)}</span></div>
+              <div class="w-4 shrink-0 flex justify-center relative z-10"><span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 block"></span></div>
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                ${getMomaImgClass(pocObj.poc, 'w-6 h-6 rounded-full grayscale opacity-60 shrink-0', 50)}
+                <div class="min-w-0 leading-tight">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${pocObj.poc}</div>
+                  ${pocObj.site ? `<div class="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-wide truncate">${pocObj.site}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
       pocContainer.innerHTML = `
-        <div class="relative">
-          <div class="absolute left-12 top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
-
-          <!-- Previous -->
-          <div class="flex items-center gap-2 mb-4 relative">
-            <div class="w-8 text-right shrink-0"><span class="text-xs text-gray-400 font-medium">${shortTime(prevTarget)}</span></div>
-            <div class="w-4 shrink-0 flex justify-center relative z-10"><span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 block"></span></div>
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              ${getMomaImgClass(prevPOC.poc, 'w-6 h-6 rounded-full grayscale opacity-60 shrink-0', 50)}
-              <div class="min-w-0 leading-tight">
-                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${prevPOC.poc}</div>
-                ${prevPOC.site ? `<div class="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-wide truncate">${prevPOC.site}</div>` : ''}
-              </div>
-            </div>
-          </div>
-
-          <!-- Current -->
-          <div class="flex items-center gap-2 mb-4 relative">
-            <div class="w-8 text-right shrink-0"><span class="text-xs font-bold text-theme-primary">${shortTime(currTarget)}</span></div>
-            <div class="w-4 shrink-0 flex justify-center relative z-10"><span class="w-2.5 h-2.5 rounded-full bg-theme-primary ring-4 ring-theme-accent-muted block"></span></div>
-            <div class="flex items-center gap-2.5 min-w-0 flex-1 bg-theme-accent-muted/40 dark:bg-theme-accent-muted/15 rounded-theme-sm px-2 py-1.5">
-              ${getMomaImgClass(currPOC.poc, 'w-9 h-9 rounded-full border-2 border-theme-primary shadow-sm shrink-0', 80)}
-              <div class="min-w-0 leading-tight">
-                <div class="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">${currPOC.poc}</div>
-                ${currPOC.site ? `<div class="text-[10px] font-semibold text-theme-primary/80 dark:text-theme-primary uppercase tracking-wide truncate">${currPOC.site}</div>` : ''}
-              </div>
-            </div>
-          </div>
-
-          <!-- Next -->
-          <div class="flex items-center gap-2 relative">
-            <div class="w-8 text-right shrink-0"><span class="text-xs text-gray-400 font-medium">${shortTime(nextTarget)}</span></div>
-            <div class="w-4 shrink-0 flex justify-center relative z-10"><span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 block"></span></div>
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              ${getMomaImgClass(nextPOC.poc, 'w-6 h-6 rounded-full grayscale opacity-60 shrink-0', 50)}
-              <div class="min-w-0 leading-tight">
-                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${nextPOC.poc}</div>
-                ${nextPOC.site ? `<div class="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-wide truncate">${nextPOC.site}</div>` : ''}
-              </div>
-            </div>
-          </div>
+        <div class="relative max-h-[250px] overflow-y-auto pr-1 overflow-x-hidden custom-scrollbar">
+          <div class="absolute left-[3.25rem] top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
+          ${itemsHtml}
         </div>
       `;
+
+      // Auto-scroll to current item
+      setTimeout(() => {
+        const currentItem = document.getElementById('current-poc-item');
+        if (currentItem) {
+          currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
 
       // Auto-update mechanism: Refresh every 30 minutes.
       // Calculate milliseconds until the next half-hour or hour mark.
