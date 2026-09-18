@@ -24,13 +24,13 @@
               green: '#34a853',
             },
             theme: {
-              canvas: 'var(--color-canvas)',
-              sidebar: 'var(--color-sidebar)',
-              card: 'var(--color-card)',
-              primary: 'var(--color-primary)',
-              'primary-hover': 'var(--color-primary-hover)',
-              'card-border': 'var(--color-card-border)',
-              'accent-muted': 'var(--color-accent-muted)'
+              'canvas': 'color-mix(in srgb, var(--color-canvas) calc(<alpha-value> * 100%), transparent)',
+              'sidebar': 'color-mix(in srgb, var(--color-sidebar) calc(<alpha-value> * 100%), transparent)',
+              'card': 'color-mix(in srgb, var(--color-card) calc(<alpha-value> * 100%), transparent)',
+              'primary': 'color-mix(in srgb, var(--color-primary) calc(<alpha-value> * 100%), transparent)',
+              'primary-hover': 'color-mix(in srgb, var(--color-primary-hover) calc(<alpha-value> * 100%), transparent)',
+              'card-border': 'color-mix(in srgb, var(--color-card-border) calc(<alpha-value> * 100%), transparent)',
+              'accent-muted': 'color-mix(in srgb, var(--color-accent-muted) calc(<alpha-value> * 100%), transparent)'
             }
           },
           borderRadius: {
