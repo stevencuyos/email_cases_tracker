@@ -81,7 +81,12 @@ const RAW_COLS = {
 
 // 1. Serve the Web App Interface
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  var template = HtmlService.createTemplateFromFile('Index');
+  
+  // Fetching here forces the Apps Script scanner to detect the required permission
+  template.tailwindCss = UrlFetchApp.fetch("https://cdn.tailwindcss.com").getContentText();
+  
+  return template.evaluate()
       .setTitle('Case Tracking Portal')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
