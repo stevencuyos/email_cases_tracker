@@ -9,8 +9,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
   
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS (Server-Side Injected - Safe Mode) -->
+  <script>
+    (function() {
+      var tailwindCode = <?!= JSON.stringify(tailwindCss) ?>;
+      var scriptElement = document.createElement('script');
+      scriptElement.text = tailwindCode;
+      document.head.appendChild(scriptElement);
+    })();
+  </script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -510,9 +517,19 @@
     <div>
       <!-- Header / Logo -->
       <div id="sidebarHeader" class="h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-700 gap-2">
-        <div class="brand-row flex items-center gap-3 overflow-hidden min-w-0">
-          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[28px] shrink-0">track_changes</span>
-          <h1 class="text-lg font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap nav-text tracking-tight">Case Tracker</h1>
+        <div class="brand-row relative flex items-center h-11 flex-1 min-w-0">
+          
+          <!-- Expanded State: Full Google Logo & Text -->
+          <div class="absolute left-0 flex flex-col items-start justify-center transition-all duration-300 [.sidebar-collapsed_&]:opacity-0 [.sidebar-collapsed_&]:-translate-x-4 [.sidebar-collapsed_&]:pointer-events-none">
+            <img src="https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg" alt="Google" class="h-8 mb-0.5 shrink-0">
+            <h1 class="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap tracking-tight leading-none pl-1">Case Tracker</h1>
+          </div>
+
+          <!-- Collapsed State: Play Store Logo (Using official gstatic to bypass firewall) -->
+          <div class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center transition-all duration-300 opacity-0 scale-50 pointer-events-none [.sidebar-collapsed_&]:opacity-100 [.sidebar-collapsed_&]:scale-100 [.sidebar-collapsed_&]:pointer-events-auto">
+            <img src="https://www.gstatic.com/images/branding/product/2x/play_prism_64dp.png" alt="Play" class="h-7 w-7 shrink-0">
+          </div>
+
         </div>
         <div class="header-controls flex items-center gap-1 shrink-0">
           <button onclick="toggleSidebar()" title="Collapse/expand sidebar" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
