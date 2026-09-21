@@ -523,9 +523,9 @@
     <div>
       <!-- Header / Logo -->
       <div id="sidebarHeader" class="h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-700 gap-2">
-        <div class="brand-row flex items-center gap-2.5 flex-1 min-w-0">
+        <div class="brand-row flex items-center gap-2.5 flex-1">
           <img src="https://www.gstatic.com/images/branding/product/2x/play_prism_64dp.png" alt="Play" class="nav-icon h-7 w-7 shrink-0">
-          <div class="nav-text flex flex-col min-w-0 leading-none">
+          <div class="nav-text flex flex-col leading-none">
             <img src="https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg" alt="Google" class="h-6 mb-1 shrink-0">
             <h1 class="text-[11px] font-medium text-gray-500 dark:text-gray-400 tracking-tight truncate">Case Tracker</h1>
           </div>
@@ -652,7 +652,7 @@
 
       <div id="identityChip" onclick="switchTab('profileView')" tabindex="0" role="button" title="View my profile" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('profileView');}" class="flex items-center gap-3 bg-white dark:bg-gray-900 p-2 rounded-theme-sm border border-gray-200 dark:border-gray-700 animate-pulse overflow-hidden shadow-sm cursor-pointer hover:border-theme-primary hover:ring-2 hover:ring-theme-accent-muted dark:hover:ring-blue-900/40 transition">
         <div class="w-8 h-8 rounded-full bg-gray-200 shrink-0 identity-avatar"></div>
-        <div class="flex flex-col identity-text min-w-0">
+        <div class="flex flex-col identity-text">
           <div class="h-3 bg-gray-200 rounded w-20 mb-1"></div>
           <div class="h-2 bg-gray-200 rounded w-12"></div>
         </div>
@@ -1209,7 +1209,7 @@
       <!-- Pool Board -->
       <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden">
         <div class="p-5 flex flex-wrap items-center justify-between gap-3">
-          <div class="min-w-0">
+          <div>
             <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
               <span class="material-symbols-outlined text-theme-primary">stacked_bar_chart</span> Pool Board
             </h3>
@@ -1612,6 +1612,29 @@
     </div>
   </div>
 
+
+  <!-- Custom Confirm Modal -->
+  <div id="customConfirmModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeConfirmModal()"></div>
+    <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
+        <span id="confirmModalIcon" class="material-symbols-outlined text-red-500">warning</span>
+        <h2 id="confirmModalTitle" class="text-lg font-medium text-theme-primary">Confirm Action</h2>
+      </div>
+      <div class="p-5">
+        <p id="confirmModalMessage" class="text-sm text-theme-secondary">Are you sure you want to proceed?</p>
+      </div>
+      <div class="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-700">
+        <button onclick="closeConfirmModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-theme transition">
+          Cancel
+        </button>
+        <button id="confirmModalActionBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-theme transition">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Check-In Modal -->
   <div id="checkInModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeCheckInModal()"></div>
@@ -1750,18 +1773,20 @@
       var f = p + '&type=SECURITY&type=SILHOUETTE';
       return '<img src="' + p + '" class="' + cls + '" onerror="this.onerror=null;this.src=\'' + f + '\';">';
     }
-    function formatCaseIdsAsLinks(idsString) {
+    function formatCaseIdsAsLinks(idsString, showHistory = false) {
       if (!idsString) return '';
       return idsString.split(',').map(id => {
         let cleanId = escAttr(id.trim());
-        // Added whitespace-nowrap to the class list below:
-        return `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="case-link hover:underline whitespace-nowrap">${cleanId}</a>`;
+        let html = `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="case-link hover:underline whitespace-nowrap">${cleanId}</a>`;
+        if (showHistory) {
+          html += ` <button type="button" onclick="openCaseLookup('${cleanId}')" title="See every time this ID was logged" class="align-middle text-gray-400 hover:text-theme-primary transition ml-1"><span class="material-symbols-outlined text-[14px]">history</span></button>`;
+        }
+        return html;
       }).join(', ');
     }
     function ldapLink(ldap) {
       if (!ldap || /^(unassigned|unknown)$/i.test(String(ldap).trim())) return escAttr(ldap || '');
-      const href = 'https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20' + encodeURIComponent(ldap) + '%20state%3Aassigned';
-      return `<a href="${href}" target="_blank" class="case-link hover:underline">${escAttr(ldap)}</a>`;
+      return `<span>${escAttr(ldap)}</span>`;
     }
     // ----------------------------------------------
 
@@ -1971,7 +1996,7 @@ function refreshAccess() {
       // Call backend to get role and LDAP
       google.script.run
         .withSuccessHandler(initializeUserUI)
-        .withFailureHandler(function(err){ console.error("Failed to load profile", err); })
+        .withFailureHandler(function(err){ showToast("Failed to load profile", "error"); })
         .getUserProfile();
 
       // Load user preferences from local storage
@@ -2045,11 +2070,11 @@ function refreshAccess() {
             <div id="current-poc-item" class="flex items-center gap-2 mb-4 relative">
               <div class="w-8 text-right shrink-0"><span class="text-xs font-bold text-theme-primary">${shortTime(targetStr)}</span></div>
               <div class="w-4 shrink-0 flex justify-center relative z-10"><span class="w-2.5 h-2.5 rounded-full bg-theme-primary ring-4 ring-theme-accent-muted block"></span></div>
-              <div class="flex items-center gap-2.5 min-w-0 flex-1 bg-theme-accent-muted/40 dark:bg-theme-accent-muted/15 rounded-theme-sm px-2 py-1.5">
+              <div class="flex items-center gap-2.5 flex-1 bg-theme-accent-muted/40 dark:bg-theme-accent-muted/15 rounded-theme-sm px-2 py-1.5">
                 ${getMomaImgClass(pocObj.poc, 'w-9 h-9 rounded-full border-2 border-theme-primary shadow-sm shrink-0', 80)}
-                <div class="min-w-0 leading-tight">
-                  <div class="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">${ldapLink(pocObj.poc)}</div>
-                  ${pocObj.site ? `<div class="text-[10px] font-semibold text-theme-primary/80 dark:text-theme-primary uppercase tracking-wide truncate">${pocObj.site}</div>` : ''}
+                <div class="leading-tight">
+                  <div class="text-sm font-bold text-gray-800 dark:text-gray-100 whitespace-nowrap">${ldapLink(pocObj.poc)}</div>
+                  ${pocObj.site ? `<div class="text-[10px] font-semibold text-theme-primary/80 dark:text-theme-primary uppercase tracking-wide whitespace-nowrap">${pocObj.site}</div>` : ''}
                 </div>
               </div>
             </div>
@@ -2062,11 +2087,11 @@ function refreshAccess() {
             <div class="flex items-center gap-2 ${isLast ? '' : 'mb-4'} relative">
               <div class="w-8 text-right shrink-0"><span class="text-xs text-gray-400 font-medium">${shortTime(targetStr)}</span></div>
               <div class="w-4 shrink-0 flex justify-center relative z-10"><span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 block"></span></div>
-              <div class="flex items-center gap-2 min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-1">
                 ${getMomaImgClass(pocObj.poc, 'w-6 h-6 rounded-full grayscale opacity-60 shrink-0', 50)}
-                <div class="min-w-0 leading-tight">
-                  <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${ldapLink(pocObj.poc)}</div>
-                  ${pocObj.site ? `<div class="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-wide truncate">${pocObj.site}</div>` : ''}
+                <div class="leading-tight">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">${ldapLink(pocObj.poc)}</div>
+                  ${pocObj.site ? `<div class="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-wide whitespace-nowrap">${pocObj.site}</div>` : ''}
                 </div>
               </div>
             </div>
@@ -2127,7 +2152,7 @@ function refreshAccess() {
       chip.classList.remove('animate-pulse');
       chip.innerHTML = `
         ${avatarHTML}
-        <div class="flex flex-col identity-text min-w-0">
+        <div class="flex flex-col identity-text">
           <span class="text-sm font-medium text-gray-800 dark:text-gray-100 leading-tight truncate">${safeName}</span>
           <span class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide truncate">${safeSite} • ${safeLob} ${safeWorkflow ? `(${safeWorkflow})` : ''}</span>
         </div>
@@ -2853,9 +2878,9 @@ function refreshAccess() {
                 ${avatarHTML}
                 ${(data.employeeStatus || '').toLowerCase() === 'active' ? '<span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center"><span class="w-2.5 h-2.5 bg-emerald-300 rounded-full animate-ping"></span></span>' : ''}
               </div>
-              <div class="min-w-0">
-                <div class="font-medium text-lg leading-tight truncate cell-strong">${escAttr(data.name)}</div>
-                <div class="text-sm cell-muted truncate">${escAttr(data.position || '\u2014')}</div>
+              <div>
+                <div class="font-medium text-lg leading-tight whitespace-nowrap cell-strong">${escAttr(data.name)}</div>
+                <div class="text-sm cell-muted whitespace-nowrap">${escAttr(data.position || '\u2014')}</div>
                 ${data.employeeStatus ? `<span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}">${escAttr(data.employeeStatus)}</span>` : ''}
               </div>
             </div>
@@ -2872,7 +2897,7 @@ function refreshAccess() {
               <div class="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-theme-sm border border-amber-100 dark:border-amber-800/30">
                 <div class="text-[10px] uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-0.5 font-semibold">Team</div>
                 <div class="font-medium cell-strong">${escAttr(data.team || '\u2014')}</div>
-                <div class="text-[10px] text-amber-600/70 dark:text-amber-400/70 truncate">${escAttr(data.workflow || '')}</div>
+                <div class="text-[10px] text-amber-600/70 dark:text-amber-400/70 whitespace-nowrap">${escAttr(data.workflow || '')}</div>
               </div>
               <div class="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-theme-sm border border-purple-100 dark:border-purple-800/30">
                 <div class="text-[10px] uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-0.5 font-semibold">Grade</div>
@@ -3063,7 +3088,7 @@ function refreshAccess() {
       container.innerHTML = POC_GUIDE_STEPS.map((s, i) => `
         <div class="flex gap-3">
           <div class="shrink-0 w-7 h-7 rounded-full bg-theme-primary text-white flex items-center justify-center text-xs font-bold shadow-sm">${i + 1}</div>
-          <div class="min-w-0">
+          <div>
             <div class="text-sm font-medium cell-strong">${s.title}</div>
             <div class="text-sm cell-muted leading-relaxed">${s.text}</div>
           </div>
@@ -3301,8 +3326,8 @@ function refreshAccess() {
               </div>
             </td>
             <td class="p-4 align-top">
-              <div class="font-mono text-xs chip-box-alert rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
-                ${formatCaseIdsAsLinks(a.flaggedIds)}
+              <div class="font-mono text-xs chip-box-alert rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex items-center">
+                ${formatCaseIdsAsLinks(a.flaggedIds, true)}
               </div>
             </td>
             <td class="p-4 text-xs ${String(a.reason).includes('minimum unmet') ? 'text-red-600 dark:text-red-400 font-medium' : 'cell-muted'}">${a.reason}</td>
@@ -3430,8 +3455,8 @@ function refreshAccess() {
           <td class="p-4 cell-muted">${escAttr(caseType)}</td>
           <td class="p-4 text-center font-medium ${validCount > 0 ? 'text-green-600 dark:text-green-400' : 'cell-faint'}">${validCount}${auditBadgeHtml(sub)}</td>
           <td class="p-4 align-top">
-             <div class="font-mono text-xs chip-box rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
-               ${formatCaseIdsAsLinks(caseIds)}
+             <div class="font-mono text-xs chip-box rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex items-center">
+               ${formatCaseIdsAsLinks(caseIds, true)}
              </div>
           </td>
         </tr>
@@ -3513,7 +3538,7 @@ function refreshAccess() {
 
       tbody.innerHTML = pageRows.map(r => `
         <tr class="row-hover transition ${r.flagged ? 'bg-red-50/50 dark:bg-red-900/15' : ''}">
-          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId)}${r.flagged ? ' <span class="material-symbols-outlined text-[14px] text-red-500 align-middle" title="Flagged as a duplicate">error</span>' : ''} <button type="button" onclick="openCaseLookup('${escAttr(r.caseId)}')" title="See every time this ID was logged" class="align-middle text-gray-400 hover:text-theme-primary transition"><span class="material-symbols-outlined text-[14px]">history</span></button></td>
+          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId, true)}${r.flagged ? ' <span class="material-symbols-outlined text-[14px] text-red-500 align-middle ml-1" title="Flagged as a duplicate">error</span>' : ''}</td>
           <td class="p-4 cell-muted">${escAttr(r.caseType)}</td>
           <td class="p-4 cell-muted whitespace-nowrap">${escAttr(r.timestamp)}</td>
           <td class="p-4 cell-muted whitespace-nowrap">${escAttr(r.interval)}</td>
@@ -3611,8 +3636,8 @@ function refreshAccess() {
           ${res.entries.map((e, i) => `
             <div class="rounded-theme-sm border ${e.flagged ? 'border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-900/15' : 'border-theme-card-border'} p-3 flex items-center gap-3">
               ${getMomaImgClass(e.agent, 'w-9 h-9 rounded-full border border-gray-200 dark:border-gray-600 object-cover shrink-0', 80)}
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium cell-strong">${ldapLink(e.agent)}</div>
+              <div class="flex-1">
+                <div class="text-sm font-medium cell-strong whitespace-nowrap">${ldapLink(e.agent)}</div>
                 <div class="text-xs cell-muted">${escAttr(e.timestamp || e.date)}${e.interval ? ' &middot; ' + escAttr(e.interval) + ' interval' : ''} &middot; ${escAttr(e.caseType)}</div>
               </div>
               ${i === 0 ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-theme-accent-muted text-theme-primary">First logged</span>' : ''}
@@ -3660,79 +3685,111 @@ function refreshAccess() {
       const checkedBoxes = document.querySelectorAll('.audit-checkbox:checked');
       if (checkedBoxes.length === 0) return;
 
-      if (resolution === 'Reject' && !confirm(`Reject ${checkedBoxes.length} flagged submission(s) as duplicate/fraud? This can't be undone from this screen.`)) {
-        return;
-      }
+      const executeBulkAudit = () => {
+        const auditsToProcess = Array.from(checkedBoxes).map(cb => ({
+          auditRow: parseInt(cb.getAttribute('data-audit-row'), 10),
+          rawRowRef: parseInt(cb.getAttribute('data-raw-row'), 10)
+        }));
 
-      if (resolution === 'Approve' && checkedBoxes.length > 1 && !confirm(`Approve ${checkedBoxes.length} flagged submissions? This will count them as valid across ${checkedBoxes.length} case(s).`)) {
-        return;
-      }
+        // Optimistically hide rows
+        auditsToProcess.forEach(audit => {
+          const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
+          if (rowEl) rowEl.style.opacity = '0.5';
+        });
 
-      const auditsToProcess = Array.from(checkedBoxes).map(cb => ({
-        auditRow: parseInt(cb.getAttribute('data-audit-row'), 10),
-        rawRowRef: parseInt(cb.getAttribute('data-raw-row'), 10)
-      }));
+        // Disable buttons while processing
+        const buttons = document.querySelectorAll('.bulk-audit-btn');
+        buttons.forEach(btn => btn.disabled = true);
 
-      // Optimistically hide rows
-      auditsToProcess.forEach(audit => {
-        const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
-        if (rowEl) rowEl.style.opacity = '0.5';
-      });
-
-      // Disable buttons while processing
-      const buttons = document.querySelectorAll('.bulk-audit-btn');
-      buttons.forEach(btn => btn.disabled = true);
-
-      google.script.run
-        .withSuccessHandler(res => {
-          buttons.forEach(btn => btn.disabled = false);
-          if (res.success) {
-            showToast(`Successfully ${resolution.toLowerCase()}d ${auditsToProcess.length} cases.`, 'success');
-            loadDashboard(); // Reload to refresh metrics and clear queue
-          } else {
-            showToast(res.error, 'error');
+        google.script.run
+          .withSuccessHandler(res => {
+            buttons.forEach(btn => btn.disabled = false);
+            if (res.success) {
+              showToast(`Successfully ${resolution.toLowerCase()}d ${auditsToProcess.length} cases.`, 'success');
+              loadDashboard(); // Reload to refresh metrics and clear queue
+            } else {
+              showToast(res.error, 'error');
+              auditsToProcess.forEach(audit => {
+                const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
+                if (rowEl) rowEl.style.opacity = '1';
+              });
+            }
+          })
+          .withFailureHandler(err => {
+            buttons.forEach(btn => btn.disabled = false);
+            showToast("Network error.", 'error');
             auditsToProcess.forEach(audit => {
               const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
               if (rowEl) rowEl.style.opacity = '1';
             });
-          }
-        })
-        .withFailureHandler(err => {
-          buttons.forEach(btn => btn.disabled = false);
-          showToast("Network error.", 'error');
-          auditsToProcess.forEach(audit => {
-            const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
-            if (rowEl) rowEl.style.opacity = '1';
-          });
-        })
-        .resolveAuditsBulk(auditsToProcess, resolution);
+          })
+          .resolveAuditsBulk(auditsToProcess, resolution);
+      };
+
+      if (resolution === 'Reject') {
+        showConfirmModal(
+          'Confirm Bulk Rejection',
+          `Reject <b>${checkedBoxes.length}</b> flagged submission(s) as duplicate/fraud? <br><br><b>This can\'t be undone from this screen.</b>`,
+          'Reject Cases',
+          'bg-red-600 hover:bg-red-700',
+          'warning',
+          'text-red-500',
+          executeBulkAudit
+        );
+      } else if (resolution === 'Approve' && checkedBoxes.length > 1) {
+        showConfirmModal(
+          'Confirm Bulk Approval',
+          `Approve <b>${checkedBoxes.length}</b> flagged submissions? <br><br>This will count them as valid across ${checkedBoxes.length} case(s).`,
+          'Approve Cases',
+          'bg-green-600 hover:bg-green-700',
+          'check_circle',
+          'text-green-500',
+          executeBulkAudit
+        );
+      } else {
+        // Direct execute if it's Approve for just 1 item (matches existing logic)
+        executeBulkAudit();
+      }
     }
 
     // Handle Approve/Reject Action
     function handleAudit(auditRow, rawRowRef, resolution) {
-      if (resolution === 'Reject' && !confirm("Reject this flagged submission as duplicate/fraud? This can't be undone from this screen.")) {
-        return;
-      }
+      const executeAudit = () => {
+        // Optimistically hide the row so the UI feels instant
+        const rowEl = document.getElementById(`audit-row-${auditRow}`);
+        if (rowEl) rowEl.style.opacity = '0.5';
 
-      // Optimistically hide the row so the UI feels instant
-      const rowEl = document.getElementById(`audit-row-${auditRow}`);
-      if (rowEl) rowEl.style.opacity = '0.5';
-      
-      google.script.run
-        .withSuccessHandler(res => {
-          if (res.success) {
-            showToast(`Successfully ${resolution.toLowerCase()}d cases.`, 'success');
-            loadDashboard(); // Reload to refresh metrics
-          } else {
-            showToast(res.error, 'error');
-            if (rowEl) rowEl.style.opacity = '1'; // Revert if failed
-          }
-        })
-        .withFailureHandler(err => {
-          showToast("Network error.", 'error');
-          if (rowEl) rowEl.style.opacity = '1';
-        })
-        .resolveAudit(auditRow, rawRowRef, resolution);
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res.success) {
+              showToast(`Successfully ${resolution.toLowerCase()}d cases.`, 'success');
+              loadDashboard(); // Reload to refresh metrics
+            } else {
+              showToast(res.error, 'error');
+              if (rowEl) rowEl.style.opacity = '1'; // Revert if failed
+            }
+          })
+          .withFailureHandler(err => {
+            showToast("Network error.", 'error');
+            if (rowEl) rowEl.style.opacity = '1';
+          })
+          .resolveAudit(auditRow, rawRowRef, resolution);
+      };
+
+      if (resolution === 'Reject') {
+        showConfirmModal(
+          'Confirm Rejection',
+          'Reject this flagged submission as duplicate/fraud? <br><br><b>This can\'t be undone from this screen.</b>',
+          'Reject Case',
+          'bg-red-600 hover:bg-red-700',
+          'warning',
+          'text-red-500',
+          executeAudit
+        );
+      } else {
+        // Existing behavior doesn't ask confirmation for single Approve. Keep it direct.
+        executeAudit();
+      }
     }
 
         const STATUS_OPTIONS = ['', 'Assigned - 7', 'Break - 3', 'VL/SL', 'on Live Channel', 'SKIP - EOS', 'SKIP SOS', 'Absent', 'Late', 'on Coaching/Training', 'Closing Reopens'];
@@ -3956,6 +4013,42 @@ function refreshAccess() {
        document.getElementById('checkInModal').classList.remove('hidden');
     }
 
+
+    // --- Custom Confirm Modal Logic ---
+    let pendingConfirmAction = null;
+
+    function showConfirmModal(title, message, confirmBtnText, confirmBtnClass, iconName, iconClass, onConfirm) {
+      document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalMessage').innerHTML = message;
+
+      const actionBtn = document.getElementById('confirmModalActionBtn');
+      actionBtn.innerText = confirmBtnText;
+      actionBtn.className = `px-4 py-2 text-sm font-medium text-white rounded-theme transition ${confirmBtnClass}`;
+
+      const iconEl = document.getElementById('confirmModalIcon');
+      iconEl.innerText = iconName;
+      iconEl.className = `material-symbols-outlined ${iconClass}`;
+
+      pendingConfirmAction = onConfirm;
+
+      const modal = document.getElementById('customConfirmModal');
+      modal.classList.remove('hidden');
+
+      // Cleanup previous listeners to avoid duplicates
+      const newActionBtn = actionBtn.cloneNode(true);
+      actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
+
+      newActionBtn.addEventListener('click', () => {
+        if (pendingConfirmAction) pendingConfirmAction();
+        closeConfirmModal();
+      });
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('customConfirmModal').classList.add('hidden');
+      pendingConfirmAction = null;
+    }
+
     function closeCheckInModal() {
        document.getElementById('checkInModal').classList.add('hidden');
     }
@@ -4039,7 +4132,7 @@ function refreshAccess() {
             .getIntervalData(formattedDate, timeVal);
         })
         .withFailureHandler((err) => {
-          console.error("Failed to load status overrides", err);
+          showToast("Failed to load status overrides", "error");
           intervalStatusOverrides = {};
           // Fallback to loading data even if overrides fail
           google.script.run
@@ -4543,9 +4636,9 @@ function refreshAccess() {
             <div class="flex items-center gap-4">
               ${rankBadge}
               ${getMomaImgClass(ldap, 'w-10 h-10 rounded-full border border-gray-200 dark:border-gray-600 object-cover', 100)}
-              <div class="flex-1 min-w-0">
+              <div class="flex-1">
                 <div class="flex justify-between items-end mb-1">
-                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldapLink(ldap)}</span>
+                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap">${ldapLink(ldap)}</span>
                   <span class="text-sm font-bold text-gray-800 dark:text-gray-100">${score}</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
@@ -4616,9 +4709,9 @@ function refreshAccess() {
             <div class="flex items-center gap-4">
               ${rankBadge}
               ${getMomaImgClass(ldap, 'w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600 object-cover', 100)}
-              <div class="flex-1 min-w-0">
+              <div class="flex-1">
                 <div class="flex justify-between items-end mb-1">
-                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldapLink(ldap)}</span>
+                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap">${ldapLink(ldap)}</span>
                   <span class="text-sm font-bold text-gray-800 dark:text-gray-100">${score}</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
@@ -4813,7 +4906,7 @@ function refreshAccess() {
 
       tbody.innerHTML = pageRows.map(r => `
         <tr class="row-hover transition ${r.state !== 'Open' ? 'opacity-70' : ''}">
-          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId)}</td>
+          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId, true)}</td>
           <td class="p-4 cell-strong whitespace-nowrap">${escAttr(r.status)}<div class="text-[10px] cell-faint">${expEstimate(r)}</div></td>
           <td class="p-4 cell-muted">${escAttr(r.pool)}</td>
           <td class="p-4">${expTypeBadge(r.type)}</td>
@@ -4928,8 +5021,8 @@ function refreshAccess() {
           (isSel ? ' ring-2 ring-inset ring-theme-primary bg-theme-accent-muted/40' : '');
         return `
           <div${attrs} class="${cls}" style="grid-template-columns:110px 1fr repeat(5,58px) 70px">
-            <div class="min-w-0">
-              <div class="font-medium cell-strong truncate">${escAttr(p.pool)}</div>
+            <div>
+              <div class="font-medium cell-strong whitespace-nowrap">${escAttr(p.pool)}</div>
               ${(!isTotal && p.oldest) ? '<div class="text-[10px] text-red-500" title="Time in queue for the oldest open expired case">oldest ' + ageTxt(Date.now() - p.oldest) + '</div>' : ''}
             </div>
             <div class="h-5 bg-gray-100 dark:bg-gray-700/50 rounded overflow-hidden" title="${p.open} open \u00b7 ${p.handled} handled">
@@ -5044,9 +5137,9 @@ function refreshAccess() {
           <div class="flex items-center gap-4">
             <span class="w-6 h-6 flex items-center justify-center text-xs font-medium text-gray-400">${i + 1}</span>
             ${getMomaImgClass(a.ldap, 'w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600 object-cover', 100)}
-            <div class="flex-1 min-w-0">
+            <div class="flex-1">
               <div class="flex justify-between items-end mb-1">
-                <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldapLink(a.ldap)}</span>
+                <span class="text-sm font-medium text-gray-800 dark:text-gray-100 whitespace-nowrap">${ldapLink(a.ldap)}</span>
                 <span class="text-sm font-bold text-gray-800 dark:text-gray-100">${a.count} <span class="text-[10px] font-normal cell-faint">(${a.beforeExpiry} before expiry)</span></span>
               </div>
               <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5"><div class="bg-theme-primary h-1.5 rounded-full" style="width:${Math.max(5, (a.count / agents[0].count) * 100)}%"></div></div>

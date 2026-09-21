@@ -23,7 +23,7 @@ function logError(functionName, errorMessage, userLdap) {
     errorSheet.appendRow([new Date(), functionName, userLdap || 'Unknown', errorMessage]);
     lock.releaseLock();
   } catch (e) {
-    console.error("Failed to write to Error_Logs tab: " + e);
+    console.error("Failed to write to Error_Logs tab: " + (e && e.message ? e.message : e));
   }
 }
 
@@ -114,7 +114,7 @@ function doGet() {
   try {
     template.tailwindCss = getTailwindJs_();
   } catch (e) {
-    console.error('doGet: Tailwind unavailable: ' + e);
+    logError('doGet', 'Tailwind unavailable: ' + e, 'SYSTEM');
     template.tailwindCss = '';
   }
   
@@ -142,7 +142,7 @@ function getCdnJs_(name) {
       return Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(b64), 'application/x-gzip')).getDataAsString();
     }
   } catch (e) {
-    console.error('Stored ' + name + ' copy unreadable: ' + e);
+    logError('getCdnJs_', 'Stored ' + name + ' copy unreadable: ' + e, 'SYSTEM');
   }
   return refreshCdnJs_(name);
 }
@@ -163,7 +163,7 @@ function refreshCdnJs_(name) {
     for (let i = 0; i < n; i++) obj['CDN_' + name + '_' + i] = b64.substr(i * SIZE, SIZE);
     PropertiesService.getScriptProperties().setProperties(obj);
   } catch (e) {
-    console.error('Could not store ' + name + ' copy: ' + e);
+    logError('refreshCdnJs_', 'Could not store ' + name + ' copy: ' + e, 'SYSTEM');
   }
   return js;
 }
@@ -210,7 +210,7 @@ function initializeDatabase() {
       }
     }
   } catch (e) {
-    console.error("Initialization error: " + e);
+    logError('initializeDatabase', 'Initialization error: ' + e, 'SYSTEM');
   } finally {
     lock.releaseLock();
   }
@@ -434,7 +434,7 @@ function submitCases(formObject) {
     }
     
     // Real-time cross-check against the Expired/Expiring queue (never blocks a submission)
-    try { markExpiringWorked_(uniqueIds, ldap, timestamp); } catch (qe) { console.error('markExpiringWorked_: ' + qe); }
+    try { markExpiringWorked_(uniqueIds, ldap, timestamp); } catch (qe) { logError('markExpiringWorked_', qe.toString(), ldap); }
 
     // If this agent was tagged "Absent" for any interval earlier in today's
     // shift, reclassify those specific intervals as "Late" now that they've
@@ -802,7 +802,7 @@ function getGlobalCaseLog(dateStr, intervalHourStr) {
 function lookupCaseId(caseId) {
   try {
     const id = String(caseId || '').trim();
-    if (!/^\d-\d{7,14}$/.test(id)) return { error: 'Enter a Case ID like 1-12345678.' };
+    if (!/^\d-\d{7,14}$/.test(id)) return { success: false, error: 'Enter a Case ID like 1-12345678.' };
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Index_CaseIDs');
     if (!sheet || sheet.getLastRow() <= 1) return { caseId: id, entries: [], total: 0 };
@@ -1525,7 +1525,7 @@ function setIntervalStatusBulk(dateStr, intervalHourStr, updates) {
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
     logError('setIntervalStatusBulk', e.toString(), user);
-    return { error: "Failed to process bulk status updates." };
+    return { success: false, error: "Failed to process bulk status updates." };
   } finally {
     lock.releaseLock();
   }
@@ -1630,7 +1630,7 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
 
     const agents = getIntervalData(dateStr, intervalHourStr);
     if (!agents || agents.length === 0) {
-      return { error: "No agents scheduled for this interval — check-in not applicable." };
+      return { success: false, error: "No agents scheduled for this interval — check-in not applicable." };
     }
 
     const unresolved = [];
@@ -1689,7 +1689,7 @@ function checkInInterval(dateStr, intervalHourStr, overrideNote) {
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
     logError('checkInInterval', e.toString(), user);
-    return { error: "System encountered an error during check-in." };
+    return { success: false, error: "System encountered an error during check-in." };
   } finally {
     lock.releaseLock();
   }
