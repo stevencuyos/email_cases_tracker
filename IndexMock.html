@@ -1,14 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<script>
+// MOCK GOOGLE SCRIPT API FOR LOCAL PLAYWRIGHT TESTING
+window.google = {
+  script: {
+    get run() {
+       const api = {};
+       api.withSuccessHandler = function(cb) { api._success = cb; return api; };
+       api.withFailureHandler = function(cb) { api._failure = cb; return api; };
+
+       return new Proxy(api, {
+         get(target, prop) {
+           if (prop in target) return target[prop];
+           return function(...args) {
+             setTimeout(() => {
+               if (target._success) {
+                 if (prop === 'getUserProfile') target._success({role: 'Manager', ldap: 'manager', name: 'Manager'});
+                 else if (prop === 'getIntervalData') target._success([{
+                    agent: 'agent1',
+                    flaggedIds: '1-12345678, 2-87654321',
+                    reason: 'Previously logged in system (2)',
+                    caseType: 'Regular Email',
+                    row: 2,
+                    rawRowRef: 5,
+                    caseIds: '3-11111111',
+                    validCount: 1,
+                    breakLunchShort: false
+                 }]);
+                 else if (prop === 'getGlobalCaseLog') target._success([
+                    {caseId: '4-44444444', caseType: 'Regular Email', timestamp: '10:00 AM', interval: '10a', agent: 'agent1', flagged: true}
+                 ]);
+                 else if (prop === 'getExpiredExpiringData') target._success({
+                    expiring: [],
+                    expired: [{caseId: '5-55555555', status: 'Open', pool: 'PoolA', type: 'TypeC', state: 'Open', firstSeen: new Date().toISOString()}]
+                 });
+                 else target._success({});
+               }
+             }, 50);
+           };
+         }
+       });
+    }
+  }
+};
+</script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Case Tracking Portal</title>
-  
+
   <!-- Google Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-  
+
   <!-- Tailwind CSS (Server-Side Injected - Safe Mode) -->
   <script>
     (function() {
@@ -61,7 +107,7 @@
       }
     }
   </script>
-  
+
   <!-- ApexCharts -->
 
   <style>
@@ -455,7 +501,7 @@
 
     textarea::-webkit-scrollbar { width: 8px; }
     textarea::-webkit-scrollbar-thumb { background-color: #dadce0; border-radius: 4px; }
-    
+
     /* Custom Scrollbar for Sidebar and Main Content */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
@@ -676,7 +722,7 @@
       </div>
 
       <form id="trackerForm" onsubmit="handleFormSubmit(event)" class="p-8 pt-6 space-y-8">
-        
+
         <!-- Shift Type -->
         <div>
           <h3 class="text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">Is this Regular Shift or OT? <span class="text-red-500">*</span></h3>
@@ -965,7 +1011,7 @@
       </div>
     </div>
     <div id="dashboardView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
-      
+
       <!-- Section 1: Audit Queue -->
       <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 z-10"></div>
@@ -2117,10 +2163,10 @@ function refreshAccess() {
     function initializeUserUI(profile) {
       currentUserIsManager = !!profile.isManager;
       const chip = document.getElementById('identityChip');
-      
+
       // Generate the avatar HTML using the helper function
       const avatarHTML = getMomaImgClass(profile.ldap, 'w-8 h-8 rounded-full shrink-0 identity-avatar border border-gray-200 object-cover', 100);
-      
+
       // Stop pulsing, inject data & avatar
       const safeName = escAttr(profile.name);
       const safeSite = escAttr(profile.site);
@@ -2139,7 +2185,7 @@ function refreshAccess() {
       // Manager Setup
       if (profile.isManager) {
         document.getElementById('managerOnlyTabs').classList.remove('hidden');
-        
+
         // Unhide the POC Planner shortcut
         const pocPlannerBtn = document.getElementById('pocPlannerBtn');
         if (pocPlannerBtn) pocPlannerBtn.classList.remove('hidden');
@@ -2152,12 +2198,12 @@ function refreshAccess() {
           Agent Submissions
         `;
         document.getElementById('mySubmissionsDesc').innerText = "View tracked cases per interval for any agent.";
-        
+
         const searchContainer = document.getElementById('managerLdapSearch');
         const searchInput = document.getElementById('targetAgentLdap');
         searchContainer.classList.remove('hidden');
         searchInput.value = localStorage.getItem('lastSearchedLdap') || profile.ldap; // Restore last search, else default to themselves
-        
+
         // Load Agents for autocomplete
         google.script.run
           .withSuccessHandler(function(agents) {
@@ -2175,7 +2221,7 @@ function refreshAccess() {
         // Smart Routing: Agents land on Submission Form
         switchTab('submissionView');
       }
-      
+
       // Set default date for my submissions
       if(!document.getElementById('mySubmissionsDate').value) {
         document.getElementById('mySubmissionsDate').value = toDateStringFastClient(new Date());
@@ -2253,7 +2299,7 @@ function refreshAccess() {
         if (el) el.classList.add('hidden');
         if (tabEl) tabEl.className = "flex items-center px-4 py-3 nav-inactive transition-colors text-left group";
       });
-      
+
       let viewEl = document.getElementById(viewId);
       let tabViewEl = document.getElementById('tab-' + viewId);
       if (viewEl) {
@@ -2263,7 +2309,7 @@ function refreshAccess() {
         viewEl.classList.add('view-enter');
       }
       if (tabViewEl) tabViewEl.className = "flex items-center px-4 py-3 nav-active transition-colors text-left group";
-      
+
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
       if(viewId === 'caseLogView') loadCaseLog();
@@ -2396,14 +2442,14 @@ function refreshAccess() {
       handleActivityChange();
       updateCaseIdHints();
       clearCaseIdsDraft();
-    }  
+    }
 
     function handleFormSubmit(event) {
       event.preventDefault();
-      
+
       const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
       const caseIdsText = document.getElementById('caseIds').value;
-      
+
       // Strict Frontend Case ID Validation
       if (activity !== 'Coaching/Training' && caseIdsText.trim() !== '') {
         let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
@@ -2428,7 +2474,7 @@ function refreshAccess() {
 
       const btn = document.getElementById('submitBtn');
       const spinner = document.getElementById('spinner');
-      
+
       // UI: Loading state
       btn.disabled = true;
       btn.classList.add('opacity-75', 'cursor-not-allowed');
@@ -2447,7 +2493,7 @@ function refreshAccess() {
       google.script.run
         .withSuccessHandler(function(response) {
           resetButton(btn, spinner);
-          
+
           if (response.success) {
             if (response.rejected > 0) {
               showToast(`${response.rejected} invalid ID(s) skipped. ${response.valid} valid cases logged${response.flagged > 0 ? `, ${response.flagged} flagged` : ''}.`, 'warning');
@@ -3260,7 +3306,7 @@ function refreshAccess() {
     function loadDashboard() {
       document.getElementById('auditTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
       document.getElementById('metricsTableBody').innerHTML = '<tr><td colspan="3" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
-      
+
       google.script.run
         .withSuccessHandler(renderDashboard)
         .withFailureHandler(err => showToast("Failed to load dashboard data.", 'error'))
@@ -3278,7 +3324,7 @@ function refreshAccess() {
         selectAllCheckbox.disabled = data.audits.length === 0;
       }
       updateBulkAuditButtons();
-      
+
       // 1. Render Audit Queue
       if (data.audits.length === 0) {
         auditTbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">🎉 No pending audits! Queue is clean.</td></tr>';
@@ -3720,7 +3766,7 @@ function refreshAccess() {
       // Optimistically hide the row so the UI feels instant
       const rowEl = document.getElementById(`audit-row-${auditRow}`);
       if (rowEl) rowEl.style.opacity = '0.5';
-      
+
       google.script.run
         .withSuccessHandler(res => {
           if (res.success) {
@@ -4016,15 +4062,15 @@ function refreshAccess() {
     function loadIntervalData() {
       const dateVal = document.getElementById('intervalDate').value;
       const timeVal = document.getElementById('intervalHour').value;
-      
+
       if (!dateVal) return showToast("Please select a date", "warning");
-      
+
       // Convert HTML YYYY-MM-DD to Apps Script M/d/yyyy
       const [year, month, day] = dateVal.split('-');
       const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
 
       document.getElementById('intervalTableBody').innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">Loading schedule...</td></tr>';
-      
+
       // Chain the calls: first get overrides, then get agent data.
       google.script.run
         .withSuccessHandler((overrides) => {
@@ -5126,13 +5172,13 @@ function refreshAccess() {
       const dateVal = document.getElementById('intervalDate').value;
       const timeSelect = document.getElementById('intervalHour');
       const timeVal = timeSelect.options[timeSelect.selectedIndex].text;
-      
+
       const tbody = document.getElementById('intervalTableBody');
       const rows = tbody.querySelectorAll('tr');
-      
+
       // Build the text using Tab spacing (\t) so it pastes perfectly into Sheets/Chat
       let reportText = `Interval Report: ${dateVal} | ${timeVal}\n\n`;
-      reportText += `LDAP\tSOS\tEOS\tSite\tStatus\tRegular/Telus/Cimba\tManual Assignment\tReopened Cases\tTotal\n`; 
+      reportText += `LDAP\tSOS\tEOS\tSite\tStatus\tRegular/Telus/Cimba\tManual Assignment\tReopened Cases\tTotal\n`;
 
       rows.forEach(row => {
         const cells = row.querySelectorAll('td');
@@ -5150,7 +5196,7 @@ function refreshAccess() {
           const manual = num(cells[7]);
           const reopened = num(cells[8]);
           const total = num(cells[9]);
-          
+
           reportText += `${ldap}\t${sos}\t${eos}\t${site}\t${status}\t${regular}\t${manual}\t${reopened}\t${total}\n`;
         }
       });
