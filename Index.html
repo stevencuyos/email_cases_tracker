@@ -1971,7 +1971,7 @@ function refreshAccess() {
       // Call backend to get role and LDAP
       google.script.run
         .withSuccessHandler(initializeUserUI)
-        .withFailureHandler(function(err){ console.error("Failed to load profile", err); })
+        .withFailureHandler(function(err){ showToast("Failed to load profile", "error"); })
         .getUserProfile();
 
       // Load user preferences from local storage
@@ -4039,7 +4039,7 @@ function refreshAccess() {
             .getIntervalData(formattedDate, timeVal);
         })
         .withFailureHandler((err) => {
-          console.error("Failed to load status overrides", err);
+          showToast("Failed to load status overrides", "error");
           intervalStatusOverrides = {};
           // Fallback to loading data even if overrides fail
           google.script.run
