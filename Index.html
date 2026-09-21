@@ -16,6 +16,13 @@
       var scriptElement = document.createElement('script');
       scriptElement.text = tailwindCode;
       document.head.appendChild(scriptElement);
+      window.tailwind = window.tailwind || {};
+      if (!tailwindCode) document.addEventListener('DOMContentLoaded', function() {
+        var b = document.createElement('div');
+        b.style.cssText = 'position:fixed;top:0;left:0;right:0;padding:8px;background:#fce8e6;color:#c5221f;font:14px sans-serif;text-align:center;z-index:9999';
+        b.textContent = 'Styles failed to load. Please refresh in a minute.';
+        document.body.prepend(b);
+      });
     })();
   </script>
   <script>
@@ -56,7 +63,6 @@
   </script>
   
   <!-- ApexCharts -->
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <style>
     /* Theme Variables */
@@ -517,19 +523,12 @@
     <div>
       <!-- Header / Logo -->
       <div id="sidebarHeader" class="h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-700 gap-2">
-        <div class="brand-row relative flex items-center h-11 flex-1 min-w-0">
-          
-          <!-- Expanded State: Full Google Logo & Text -->
-          <div class="absolute left-0 flex flex-col items-start justify-center transition-all duration-300 [.sidebar-collapsed_&]:opacity-0 [.sidebar-collapsed_&]:-translate-x-4 [.sidebar-collapsed_&]:pointer-events-none">
-            <img src="https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg" alt="Google" class="h-8 mb-0.5 shrink-0">
-            <h1 class="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap tracking-tight leading-none pl-1">Case Tracker</h1>
+        <div class="brand-row flex items-center gap-2.5 flex-1 min-w-0">
+          <img src="https://www.gstatic.com/images/branding/product/2x/play_prism_64dp.png" alt="Play" class="nav-icon h-7 w-7 shrink-0">
+          <div class="nav-text flex flex-col min-w-0 leading-none">
+            <img src="https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg" alt="Google" class="h-6 mb-1 shrink-0">
+            <h1 class="text-[11px] font-medium text-gray-500 dark:text-gray-400 tracking-tight truncate">Case Tracker</h1>
           </div>
-
-          <!-- Collapsed State: Play Store Logo (Using official gstatic to bypass firewall) -->
-          <div class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center transition-all duration-300 opacity-0 scale-50 pointer-events-none [.sidebar-collapsed_&]:opacity-100 [.sidebar-collapsed_&]:scale-100 [.sidebar-collapsed_&]:pointer-events-auto">
-            <img src="https://www.gstatic.com/images/branding/product/2x/play_prism_64dp.png" alt="Play" class="h-7 w-7 shrink-0">
-          </div>
-
         </div>
         <div class="header-controls flex items-center gap-1 shrink-0">
           <button onclick="toggleSidebar()" title="Collapse/expand sidebar" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -552,6 +551,11 @@
           <span class="ml-4 text-sm whitespace-nowrap nav-text" id="mySubmissionsNavText">My Submissions</span>
         </button>
 
+        <button onclick="switchTab('caseLogView')" id="tab-caseLogView" title="Case Submission Log" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
+          <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">fact_check</span>
+          <span class="ml-4 text-sm whitespace-nowrap nav-text">Case Submission Log</span>
+        </button>
+
         <div id="managerOnlyTabs" class="hidden flex flex-col space-y-1 mt-6">
           <div class="px-6 mb-2 mt-4 nav-text">
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Management</span>
@@ -570,6 +574,11 @@
           <button onclick="switchTab('intervalView')" id="tab-intervalView" title="Interval View" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
             <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">view_timeline</span>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Interval View</span>
+          </button>
+
+          <button onclick="switchTab('expiringView')" id="tab-expiringView" title="Expired/Expiring Cases" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
+            <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">event_busy</span>
+            <span class="ml-4 text-sm whitespace-nowrap nav-text">Expired/Expiring Cases</span>
           </button>
         </div>
       </nav>
@@ -785,8 +794,9 @@
              <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Tracked Case IDs <span class="text-red-500">*</span></h3>
              <span id="caseIdDetectedBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">0 IDs detected</span>
           </div>
-          <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints()" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-theme focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent text-sm resize-y shadow-inner bg-theme-sidebar text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
+          <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints(); hideSubmitResult(); saveCaseIdsDraft();" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-theme focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent text-sm resize-y shadow-inner bg-theme-sidebar text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
           <div id="caseIdHints" class="mt-2 text-xs cell-muted min-h-[1rem]"></div>
+          <div id="submitResultPanel" class="hidden mt-4"></div>
         </div>
 
         <!-- Action Footer -->
@@ -845,7 +855,115 @@
       </div>
     </div>
 
-    <!-- VIEW 2: Manager Dashboard -->
+    <!-- VIEW: Case Submission Log -->
+    <div id="caseLogView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 bg-theme-canvas/50 dark:bg-gray-800/50 space-y-5">
+
+          <!-- Row 1: title + date navigation -->
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">fact_check</span>
+                Case Submission Log
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Every Case ID logged by anyone for the selected date. Flagged duplicates are highlighted.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="shiftCaseLogDate(-1)" title="Previous day" class="p-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+              <input type="date" id="caseLogDate" onchange="loadCaseLog()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <button type="button" onclick="shiftCaseLogDate(1)" title="Next day" class="p-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+            </div>
+          </div>
+
+          <!-- Row 2: filters -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="relative flex-1 min-w-[220px]">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none">search</span>
+              <input type="text" id="caseLogSearch" oninput="debounceCaseLogFilter()" placeholder="Search Case ID or agent" autocomplete="off" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+            </div>
+            <select id="caseLogType" onchange="applyCaseLogFilter()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[160px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="">All Case Types</option>
+              <option value="Regular Email (Take Next)">Regular (Take Next)</option>
+              <option value="Reopened Cases">Reopened Cases</option>
+              <option value="Telus Cases">Telus Cases</option>
+              <option value="Manual Assignment">Manual Assignment</option>
+              <option value="Cimba Cases">Cimba Cases</option>
+            </select>
+            <select id="caseLogHour" onchange="loadCaseLog()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[140px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="">All Intervals</option>
+              <option value="0:00">12:00 AM</option>
+              <option value="1:00">1:00 AM</option>
+              <option value="2:00">2:00 AM</option>
+              <option value="3:00">3:00 AM</option>
+              <option value="4:00">4:00 AM</option>
+              <option value="5:00">5:00 AM</option>
+              <option value="6:00">6:00 AM</option>
+              <option value="7:00">7:00 AM</option>
+              <option value="8:00">8:00 AM</option>
+              <option value="9:00">9:00 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="12:00">12:00 PM</option>
+              <option value="13:00">1:00 PM</option>
+              <option value="14:00">2:00 PM</option>
+              <option value="15:00">3:00 PM</option>
+              <option value="16:00">4:00 PM</option>
+              <option value="17:00">5:00 PM</option>
+              <option value="18:00">6:00 PM</option>
+              <option value="19:00">7:00 PM</option>
+              <option value="20:00">8:00 PM</option>
+              <option value="21:00">9:00 PM</option>
+              <option value="22:00">10:00 PM</option>
+              <option value="23:00">11:00 PM</option>
+            </select>
+            <label class="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-700 text-sm cell-muted cursor-pointer select-none whitespace-nowrap">
+              <input type="checkbox" id="caseLogFlaggedOnly" onchange="applyCaseLogFilter()" class="w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+              Flagged only
+            </label>
+            <select id="caseLogPageSize" onchange="setCaseLogPageSize(this.value)" class="p-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="25">25 / page</option>
+              <option value="50">50 / page</option>
+              <option value="100">100 / page</option>
+            </select>
+          </div>
+
+          <!-- Row 3: per-type summary + Case ID lookup -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div id="caseLogSummary" class="flex flex-wrap gap-2 text-xs"></div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="caseLookupInput" onkeydown="if(event.key==='Enter'){event.preventDefault();openCaseLookup();}" placeholder="Look up a Case ID (any date)" autocomplete="off" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm w-60 font-mono focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+              <button type="button" onclick="openCaseLookup()" class="bg-theme-primary text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:bg-theme-primary-hover transition">Look up</button>
+            </div>
+          </div>
+
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Case ID</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Case Type</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Timestamp</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Interval</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Agent</th>
+              </tr>
+            </thead>
+            <tbody id="caseLogTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
+              <tr><td colspan="5" class="p-8 text-center text-gray-400">Loading case log...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="caseLogPagination" class="hidden flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+          <span id="caseLogPageInfo" class="text-xs cell-muted"></span>
+          <div class="flex items-center gap-2">
+            <button onclick="caseLogPrevPage()" id="caseLogPrevBtn" class="text-xs font-medium px-3 py-1.5 rounded border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition">Prev</button>
+            <button onclick="caseLogNextPage()" id="caseLogNextBtn" class="text-xs font-medium px-3 py-1.5 rounded border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="dashboardView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
       
       <!-- Section 1: Audit Queue -->
@@ -1009,18 +1127,22 @@
 
           <!-- Check-In Area -->
           <div id="checkInArea" class="ml-auto flex items-center gap-2">
+             <button type="button" id="selectFlaggedBtn" onclick="selectFlaggedIntervalRows()" title="Check the boxes for every row still needing attention" class="hidden bg-white dark:bg-gray-700 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">flag</span> Select Flagged
+             </button>
+
              <!-- Bulk Actions Dropdown -->
-             <div class="relative group">
-                <button id="bulkActionsBtn" class="hidden bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-1.5">
+             <div class="relative">
+                <button id="bulkActionsBtn" onclick="toggleBulkActionsDropdown(event)" class="hidden bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-1.5">
                    <span class="material-symbols-outlined text-[16px]">format_list_bulleted</span> Bulk Actions <span class="material-symbols-outlined text-[14px]">expand_more</span>
                 </button>
-                <div class="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-theme-sm shadow-theme-lg border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                <div id="bulkActionsDropdown" class="hidden absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-theme-sm shadow-theme-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
                    <div class="py-1">
-                      <button onclick="handleBulkAction('Absent')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Absent'</button>
-                      <button onclick="handleBulkAction('Assigned - 7')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Assigned - 7'</button>
-                      <button onclick="handleBulkAction('Break - 3')" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Break - 3'</button>
+                      <button onclick="handleBulkAction('Absent'); closeBulkActionsDropdown();" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Absent'</button>
+                      <button onclick="handleBulkAction('Assigned - 7'); closeBulkActionsDropdown();" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Assigned - 7'</button>
+                      <button onclick="handleBulkAction('Break - 3'); closeBulkActionsDropdown();" class="w-full text-left px-4 py-2 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Set selected to 'Break - 3'</button>
                       <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                      <button onclick="handleBulkAction('Clear')" class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Clear selected overrides</button>
+                      <button onclick="handleBulkAction('Clear'); closeBulkActionsDropdown();" class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Clear selected overrides</button>
                    </div>
                 </div>
              </div>
@@ -1041,6 +1163,18 @@
              <span class="material-symbols-outlined text-[14px]">cloud_done</span>
              Status edits saved
           </span>
+        </div>
+
+        <!-- New Data Available Banner -->
+        <div id="intervalRefreshBanner" class="hidden px-6 py-3 border-b border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-900/20 flex items-center justify-between gap-3">
+          <span class="text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] animate-pulse">new_releases</span>
+            New submissions came in for this interval since you loaded it.
+          </span>
+          <button onclick="refreshIntervalFromBanner()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-sm transition flex items-center gap-1.5 shrink-0">
+            <span class="material-symbols-outlined text-[16px]">refresh</span>
+            Refresh Now
+          </button>
         </div>
 
         <!-- Interval Table (scrollable body, frozen header) -->
@@ -1066,6 +1200,130 @@
               <tr><td colspan="9" class="p-8 text-center text-gray-400">Select a date and time to load the interval.</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: Expired/Expiring Cases -->
+    <div id="expiringView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
+      <!-- Pool Board -->
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden">
+        <div class="p-5 flex flex-wrap items-center justify-between gap-3">
+          <div class="min-w-0">
+            <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+              <span class="material-symbols-outlined text-theme-primary">stacked_bar_chart</span> Pool Board
+            </h3>
+            <p id="expBoardSub" class="text-xs cell-muted mt-1">Loading...</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="expBoardWindow" onchange="renderPoolBoard()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="today" selected>Today</option>
+              <option value="24h">Last 24 hours</option>
+              <option value="all">Last 3 days</option>
+            </select>
+            <select id="expBoardSort" onchange="renderPoolBoard()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="urgency" selected>Sort: Most urgent</option>
+              <option value="open">Sort: Most open</option>
+              <option value="handled">Sort: Lowest handled %</option>
+              <option value="name">Sort: Pool name</option>
+            </select>
+            <button type="button" onclick="toggleExpBoard()" title="Show/hide board" class="p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center">
+              <span id="expBoardChevron" class="material-symbols-outlined text-[18px]">expand_less</span>
+            </button>
+          </div>
+        </div>
+        <div id="expBoardContent" class="border-t border-gray-100 dark:border-gray-700">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-2 text-[11px] cell-muted">
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-red-500"></span>Expired</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-orange-400"></span>&lt;15h</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber-300"></span>&lt;24h</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>Worked</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-gray-300 dark:bg-gray-500"></span>Cleared</span>
+            <span class="ml-auto cell-faint">Click a pool to filter the list below</span>
+          </div>
+          <div class="grid items-center gap-3 px-5 py-2 text-[10px] uppercase tracking-wider text-gray-400 border-y border-gray-100 dark:border-gray-700" style="grid-template-columns:110px 1fr repeat(5,58px) 70px">
+            <span>Pool</span><span>Volume</span>
+            <span class="text-center">Expired</span><span class="text-center">&lt;15h</span><span class="text-center">&lt;24h</span>
+            <span class="text-center">Worked</span><span class="text-center">Cleared</span><span class="text-center">Handled</span>
+          </div>
+          <div id="expBoardBody" class="max-h-[440px] overflow-y-auto"></div>
+        </div>
+      </div>
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
+        <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 bg-theme-canvas/50 dark:bg-gray-800/50 space-y-5">
+
+          <!-- Row 1: title + extraction info + actions -->
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-500 dark:text-red-400">event_busy</span>
+                Expired/Expiring Cases
+              </h2>
+              <p id="expMetaLine" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Loading...</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="loadExpiringCases()" title="Reload" class="p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><span class="material-symbols-outlined text-[18px]">refresh</span></button>
+              <button type="button" id="expGrabBtn" onclick="grabExpiringNow()" class="bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                Grab now
+              </button>
+            </div>
+          </div>
+
+          <!-- Row 2: filters -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="relative flex-1 min-w-[220px]">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none">search</span>
+              <input type="text" id="expSearch" oninput="applyExpiringFilter()" placeholder="Search Case ID" autocomplete="off" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+            </div>
+            <select id="expPool" onchange="applyExpiringFilter()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[140px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="">All Pools</option>
+            </select>
+            <select id="expType" onchange="applyExpiringFilter()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[160px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="">All SLA Types</option>
+              <option value="Expired">Expired</option>
+              <option value="Expiring (<15h)">Expiring (&lt;15h)</option>
+              <option value="Expiring (<24h)">Expiring (&lt;24h)</option>
+            </select>
+            <select id="expState" onchange="applyExpiringFilter()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[120px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              <option value="Open" selected>Open</option>
+              <option value="Worked">Worked</option>
+              <option value="Cleared">Cleared</option>
+              <option value="All">All statuses</option>
+            </select>
+          </div>
+
+          <!-- Row 3: summary chips + Case Connect links -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div id="expSummary" class="flex flex-wrap gap-2 text-xs"></div>
+            <div id="expAssignArea" class="flex flex-wrap items-center gap-2"></div>
+          </div>
+
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Case ID</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Case Status</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Pool</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">SLA (Type)</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">First Seen</th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Status</th>
+              </tr>
+            </thead>
+            <tbody id="expTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
+              <tr><td colspan="6" class="p-8 text-center text-gray-400">Loading cases...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="expPagination" class="hidden flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+          <span id="expPageInfo" class="text-xs cell-muted"></span>
+          <div class="flex items-center gap-2">
+            <button onclick="expPrevPage()" id="expPrevBtn" class="text-xs font-medium px-3 py-1.5 rounded border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition">Prev</button>
+            <button onclick="expNextPage()" id="expNextBtn" class="text-xs font-medium px-3 py-1.5 rounded border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition">Next</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1102,7 +1360,111 @@
         </div>
       </div>
 
-      <!-- Row 1: Executive KPI Cards -->
+              <!-- Analytics mode toggle -->
+        <div id="analyticsModeBar" class="flex items-center gap-2">
+          <button type="button" id="analyticsModeProd" onclick="setAnalyticsMode('production')" class="px-4 py-1.5 rounded-full text-sm font-medium border transition bg-theme-primary text-white border-theme-primary">Production</button>
+          <button type="button" id="analyticsModeExp" onclick="setAnalyticsMode('expiring')" class="px-4 py-1.5 rounded-full text-sm font-medium border transition bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Expired/Expiring Cases</button>
+        </div>
+
+        <!-- Expired/Expiring analytics -->
+        <div id="expAnalyticsSection" class="hidden space-y-6">
+
+          <!-- Live snapshot + actions -->
+          <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-5 flex flex-wrap items-center justify-between gap-3">
+            <div id="expLiveStrip" class="flex flex-wrap items-center gap-2 text-xs"></div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="copyExpiringSummary()" class="flex items-center gap-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <span class="material-symbols-outlined text-[18px]">content_copy</span> Copy summary
+              </button>
+              <button type="button" onclick="switchTab('expiringView')" class="flex items-center gap-1.5 bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition">
+                <span class="material-symbols-outlined text-[18px]">event_busy</span> Open case list
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI cards -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-google-green">verified</span> Saved Rate</span>
+              <span id="expKpiSaved" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+              <span id="expKpiSavedSub" class="text-xs cell-muted mt-1"></span>
+            </div>
+            <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-theme-primary">inbox</span> New Cases</span>
+              <span id="expKpiNew" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+              <span id="expKpiNewSub" class="text-xs cell-muted mt-1"></span>
+            </div>
+            <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-google-yellow">timer</span> Median Time to Clear</span>
+              <span id="expKpiClear" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+              <span id="expKpiClearSub" class="text-xs cell-muted mt-1"></span>
+            </div>
+            <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-purple-500">fact_check</span> Agent-Logged</span>
+              <span id="expKpiCoverage" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+              <span class="text-xs cell-muted mt-1">of resolved cases were logged by an agent</span>
+            </div>
+          </div>
+
+          <!-- Outcomes + trend -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Outcomes</h3>
+              <div id="expOutcomeChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+            </div>
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Cases by First Seen</h3>
+              <div id="expTrendChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+            </div>
+          </div>
+
+          <!-- Pool table -->
+          <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden">
+            <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200">Pools</h3>
+              <p class="text-xs cell-muted mt-1">Sorted by misses. Saved % = cleared before it expired, out of cases that arrived with time left.</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 0)"><div class="flex items-center gap-1">Pool <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 1, true)"><div class="flex items-center justify-center gap-1">New <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 2, true)"><div class="flex items-center justify-center gap-1">Saved <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 3, true)"><div class="flex items-center justify-center gap-1">Missed <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 4, true)"><div class="flex items-center justify-center gap-1">Arrived Expired <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 5, true)"><div class="flex items-center justify-center gap-1">Open Now <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Saved % <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Median Clear <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                  </tr>
+                </thead>
+                <tbody id="expPoolTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
+                  <tr><td colspan="8" class="p-8 text-center text-gray-400">Loading pools...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Misses by hour + agents -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-1">Misses by Hour</h3>
+              <p class="text-xs cell-muted mb-4">Hour of day when a case was first seen expired after arriving with time left.</p>
+              <div id="expHourChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+            </div>
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-1 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#fbbc04]">social_leaderboard</span> Top Agents on Expiring Cases
+              </h3>
+              <p class="text-xs cell-muted mb-4">Cases an agent logged in Submit Cases that were on this list.</p>
+              <div id="expAgentBoard" class="space-y-4 max-h-[320px] overflow-y-auto pr-2">
+                <div class="text-center text-gray-400 py-8">Loading...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 1: Executive KPI Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
@@ -1229,6 +1591,25 @@
   <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded shadow-lg transition-opacity duration-300 opacity-0 hidden flex items-center gap-3 z-50">
     <span id="toastIcon" class="material-symbols-outlined">info</span>
     <span id="toastMessage" class="text-sm">Message</span>
+  </div>
+
+  <!-- Case ID Lookup Modal -->
+  <div id="caseLookupModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeCaseLookup()"></div>
+    <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
+          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">history</span>
+          Case ID History
+        </h2>
+        <button onclick="closeCaseLookup()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="p-5 overflow-y-auto">
+        <div id="caseLookupBody"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Check-In Modal -->
@@ -1377,6 +1758,11 @@
         return `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="case-link hover:underline whitespace-nowrap">${cleanId}</a>`;
       }).join(', ');
     }
+    function ldapLink(ldap) {
+      if (!ldap || /^(unassigned|unknown)$/i.test(String(ldap).trim())) return escAttr(ldap || '');
+      const href = 'https://cases.connect.corp.google.com/#/queues/org/gup/assignee%3A%20' + encodeURIComponent(ldap) + '%20state%3Aassigned';
+      return `<a href="${href}" target="_blank" class="case-link hover:underline">${escAttr(ldap)}</a>`;
+    }
     // ----------------------------------------------
 
 function refreshAccess() {
@@ -1412,11 +1798,26 @@ function refreshAccess() {
       dropdown.classList.toggle('hidden');
     }
 
-    // Close dropdown when clicking outside
+    function toggleBulkActionsDropdown(e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById('bulkActionsDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function closeBulkActionsDropdown() {
+      const dropdown = document.getElementById('bulkActionsDropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+    }
+
+    // Close dropdowns when clicking outside
     document.addEventListener('click', function(event) {
       const dropdown = document.getElementById('paletteDropdown');
       if (dropdown && !dropdown.classList.contains('hidden')) {
         dropdown.classList.add('hidden');
+      }
+      const bulkDropdown = document.getElementById('bulkActionsDropdown');
+      if (bulkDropdown && !bulkDropdown.classList.contains('hidden')) {
+        bulkDropdown.classList.add('hidden');
       }
     });
 
@@ -1459,6 +1860,7 @@ function refreshAccess() {
       if (donutChartInstance) donutChartInstance.updateOptions({ theme: { mode: newTheme } });
       if (barChartInstance) barChartInstance.updateOptions({ theme: { mode: newTheme } });
       if (otTimelineChartInstance) otTimelineChartInstance.updateOptions({ theme: { mode: newTheme } });
+      if (analyticsMode === 'expiring' && expAnalyticsData) renderExpiringAnalytics(expAnalyticsData, !!window.ApexCharts);
     }
 
     function initTheme() {
@@ -1536,10 +1938,35 @@ function refreshAccess() {
       }
     }
 
+    // --- CASE ID DRAFT RECOVERY ---
+    function saveCaseIdsDraft() {
+      const el = document.getElementById('caseIds');
+      if (!el) return;
+      if (el.value.trim() === '') {
+        localStorage.removeItem('caseIdsDraft');
+      } else {
+        localStorage.setItem('caseIdsDraft', el.value);
+      }
+    }
+
+    function restoreCaseIdsDraft() {
+      const el = document.getElementById('caseIds');
+      const draft = localStorage.getItem('caseIdsDraft');
+      if (el && draft && el.value.trim() === '') {
+        el.value = draft;
+        showToast("Restored an unsent Case ID draft.", "warning");
+      }
+    }
+
+    function clearCaseIdsDraft() {
+      localStorage.removeItem('caseIdsDraft');
+    }
+
     // 1. App Initialization (Run on load)
     document.addEventListener("DOMContentLoaded", function() {
       // Initialize Theme
       initTheme();
+      initSidebar();
 
       // Call backend to get role and LDAP
       google.script.run
@@ -1549,6 +1976,7 @@ function refreshAccess() {
 
       // Load user preferences from local storage
       loadSelections();
+      restoreCaseIdsDraft();
       loadSharedDate();
       updateCaseIdHints();
 
@@ -1558,6 +1986,10 @@ function refreshAccess() {
       // Last-submitted note ticker
       updateLastSubmittedNote();
       setInterval(updateLastSubmittedNote, 30000);
+
+      // Restore saved Case Log page size preference
+      const caseLogPageSizeEl = document.getElementById('caseLogPageSize');
+      if (caseLogPageSizeEl) caseLogPageSizeEl.value = String(CASE_LOG_PAGE_SIZE);
     });
 
     // --- POC SCHEDULE LOGIC ---
@@ -1616,7 +2048,7 @@ function refreshAccess() {
               <div class="flex items-center gap-2.5 min-w-0 flex-1 bg-theme-accent-muted/40 dark:bg-theme-accent-muted/15 rounded-theme-sm px-2 py-1.5">
                 ${getMomaImgClass(pocObj.poc, 'w-9 h-9 rounded-full border-2 border-theme-primary shadow-sm shrink-0', 80)}
                 <div class="min-w-0 leading-tight">
-                  <div class="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">${pocObj.poc}</div>
+                  <div class="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">${ldapLink(pocObj.poc)}</div>
                   ${pocObj.site ? `<div class="text-[10px] font-semibold text-theme-primary/80 dark:text-theme-primary uppercase tracking-wide truncate">${pocObj.site}</div>` : ''}
                 </div>
               </div>
@@ -1633,7 +2065,7 @@ function refreshAccess() {
               <div class="flex items-center gap-2 min-w-0 flex-1">
                 ${getMomaImgClass(pocObj.poc, 'w-6 h-6 rounded-full grayscale opacity-60 shrink-0', 50)}
                 <div class="min-w-0 leading-tight">
-                  <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${pocObj.poc}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${ldapLink(pocObj.poc)}</div>
                   ${pocObj.site ? `<div class="text-[9px] text-gray-400 dark:text-gray-500 uppercase tracking-wide truncate">${pocObj.site}</div>` : ''}
                 </div>
               </div>
@@ -1743,7 +2175,7 @@ function refreshAccess() {
       
       // Set default date for my submissions
       if(!document.getElementById('mySubmissionsDate').value) {
-        document.getElementById('mySubmissionsDate').valueAsDate = new Date();
+        document.getElementById('mySubmissionsDate').value = toDateStringFastClient(new Date());
       }
 
       if (!localStorage.getItem('hasSeenTutorial')) {
@@ -1757,6 +2189,7 @@ function refreshAccess() {
       if (!sourceDate) return;
 
       localStorage.setItem('sharedManagerDate', sourceDate);
+      localStorage.setItem('sharedManagerDateSetOn', toDateStringFastClient(new Date()));
 
       // Sync to the other input
       const otherElementId = sourceElementId === 'intervalDate' ? 'mySubmissionsDate' : 'intervalDate';
@@ -1773,14 +2206,11 @@ function refreshAccess() {
       const intervalDateEl = document.getElementById('intervalDate');
       const mySubmissionsDateEl = document.getElementById('mySubmissionsDate');
 
-      if (savedDate) {
-        if (intervalDateEl) intervalDateEl.value = savedDate;
-        if (mySubmissionsDateEl) mySubmissionsDateEl.value = savedDate;
-      } else {
-        // Default to today if nothing saved
-        if (intervalDateEl) intervalDateEl.valueAsDate = now;
-        if (mySubmissionsDateEl) mySubmissionsDateEl.valueAsDate = now;
-      }
+      const todayStr = toDateStringFastClient(now);
+      const savedOn = localStorage.getItem('sharedManagerDateSetOn');
+      const dateToUse = (savedDate && savedOn === todayStr) ? savedDate : todayStr;
+      if (intervalDateEl) intervalDateEl.value = dateToUse;
+      if (mySubmissionsDateEl) mySubmissionsDateEl.value = dateToUse;
 
       // Auto-set the interval hour to current hour once on load
       const intervalHourEl = document.getElementById('intervalHour');
@@ -1814,7 +2244,7 @@ function refreshAccess() {
 
     // 3. Tab Switching Logic
     function switchTab(viewId) {
-      ['submissionView', 'mySubmissionsView', 'dashboardView', 'intervalView', 'analyticsView', 'profileView', 'pocPlannerView'].forEach(id => {
+      ['submissionView', 'mySubmissionsView', 'caseLogView', 'dashboardView', 'intervalView', 'expiringView', 'analyticsView', 'profileView', 'pocPlannerView'].forEach(id => {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
@@ -1833,9 +2263,11 @@ function refreshAccess() {
       
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
+      if(viewId === 'caseLogView') loadCaseLog();
       if(viewId === 'intervalView') loadIntervalData();
       if(viewId === 'analyticsView') loadAnalytics();
       if(viewId === 'profileView') loadMyProfile();
+      if(viewId === 'expiringView') loadExpiringCases();
     }
 
     // 4. Form Submission Logic
@@ -1857,6 +2289,8 @@ function refreshAccess() {
         caseIdsTextarea.required = false;
         caseIdsTextarea.classList.add('bg-gray-100', 'cursor-not-allowed');
         caseIdsTextarea.value = '';
+        updateCaseIdHints();
+        clearCaseIdsDraft();
       } else {
         caseIdsTextarea.disabled = false;
         caseIdsTextarea.required = isNormalProduction;
@@ -1953,10 +2387,12 @@ function refreshAccess() {
     }
 
     function clearForm() {
+      hideSubmitResult();
       document.getElementById('trackerForm').reset();
       handleShiftTypeChange();
       handleActivityChange();
       updateCaseIdHints();
+      clearCaseIdsDraft();
     }  
 
     function handleFormSubmit(event) {
@@ -2019,7 +2455,9 @@ function refreshAccess() {
             }
             document.getElementById('caseIds').value = '';
             updateCaseIdHints();
+            clearCaseIdsDraft();
             localStorage.setItem('lastSubmitInfo', JSON.stringify({ ts: Date.now(), interval: currentIntervalLabel() }));
+            renderSubmitResult(response);
             updateLastSubmittedNote();
           } else {
             showToast(response.error, 'error');
@@ -2030,6 +2468,30 @@ function refreshAccess() {
           showToast("Network error. Please try again.", 'error');
         })
         .submitCases(payload);
+    }
+
+    function hideSubmitResult() {
+      const el = document.getElementById('submitResultPanel');
+      if (el) { el.classList.add('hidden'); el.innerHTML = ''; }
+    }
+
+    function renderSubmitResult(res) {
+      const el = document.getElementById('submitResultPanel');
+      if (!el) return;
+      const flagged = (res && res.flaggedDetails) || [];
+      if (flagged.length === 0) { hideSubmitResult(); return; }
+      el.innerHTML = `
+        <div class="border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 rounded-theme-sm p-4">
+          <div class="text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center gap-2 mb-2">
+            <span class="material-symbols-outlined text-[18px]">warning</span>
+            ${flagged.length} ID(s) flagged for manager review
+          </div>
+          <ul class="text-xs space-y-1 cell-muted">
+            ${flagged.map(f => `<li><span class="font-mono cell-strong">${escAttr(f.id)}</span> &mdash; ${escAttr(f.reason)}${f.firstBy ? ' (first logged by ' + escAttr(f.firstBy) + (f.firstOn ? ' on ' + escAttr(f.firstOn) : '') + ')' : ''}</li>`).join('')}
+          </ul>
+          <p class="text-xs cell-muted mt-2">The review result shows up next to the submission under My Submissions.</p>
+        </div>`;
+      el.classList.remove('hidden');
     }
 
     function resetButton(btn, spinner) {
@@ -2080,6 +2542,77 @@ function refreshAccess() {
         }, 300);
       }, holdMs);
     }
+
+    // --- AGENT AUTOCOMPLETE ---
+    function closeAllAgentDropdowns() {
+      ['targetAgentLdapDropdown', 'profileTargetLdapDropdown'].forEach(id => {
+        const dd = document.getElementById(id);
+        if (dd) { dd.classList.add('hidden'); dd.dataset.active = '-1'; }
+      });
+    }
+
+    function handleAgentAutocompleteInput(input, dropdownId) {
+      const dd = document.getElementById(dropdownId);
+      if (!dd) return;
+      const q = input.value.trim().toLowerCase();
+      const matches = (window.allAgentsCache || []).filter(l => !q || l.indexOf(q) !== -1).slice(0, 40);
+      if (matches.length === 0) { dd.classList.add('hidden'); dd.innerHTML = ''; return; }
+      dd.innerHTML = matches.map(l =>
+        '<button type="button" data-ldap="' + escAttr(l) + '" class="ac-item block w-full text-left px-3 py-2 text-sm cell-strong hover:bg-theme-accent-muted transition">' + escAttr(l) + '</button>'
+      ).join('');
+      dd.dataset.active = '-1';
+      dd.classList.remove('hidden');
+      dd.querySelectorAll('.ac-item').forEach(btn => {
+        btn.addEventListener('mousedown', function(ev) {
+          ev.preventDefault();
+          input.value = btn.dataset.ldap;
+          dd.classList.add('hidden');
+        });
+      });
+    }
+
+    function handleAgentAutocompleteKeydown(e, input, dropdownId, onEnter) {
+      const dd = document.getElementById(dropdownId);
+      const items = dd ? Array.from(dd.querySelectorAll('.ac-item')) : [];
+      const open = dd && !dd.classList.contains('hidden') && items.length > 0;
+      let idx = dd ? parseInt(dd.dataset.active || '-1', 10) : -1;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!open) { handleAgentAutocompleteInput(input, dropdownId); return; }
+        e.preventDefault();
+        idx = e.key === 'ArrowDown' ? Math.min(idx + 1, items.length - 1) : Math.max(idx - 1, 0);
+        items.forEach((it, i) => it.classList.toggle('bg-theme-accent-muted', i === idx));
+        dd.dataset.active = String(idx);
+        items[idx].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (open && idx >= 0) input.value = items[idx].dataset.ldap;
+        if (dd) dd.classList.add('hidden');
+        const fn = onEnter || (input.id === 'targetAgentLdap' ? loadMySubmissions : null);
+        if (fn) fn();
+      } else if (e.key === 'Escape') {
+        if (dd) dd.classList.add('hidden');
+      }
+    }
+
+    document.addEventListener('click', function(ev) {
+      if (!ev.target.closest('#managerLdapSearch, #profileManagerBar')) closeAllAgentDropdowns();
+    });
+
+    // --- GLOBAL ESCAPE KEY: close whichever modal is open ---
+    document.addEventListener('keydown', function(ev) {
+      if (ev.key !== 'Escape') return;
+      const modals = [
+        { id: 'caseLookupModal', close: closeCaseLookup },
+        { id: 'checkInModal', close: closeCheckInModal },
+        { id: 'helpModal', close: closeHelpModal },
+        { id: 'pocGuideModal', close: closePocGuideModal }
+      ];
+      modals.forEach(function(m) {
+        const el = document.getElementById(m.id);
+        if (el && !el.classList.contains('hidden')) m.close();
+      });
+    });
 
     // --- MY PROFILE LOGIC ---
     let currentCalendarDate = new Date();
@@ -2473,14 +3006,17 @@ function refreshAccess() {
       { title: 'Case ID shortcuts', body: 'Press Ctrl+Enter (Cmd+Enter on Mac) inside the Case ID box to submit without reaching for the mouse. The line under the box shows a live count of valid IDs, repeats, and invalid formats as you paste.' },
       { title: 'Break/Lunch tracking', body: 'If you track cases during Break/Lunch, you need at least 3 Case IDs logged for that interval.' },
       { title: 'My Submissions', body: 'Shows everything you\u2019ve logged for a selected date, grouped by interval \u2014 use it to double check before your shift ends.' },
+      { title: 'Case Submission Log', body: 'Every Case ID logged by anyone today, with duplicates flagged in red. Filter by case type, interval, or search a specific ID \u2014 click the history icon next to any ID (or use the lookup box) to see every time it\u2019s ever been logged, not just today.' },
       { title: 'My Profile', body: 'Click your name at the bottom of the sidebar to see your role details and a personal breakdown of your logged cases \u2014 today, this week, this month.' }
     ];
 
     const HELP_SECTIONS_MANAGER = [
       { title: 'Audit Queue', body: 'Duplicate submissions land here for review. Approve counts them as valid; Reject marks them as duplicate/fraud and can\u2019t be undone from this screen. Select multiple rows to act in bulk.' },
-      { title: 'Interval View', body: 'Shows who\u2019s scheduled for an hour, their computed status (Assigned-7, SKIP SOS/EOS, Break-3, etc.), and lets you correct a status manually \u2014 corrections are saved on your device only.' },
+      { title: 'Interval View', body: 'Shows who\u2019s scheduled for an hour, their computed status (Assigned-7, SKIP SOS/EOS, Break-3, etc.), and lets you correct a status manually \u2014 corrections are saved to the sheet and shared with all managers.' },
       { title: 'Performance Analytics', body: 'Executive KPIs, an hourly productivity heatmap, workflow/site breakdowns, and leaderboards for a selected date range.' },
-      { title: 'Agent Submissions', body: 'Same as My Submissions but lets you search any agent by LDAP to see their logged cases for a date.' }
+      { title: 'Agent Submissions', body: 'Same as My Submissions but lets you search any agent by LDAP to see their logged cases for a date.' },
+      { title: 'Expired/Expiring Cases', body: 'A live list of cases that are about to expire or already expired, pulled from Case_Mon every 30 minutes. The Pool Board shows where to focus; click a pool to filter the list. "Assign via CaseConnect" opens the open cases in view in Case Connect (up to 100 per link). A case shows as Worked once an agent logs it in Submit Cases, and as Cleared once it leaves the source list.' },
+      { title: 'Live POC & POC Planner', body: 'The sidebar always shows who\u2019s covering POC right now and the rest of today\u2019s rotation. Managers get a \u201cLaunch POC Planner\u201d shortcut below it to open the scheduling tool without leaving the tracker.' }
     ];
 
     function buildHelpAccordion(isManager) {
@@ -2614,6 +3150,7 @@ function refreshAccess() {
         { tab: 'submissionView', selector: '#tab-submissionView', title: 'Submit Cases', text: 'This is where you log your Case IDs each interval.' },
         { tab: 'submissionView', selector: '#caseIds', title: 'Tracked Case IDs', text: 'Paste IDs separated by commas or new lines, e.g. 1-12345678. Ctrl+Enter submits directly from here.' },
         { tab: 'mySubmissionsView', selector: '#tab-mySubmissionsView', title: isManager ? 'Agent Submissions' : 'My Submissions', text: isManager ? 'Search any agent by LDAP to review what they\u2019ve logged for a date.' : 'Review everything you\u2019ve logged for a selected date.' },
+        { tab: 'caseLogView', selector: '#tab-caseLogView', title: 'Case Submission Log', text: 'See every Case ID logged by anyone today, flagged duplicates included, and look up an ID\u2019s full history any time.' },
         { tab: null, selector: '#identityChip', title: 'Your Profile', text: 'Click your name any time to see your role details and a personal breakdown of your logged cases.' }
       ];
       if (isManager) {
@@ -2621,6 +3158,8 @@ function refreshAccess() {
         steps.push({ tab: 'dashboardView', selector: '#tab-dashboardView', title: 'Manager Dashboard', text: 'Review flagged duplicate submissions and today\u2019s live per-agent metrics.' });
         steps.push({ tab: 'intervalView', selector: '#tab-intervalView', title: 'Interval View', text: 'See who\u2019s scheduled this hour and their computed status. You can correct a status if needed.' });
       }
+      if (isManager) steps.push({ tab: 'expiringView', selector: '#tab-expiringView', title: 'Expired/Expiring Cases', text: 'Live list of expired and expiring cases, a Pool Board to see where to focus, and a button that opens them in Case Connect.' });
+      if (isManager) steps.push({ tab: null, selector: '#pocPlannerBtn', title: 'POC Planner', text: 'Jump straight to the Email POC Planner from the sidebar whenever the schedule needs adjusting.' });
       steps.push({ tab: null, selector: null, title: 'That\u2019s it!', text: 'Reopen this tour any time from the Help (?) icon at the top of the sidebar.' });
       return steps;
     }
@@ -2750,7 +3289,7 @@ function refreshAccess() {
               <div class="flex items-center gap-3">
                 ${getMomaImgClass(a.agent, 'w-8 h-8 rounded-full border border-gray-200 object-cover', 80)}
                 <div class="flex flex-col">
-                  <span class="font-medium cell-strong">${a.agent}</span>
+                  <span class="font-medium cell-strong">${ldapLink(a.agent)}</span>
                   <span class="text-[10px] cell-muted uppercase">${a.site}</span>
                 </div>
               </div>
@@ -2766,7 +3305,7 @@ function refreshAccess() {
                 ${formatCaseIdsAsLinks(a.flaggedIds)}
               </div>
             </td>
-            <td class="p-4 text-xs cell-muted">${a.reason}</td>
+            <td class="p-4 text-xs ${String(a.reason).includes('minimum unmet') ? 'text-red-600 dark:text-red-400 font-medium' : 'cell-muted'}">${a.reason}</td>
             <td class="p-4 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button onclick="handleAudit(${a.row}, ${a.rawRowRef}, 'Approve')" class="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded transition" title="Approve">
@@ -2791,7 +3330,7 @@ function refreshAccess() {
               <div class="flex items-center gap-3">
                 ${getMomaImgClass(m.agent, 'w-8 h-8 rounded-full border border-gray-200 object-cover', 80)}
                 <div class="flex flex-col">
-                  <span class="font-medium cell-strong">${m.agent}</span>
+                  <span class="font-medium cell-strong">${ldapLink(m.agent)}</span>
                   <span class="text-[10px] cell-muted uppercase">${m.site}</span>
                 </div>
               </div>
@@ -2859,6 +3398,16 @@ function refreshAccess() {
         .getMySubmissions(formattedDate, targetLdap);
     }
 
+    function auditBadgeHtml(sub) {
+      if (!sub || !sub.auditStatus) return '';
+      const styles = {
+        Pending: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+        Approved: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400',
+        Rejected: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400'
+      };
+      return '<div class="mt-1"><span class="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ' + (styles[sub.auditStatus] || '') + '" title="' + escAttr(sub.notes || '') + '">' + escAttr(sub.auditStatus) + '</span></div>';
+    }
+
     function renderMySubmissions(data) {
       const tbody = document.getElementById('mySubmissionsTableBody');
       try {
@@ -2873,12 +3422,13 @@ function refreshAccess() {
           const caseType = sub && sub.caseType != null ? sub.caseType : '';
           const validCount = sub && sub.validCount != null ? sub.validCount : 0;
           const caseIds = sub && sub.caseIds != null ? sub.caseIds : '';
+          const breakLunchShort = activity === 'Break/Lunch' && validCount < 3;
           return `
-        <tr class="row-hover transition">
+        <tr class="row-hover transition ${breakLunchShort ? 'bg-amber-50/40 dark:bg-amber-900/10' : ''}">
           <td class="p-4 whitespace-nowrap cell-strong">${escAttr(interval)}</td>
-          <td class="p-4 cell-muted">${escAttr(activity)}</td>
+          <td class="p-4 cell-muted">${escAttr(activity)}${breakLunchShort ? ' <span class="material-symbols-outlined text-[14px] text-amber-500 align-middle" title="Below the 3-case minimum for Break/Lunch">warning</span>' : ''}</td>
           <td class="p-4 cell-muted">${escAttr(caseType)}</td>
-          <td class="p-4 text-center font-medium ${validCount > 0 ? 'text-green-600 dark:text-green-400' : 'cell-faint'}">${validCount}</td>
+          <td class="p-4 text-center font-medium ${validCount > 0 ? 'text-green-600 dark:text-green-400' : 'cell-faint'}">${validCount}${auditBadgeHtml(sub)}</td>
           <td class="p-4 align-top">
              <div class="font-mono text-xs chip-box rounded p-2 flex flex-wrap gap-2 leading-relaxed inline-flex">
                ${formatCaseIdsAsLinks(caseIds)}
@@ -2890,6 +3440,190 @@ function refreshAccess() {
       } catch (e) {
         tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-400">Render error: ' + escAttr(e.message) + '</td></tr>';
       }
+    }
+
+    // --- CASE SUBMISSION LOG (global) ---
+    let caseLogAllRows = [];
+    let caseLogPage = 0;
+    let CASE_LOG_PAGE_SIZE = parseInt(localStorage.getItem('caseLogPageSize') || '25', 10);
+
+    function setCaseLogPageSize(val) {
+      CASE_LOG_PAGE_SIZE = parseInt(val, 10) || 25;
+      localStorage.setItem('caseLogPageSize', String(CASE_LOG_PAGE_SIZE));
+      caseLogPage = 0;
+      renderCaseLogPage();
+    }
+
+    function loadCaseLog() {
+      const dateEl = document.getElementById('caseLogDate');
+      if (!dateEl.value) dateEl.value = toDateStringFastClient(new Date());
+      const dateVal = dateEl.value;
+      const hourVal = document.getElementById('caseLogHour').value;
+
+      const [year, month, day] = dateVal.split('-');
+      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+
+      document.getElementById('caseLogTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading case log...</td></tr>';
+      document.getElementById('caseLogPagination').classList.add('hidden');
+
+      google.script.run
+        .withSuccessHandler(renderCaseLog)
+        .withFailureHandler(err => {
+          document.getElementById('caseLogTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-400">Failed to load case log.</td></tr>';
+          showToast("Failed to load the case submission log.", 'error');
+        })
+        .getGlobalCaseLog(formattedDate, hourVal);
+    }
+
+    let caseLogSourceRows = [];
+
+    function renderCaseLog(rows) {
+      caseLogSourceRows = rows || [];
+      applyCaseLogFilter();
+    }
+
+    function applyCaseLogFilter() {
+      const type = document.getElementById('caseLogType').value;
+      const q = document.getElementById('caseLogSearch').value.trim().toLowerCase();
+      const flaggedOnly = document.getElementById('caseLogFlaggedOnly').checked;
+      const base = caseLogSourceRows.filter(r =>
+        (!flaggedOnly || r.flagged) &&
+        (!q || String(r.caseId).toLowerCase().includes(q) || String(r.agent).toLowerCase().includes(q))
+      );
+      renderCaseLogSummary(base, type);
+      caseLogAllRows = type ? base.filter(r => r.caseType === type) : base;
+      caseLogPage = 0;
+      renderCaseLogPage();
+    }
+
+    function renderCaseLogPage() {
+      const tbody = document.getElementById('caseLogTableBody');
+      const pagination = document.getElementById('caseLogPagination');
+
+      if (caseLogAllRows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No case IDs logged for this selection.</td></tr>';
+        pagination.classList.add('hidden');
+        return;
+      }
+
+      const totalPages = Math.ceil(caseLogAllRows.length / CASE_LOG_PAGE_SIZE);
+      caseLogPage = Math.max(0, Math.min(caseLogPage, totalPages - 1));
+      const start = caseLogPage * CASE_LOG_PAGE_SIZE;
+      const pageRows = caseLogAllRows.slice(start, start + CASE_LOG_PAGE_SIZE);
+
+      tbody.innerHTML = pageRows.map(r => `
+        <tr class="row-hover transition ${r.flagged ? 'bg-red-50/50 dark:bg-red-900/15' : ''}">
+          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId)}${r.flagged ? ' <span class="material-symbols-outlined text-[14px] text-red-500 align-middle" title="Flagged as a duplicate">error</span>' : ''} <button type="button" onclick="openCaseLookup('${escAttr(r.caseId)}')" title="See every time this ID was logged" class="align-middle text-gray-400 hover:text-theme-primary transition"><span class="material-symbols-outlined text-[14px]">history</span></button></td>
+          <td class="p-4 cell-muted">${escAttr(r.caseType)}</td>
+          <td class="p-4 cell-muted whitespace-nowrap">${escAttr(r.timestamp)}</td>
+          <td class="p-4 cell-muted whitespace-nowrap">${escAttr(r.interval)}</td>
+          <td class="p-4">${ldapLink(r.agent)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('caseLogPageInfo').textContent =
+        `Showing ${start + 1}-${Math.min(start + CASE_LOG_PAGE_SIZE, caseLogAllRows.length)} of ${caseLogAllRows.length}`;
+      document.getElementById('caseLogPrevBtn').disabled = caseLogPage === 0;
+      document.getElementById('caseLogNextBtn').disabled = caseLogPage >= totalPages - 1;
+      pagination.classList.remove('hidden');
+    }
+
+    let caseLogSearchTimer = null;
+    function debounceCaseLogFilter() {
+      clearTimeout(caseLogSearchTimer);
+      caseLogSearchTimer = setTimeout(applyCaseLogFilter, 150);
+    }
+
+    function shiftCaseLogDate(delta) {
+      const el = document.getElementById('caseLogDate');
+      const parts = (el.value || toDateStringFastClient(new Date())).split('-').map(Number);
+      el.value = toDateStringFastClient(new Date(parts[0], parts[1] - 1, parts[2] + delta));
+      loadCaseLog();
+    }
+
+    function setCaseLogType(value) {
+      document.getElementById('caseLogType').value = value;
+      applyCaseLogFilter();
+    }
+
+    const CASE_TYPE_LABELS = { 'Regular Email (Take Next)': 'Regular', 'Reopened Cases': 'Reopened', 'Telus Cases': 'Telus', 'Manual Assignment': 'Manual', 'Cimba Cases': 'Cimba' };
+
+    function renderCaseLogSummary(rows, activeType) {
+      const el = document.getElementById('caseLogSummary');
+      if (!el) return;
+      if (rows.length === 0) { el.innerHTML = ''; return; }
+      const counts = {};
+      let flagged = 0;
+      rows.forEach(r => {
+        counts[r.caseType] = (counts[r.caseType] || 0) + 1;
+        if (r.flagged) flagged++;
+      });
+      const chip = (label, value, n) => {
+        const active = (activeType || '') === value;
+        return '<button type="button" onclick="setCaseLogType(\'' + escAttr(value) + '\')" class="px-3 py-1 rounded-full font-medium border transition ' +
+          (active ? 'bg-theme-primary text-white border-theme-primary' : 'bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary border-transparent hover:border-theme-primary') +
+          '">' + escAttr(label) + ': ' + n + '</button>';
+      };
+      let html = chip('All', '', rows.length);
+      Object.keys(CASE_TYPE_LABELS).forEach(t => { if (counts[t]) html += chip(CASE_TYPE_LABELS[t], t, counts[t]); });
+      if (flagged > 0) html += '<span class="px-3 py-1 rounded-full font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">' + flagged + ' flagged</span>';
+      el.innerHTML = html;
+    }
+
+    function caseLogPrevPage() {
+      if (caseLogPage > 0) { caseLogPage--; renderCaseLogPage(); }
+    }
+
+    let caseLookupReq = 0;
+
+    function openCaseLookup(id) {
+      const input = document.getElementById('caseLookupInput');
+      const caseId = String(id || input.value || '').trim();
+      if (!caseId) return showToast("Enter a Case ID to look up.", "warning");
+      input.value = caseId;
+      const body = document.getElementById('caseLookupBody');
+      body.innerHTML = '<div class="text-center text-gray-400 py-8">Looking up ' + escAttr(caseId) + '...</div>';
+      document.getElementById('caseLookupModal').classList.remove('hidden');
+      const req = ++caseLookupReq;
+      google.script.run
+        .withSuccessHandler(res => { if (req === caseLookupReq) renderCaseLookup(res); })
+        .withFailureHandler(() => { if (req === caseLookupReq) body.innerHTML = '<div class="text-center text-red-400 py-8">Lookup failed. Please try again.</div>'; })
+        .lookupCaseId(caseId);
+    }
+
+    function closeCaseLookup() {
+      document.getElementById('caseLookupModal').classList.add('hidden');
+    }
+
+    function renderCaseLookup(res) {
+      const body = document.getElementById('caseLookupBody');
+      if (res.error) {
+        body.innerHTML = '<div class="text-center text-amber-600 py-8">' + escAttr(res.error) + '</div>';
+        return;
+      }
+      if (!res.entries.length) {
+        body.innerHTML = '<div class="text-center text-gray-400 py-8"><span class="font-mono cell-strong">' + escAttr(res.caseId) + '</span> has never been logged.</div>';
+        return;
+      }
+      body.innerHTML = `
+        <div class="mb-4 text-sm cell-muted"><span class="font-mono cell-strong">${escAttr(res.caseId)}</span> was logged ${res.total} time(s)${res.total > res.entries.length ? ' (showing the first ' + res.entries.length + ')' : ''}.</div>
+        <div class="space-y-3">
+          ${res.entries.map((e, i) => `
+            <div class="rounded-theme-sm border ${e.flagged ? 'border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-900/15' : 'border-theme-card-border'} p-3 flex items-center gap-3">
+              ${getMomaImgClass(e.agent, 'w-9 h-9 rounded-full border border-gray-200 dark:border-gray-600 object-cover shrink-0', 80)}
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium cell-strong">${ldapLink(e.agent)}</div>
+                <div class="text-xs cell-muted">${escAttr(e.timestamp || e.date)}${e.interval ? ' &middot; ' + escAttr(e.interval) + ' interval' : ''} &middot; ${escAttr(e.caseType)}</div>
+              </div>
+              ${i === 0 ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-theme-accent-muted text-theme-primary">First logged</span>' : ''}
+              ${e.flagged ? '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400">Flagged</span>' : ''}
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function caseLogNextPage() {
+      const totalPages = Math.ceil(caseLogAllRows.length / CASE_LOG_PAGE_SIZE);
+      if (caseLogPage < totalPages - 1) { caseLogPage++; renderCaseLogPage(); }
     }
 
     // --- BULK AUDIT LOGIC ---
@@ -2927,6 +3661,10 @@ function refreshAccess() {
       if (checkedBoxes.length === 0) return;
 
       if (resolution === 'Reject' && !confirm(`Reject ${checkedBoxes.length} flagged submission(s) as duplicate/fraud? This can't be undone from this screen.`)) {
+        return;
+      }
+
+      if (resolution === 'Approve' && checkedBoxes.length > 1 && !confirm(`Approve ${checkedBoxes.length} flagged submissions? This will count them as valid across ${checkedBoxes.length} case(s).`)) {
         return;
       }
 
@@ -2972,6 +3710,10 @@ function refreshAccess() {
 
     // Handle Approve/Reject Action
     function handleAudit(auditRow, rawRowRef, resolution) {
+      if (resolution === 'Reject' && !confirm("Reject this flagged submission as duplicate/fraud? This can't be undone from this screen.")) {
+        return;
+      }
+
       // Optimistically hide the row so the UI feels instant
       const rowEl = document.getElementById(`audit-row-${auditRow}`);
       if (rowEl) rowEl.style.opacity = '0.5';
@@ -3017,6 +3759,19 @@ function refreshAccess() {
       if (selectAllCb && allVisibleCheckboxes.length > 0) {
         selectAllCb.checked = allVisibleCheckboxes.length === checkboxes.length;
       }
+    }
+
+    function selectFlaggedIntervalRows() {
+      const checkboxes = Array.from(document.querySelectorAll('.interval-checkbox')).filter(cb => cb.closest('tr').style.display !== 'none');
+      if (checkboxes.length === 0) return showToast("No rows to select.", "warning");
+      let count = 0;
+      checkboxes.forEach(cb => {
+        const flagged = cb.dataset.needsAttention === '1';
+        cb.checked = flagged;
+        if (flagged) count++;
+      });
+      updateBulkIntervalButtons();
+      showToast(count > 0 ? `Selected ${count} row(s) needing attention.` : "No rows currently need attention.", count > 0 ? "success" : "info");
     }
 
     function handleBulkAction(action) {
@@ -3299,12 +4054,74 @@ function refreshAccess() {
     }
 
     let allIntervalAgents = [];
+    let intervalPollTimer = null;
+    let intervalBaselineSignature = null;
+    let intervalUpdateAvailable = false;
 
     function renderIntervalTable(agents) {
       allIntervalAgents = agents;
       const filterInput = document.getElementById('intervalFilterInput');
       if (filterInput) filterInput.value = '';
       renderIntervalRows(agents);
+      hideIntervalRefreshBanner();
+      captureIntervalBaseline();
+    }
+
+    // Snapshots the current interval's activity right after a load, then starts
+    // background polling against that snapshot. We deliberately don't auto-reload
+    // on a mismatch — this view has checkboxes, filters, and editable dropdowns
+    // in flight, so silently re-rendering under the manager's cursor is worse
+    // than a dismissible "new data" banner.
+    function captureIntervalBaseline() {
+      const d = document.getElementById('intervalDate').value;
+      const h = document.getElementById('intervalHour').value;
+      if (!d) return;
+      const [year, month, day] = d.split('-');
+      const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
+
+      google.script.run
+        .withSuccessHandler(function(sig) {
+          intervalBaselineSignature = sig;
+          startIntervalPolling(formattedDate, h);
+        })
+        .withFailureHandler(function() { intervalBaselineSignature = null; })
+        .getIntervalActivitySignature(formattedDate, h);
+    }
+
+    function startIntervalPolling(dateStr, hourStr) {
+      if (intervalPollTimer) clearInterval(intervalPollTimer);
+      intervalPollTimer = setInterval(function() {
+        const view = document.getElementById('intervalView');
+        if (!view || view.classList.contains('hidden')) return; // not the active tab
+        if (intervalUpdateAvailable) return; // already flagged, no need to keep checking
+
+        google.script.run
+          .withSuccessHandler(function(sig) {
+            if (!sig || !intervalBaselineSignature) return;
+            if (sig.rowCount !== intervalBaselineSignature.rowCount || sig.totalValid !== intervalBaselineSignature.totalValid) {
+              showIntervalRefreshBanner();
+            }
+          })
+          .withFailureHandler(function() {})
+          .getIntervalActivitySignature(dateStr, hourStr);
+      }, 30000);
+    }
+
+    function showIntervalRefreshBanner() {
+      intervalUpdateAvailable = true;
+      const banner = document.getElementById('intervalRefreshBanner');
+      if (banner) banner.classList.remove('hidden');
+    }
+
+    function hideIntervalRefreshBanner() {
+      intervalUpdateAvailable = false;
+      const banner = document.getElementById('intervalRefreshBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    function refreshIntervalFromBanner() {
+      hideIntervalRefreshBanner();
+      loadIntervalData();
     }
 
     let intervalFilterTimer = null;
@@ -3337,6 +4154,8 @@ function refreshAccess() {
         summaryBar.classList.add('hidden');
         const bulkBtn = document.getElementById('bulkActionsBtn');
         if (bulkBtn) bulkBtn.classList.add('hidden');
+        const selectFlaggedBtn = document.getElementById('selectFlaggedBtn');
+        if (selectFlaggedBtn) selectFlaggedBtn.classList.add('hidden');
         return;
       }
 
@@ -3350,12 +4169,12 @@ function refreshAccess() {
           return `
           <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'bg-red-50/40 dark:bg-red-900/10' : ''}">
             <td class="p-3">
-              <input type="checkbox" class="interval-checkbox w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700" onchange="updateBulkIntervalButtons()" data-ldap="${a.ldap}">
+              <input type="checkbox" class="interval-checkbox w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700" onchange="updateBulkIntervalButtons()" data-ldap="${a.ldap}" data-needs-attention="${needsAttention ? '1' : '0'}">
             </td>
             <td class="p-3">
               <div class="flex items-center gap-2">
                 ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
-                <span class="font-medium text-theme-primary whitespace-nowrap">${a.ldap}</span>
+                <span class="font-medium text-theme-primary whitespace-nowrap">${ldapLink(a.ldap)}</span>
                 ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
               </div>
             </td>
@@ -3395,6 +4214,7 @@ function refreshAccess() {
       summaryBar.classList.remove('hidden');
 
       document.getElementById('bulkActionsBtn').classList.remove('hidden');
+      document.getElementById('selectFlaggedBtn').classList.remove('hidden');
 
       // Fetch check-in status
       document.getElementById('checkInBtn').classList.add('hidden');
@@ -3479,6 +4299,40 @@ function refreshAccess() {
       selectElement.className = getStatusColorClasses(selectElement.value);
     }
 
+    // --- APEXCHARTS LOADER (served by the script, not a CDN) ---
+    let apexLoadPromise = null;
+    function ensureApex() {
+      if (window.ApexCharts) return Promise.resolve(true);
+      if (!apexLoadPromise) {
+        apexLoadPromise = new Promise(function(resolve) {
+          google.script.run
+            .withSuccessHandler(function(js) {
+              try {
+                const s = document.createElement('script');
+                s.text = js;
+                document.head.appendChild(s);
+              } catch (e) { console.error(e); }
+              resolve(!!window.ApexCharts);
+            })
+            .withFailureHandler(function() { resolve(false); })
+            .getApexJs();
+        }).then(function(ok) { if (!ok) apexLoadPromise = null; return ok; });
+      }
+      return apexLoadPromise;
+    }
+
+    function renderAnalyticsSafe(data) {
+      ensureApex().then(function(ok) {
+        if (ok) return renderAnalytics(data);
+        showToast("Charts couldn't load. KPIs and leaderboards are still shown.", 'warning');
+        window.ApexCharts = function() { this.render = function() {}; this.updateOptions = function() {}; this.updateSeries = function() {}; };
+        try { renderAnalytics(data); } finally {
+          delete window.ApexCharts;
+          heatmapChartInstance = donutChartInstance = barChartInstance = otTimelineChartInstance = null;
+        }
+      });
+    }
+
     // --- ANALYTICS LOGIC ---
     let heatmapChartInstance = null;
     let donutChartInstance = null;
@@ -3540,6 +4394,8 @@ function refreshAccess() {
       document.getElementById('kpi-range-label').innerText = rangeText;
       document.getElementById('kpi-range-label-2').innerText = rangeText;
 
+      if (analyticsMode === 'expiring') { loadExpiringAnalytics(startDateStr, endDateStr); return; }
+
       // Visual loading state
       document.getElementById('kpi-valid-today').innerText = '...';
       document.getElementById('kpi-pending-audits').innerText = '...';
@@ -3547,7 +4403,7 @@ function refreshAccess() {
       document.getElementById('kpi-staff-hour').innerText = '...';
 
       google.script.run
-        .withSuccessHandler(renderAnalytics)
+        .withSuccessHandler(renderAnalyticsSafe)
         .withFailureHandler(err => showToast("Error loading analytics.", "error"))
         .getAnalyticsData(startDateStr, endDateStr);
     }
@@ -3569,7 +4425,12 @@ function refreshAccess() {
         series: data.heatmap,
         theme: { mode: chartThemeMode },
         chart: { height: heatmapHeight, type: 'heatmap', toolbar: { show: false }, background: chartBg },
-        dataLabels: { enabled: data.heatmap.length <= 3, style: { fontSize: '11px' } },
+        dataLabels: {
+          enabled: data.heatmap.length <= 10,
+          formatter: function(v) { return v > 0 ? v : ''; },
+          style: { fontSize: '11px', fontWeight: 600, colors: ['#ffffff'] },
+          dropShadow: { enabled: true, top: 0, left: 0, blur: 2, opacity: 0.45 }
+        },
         stroke: { width: 1, colors: ['transparent'] },
         plotOptions: {
           heatmap: {
@@ -3578,8 +4439,8 @@ function refreshAccess() {
             colorScale: {
               ranges: [
                 { from: 0,  to: 0,    color: '#f1f3f4', name: '0' },
-                { from: 1,  to: 3,    color: '#c6dafc', name: '1-3' },
-                { from: 4,  to: 6,    color: '#8ab4f8', name: '4-6' },
+                { from: 1,  to: 3,    color: '#a8c7fa', name: '1-3' },
+                { from: 4,  to: 6,    color: '#6ea3f4', name: '4-6' },
                 { from: 7,  to: 9,    color: '#1a73e8', name: '7-9 (target)' },
                 { from: 10, to: 9999, color: '#0b57d0', name: '10+' }
               ]
@@ -3588,11 +4449,24 @@ function refreshAccess() {
         },
         legend: { position: 'bottom' },
         title: { text: '' },
-        xaxis: { type: 'category' }
+        xaxis: {
+          type: 'category',
+          tooltip: { enabled: false },
+          axisTicks: { show: false },
+          labels: { rotate: 0, hideOverlappingLabels: false, style: { fontSize: '11px' } }
+        },
+        tooltip: {
+          custom: function(o) {
+            const s = o.w.config.series[o.seriesIndex];
+            const p = s.data[o.dataPointIndex];
+            const hr = String(p.x).replace(/a$/, ':00 AM').replace(/p$/, ':00 PM');
+            return '<div style="padding:6px 10px;font-size:12px;"><b>' + s.name + '</b> &middot; ' + hr + '<br>' + p.y + ' valid cases</div>';
+          }
+        }
       };
 
       if (heatmapChartInstance) {
-        heatmapChartInstance.updateOptions({ theme: { mode: chartThemeMode }, chart: { height: heatmapHeight }, dataLabels: { enabled: data.heatmap.length <= 3 } });
+        heatmapChartInstance.updateOptions({ theme: { mode: chartThemeMode }, chart: { height: heatmapHeight }, dataLabels: { enabled: data.heatmap.length <= 10 } });
         heatmapChartInstance.updateSeries(data.heatmap);
       } else {
         document.getElementById('heatmapChart').innerHTML = ''; // Clear loading text
@@ -3671,7 +4545,7 @@ function refreshAccess() {
               ${getMomaImgClass(ldap, 'w-10 h-10 rounded-full border border-gray-200 dark:border-gray-600 object-cover', 100)}
               <div class="flex-1 min-w-0">
                 <div class="flex justify-between items-end mb-1">
-                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldap}</span>
+                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldapLink(ldap)}</span>
                   <span class="text-sm font-bold text-gray-800 dark:text-gray-100">${score}</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
@@ -3683,27 +4557,12 @@ function refreshAccess() {
         }).join('');
       }
 
-      // 6. Render OT Timeline Line Chart
-      let otTimelineLabels = [];
-      if (data && data.otTimelineMap) {
-         otTimelineLabels = Object.keys(data.otTimelineMap).sort((a, b) => {
-        // Parse "M/d/yyyy|H:00 AM/PM" to actual date objects for precise chronological sorting
-        const parseDate = (str) => {
-          const [datePart, timePart] = str.split('|');
-          const d = new Date(datePart);
-          const match = timePart.match(/(\d+):00 (AM|PM)/);
-          if (match) {
-            let hour = parseInt(match[1], 10);
-            if (match[2] === 'PM' && hour < 12) hour += 12;
-            if (match[2] === 'AM' && hour === 12) hour = 0;
-            d.setHours(hour, 0, 0, 0);
-          }
-          return d.getTime();
-        };
-        return parseDate(a) - parseDate(b);
-      });
-      }
-      const otTimelineSeriesData = data && data.otTimelineMap ? otTimelineLabels.map(k => data.otTimelineMap[k]) : [];
+      // 6. Render OT Timeline Line Chart — backend now returns a chronological,
+      // zero-filled {x: epoch ms, y: count} series plus a granularity flag.
+      const otTimelineSeriesData = (data && Array.isArray(data.otTimeline)) ? data.otTimeline : [];
+      const otTimelineHourly = data && data.otTimelineGranularity === 'hourly';
+      const otTimelineLabelFormat = otTimelineHourly ? 'h:mm TT' : 'MMM d';
+      const otTimelineTooltipFormat = otTimelineHourly ? 'MMM d, h:mm TT' : 'MMM d, yyyy';
 
       const otTimelineOptions = {
         series: [{ name: 'OT Cases', data: otTimelineSeriesData }],
@@ -3713,12 +4572,23 @@ function refreshAccess() {
         stroke: { curve: 'smooth', width: 2 },
         colors: ['#9333ea'], // Purple
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.1, stops: [0, 90, 100] } },
-        xaxis: { categories: otTimelineLabels.map(l => l.replace('|', ' ')), tooltip: { enabled: false } },
-        tooltip: { y: { formatter: function (val) { return val + " cases" } } }
+        xaxis: {
+          type: 'datetime',
+          labels: { datetimeUTC: false, format: otTimelineLabelFormat },
+          tooltip: { enabled: false }
+        },
+        tooltip: {
+          x: { format: otTimelineTooltipFormat },
+          y: { formatter: function (val) { return val + " cases" } }
+        }
       };
 
       if (otTimelineChartInstance) {
-        otTimelineChartInstance.updateOptions({ theme: { mode: chartThemeMode }, xaxis: { categories: otTimelineLabels.map(l => l.replace('|', ' ')) } });
+        otTimelineChartInstance.updateOptions({
+          theme: { mode: chartThemeMode },
+          xaxis: { type: 'datetime', labels: { datetimeUTC: false, format: otTimelineLabelFormat } },
+          tooltip: { x: { format: otTimelineTooltipFormat } }
+        });
         otTimelineChartInstance.updateSeries([{ name: 'OT Cases', data: otTimelineSeriesData }]);
       } else {
         document.getElementById('otTimelineChart').innerHTML = '';
@@ -3748,7 +4618,7 @@ function refreshAccess() {
               ${getMomaImgClass(ldap, 'w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600 object-cover', 100)}
               <div class="flex-1 min-w-0">
                 <div class="flex justify-between items-end mb-1">
-                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldap}</span>
+                  <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldapLink(ldap)}</span>
                   <span class="text-sm font-bold text-gray-800 dark:text-gray-100">${score}</span>
                 </div>
                 <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
@@ -3759,6 +4629,493 @@ function refreshAccess() {
           `;
         }).join('');
       }
+    }
+
+    // --- EXPIRED/EXPIRING CASES ---
+    const EXP_PAGE_SIZE = 50;
+    const EXP_LINK_CAP = 100; // Case IDs per Case Connect link
+    let expAllRows = [];
+    let expFiltered = [];
+    let expMeta = {};
+    let expPage = 0;
+    let expGrabbing = false;
+
+    function loadExpiringCases() {
+      document.getElementById('expTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading cases...</td></tr>';
+      google.script.run
+        .withSuccessHandler(renderExpiring)
+        .withFailureHandler(err => {
+          document.getElementById('expTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-400">Failed to load cases.</td></tr>';
+          document.getElementById('expMetaLine').textContent = 'Could not load cases. Use the reload button to try again.';
+          document.getElementById('expBoardSub').textContent = 'Could not load cases.';
+          showToast(err && err.message ? err.message : 'Failed to load expired/expiring cases.', 'error');
+        })
+        .getExpiringCases();
+    }
+
+    function grabExpiringNow() {
+      if (expGrabbing) return;
+      expGrabbing = true;
+      const btn = document.getElementById('expGrabBtn');
+      btn.disabled = true;
+      btn.classList.add('opacity-60', 'cursor-not-allowed');
+      const done = () => { expGrabbing = false; btn.disabled = false; btn.classList.remove('opacity-60', 'cursor-not-allowed'); };
+      google.script.run
+        .withSuccessHandler(res => {
+          done();
+          if (res && res.success) {
+            showToast('Extracted ' + res.total + ' cases: ' + res.added + ' new, ' + res.worked + ' worked, ' + res.cleared + ' cleared.', 'success');
+            loadExpiringCases();
+          } else {
+            showToast((res && res.error) || 'Extraction failed.', 'error');
+          }
+        })
+        .withFailureHandler(() => { done(); showToast('Extraction failed. Please try again.', 'error'); })
+        .grabExpiringCasesNow();
+    }
+
+    function renderExpiring(data) {
+      expAllRows = (data && data.rows) || [];
+      expMeta = (data && data.meta) || {};
+      const poolSel = document.getElementById('expPool');
+      const prev = poolSel.value;
+      const pools = Array.from(new Set(expAllRows.map(r => r.pool))).filter(Boolean).sort();
+      poolSel.innerHTML = '<option value="">All Pools</option>' + pools.map(p => '<option value="' + escAttr(p) + '">' + escAttr(p) + '</option>').join('');
+      if (pools.indexOf(prev) !== -1) poolSel.value = prev;
+      renderExpiringMeta();
+      applyExpiringFilter();
+    }
+
+    function renderExpiringMeta() {
+      const el = document.getElementById('expMetaLine');
+      if (!expMeta.lastScanAt) { el.textContent = 'No extraction yet. Click "Grab now" to pull the latest cases.'; return; }
+      const fmt = ts => new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      let html = 'Last extracted <span class="font-medium cell-strong">' + fmt(expMeta.lastScanAt) + '</span> (' + formatRelativeTime(expMeta.lastScanAt) + ')';
+      if (expMeta.sourceChangedAt) {
+        const stale = (Date.now() - expMeta.sourceChangedAt) > 3 * 3600000;
+        html += ' &middot; Source list last changed ' + formatRelativeTime(expMeta.sourceChangedAt) +
+                (stale ? ' <span class="text-amber-600 font-medium">(source may be stale)</span>' : '');
+      }
+      el.innerHTML = html;
+    }
+
+    function applyExpiringFilter() {
+      const pool = document.getElementById('expPool').value;
+      const type = document.getElementById('expType').value;
+      const state = document.getElementById('expState').value;
+      const q = document.getElementById('expSearch').value.trim().toLowerCase();
+      expFiltered = expAllRows.filter(r =>
+        (!pool || r.pool === pool) &&
+        (!type || r.type === type) &&
+        (state === 'All' || r.state === state) &&
+        (!q || r.caseId.toLowerCase().includes(q))
+      );
+      expPage = 0;
+      renderExpiringSummary();
+      renderExpiringPage();
+      renderCaseConnectLinks();
+      renderPoolBoard();
+    }
+
+    function setExpType(value) {
+      document.getElementById('expType').value = value;
+      applyExpiringFilter();
+    }
+
+    function renderExpiringSummary() {
+      const el = document.getElementById('expSummary');
+      const pool = document.getElementById('expPool').value;
+      const q = document.getElementById('expSearch').value.trim().toLowerCase();
+      const activeType = document.getElementById('expType').value;
+      const base = expAllRows.filter(r => (!pool || r.pool === pool) && (!q || r.caseId.toLowerCase().includes(q)));
+      const open = base.filter(r => r.state === 'Open');
+      const cnt = t => open.filter(r => r.type === t).length;
+      const chip = (label, value, n, cls) =>
+        '<button type="button" onclick="setExpType(\'' + escAttr(value) + '\')" class="px-3 py-1 rounded-full font-medium border transition ' +
+        (activeType === value ? 'bg-theme-primary text-white border-theme-primary' : cls + ' border-transparent hover:border-theme-primary') +
+        '">' + label + ': ' + n + '</button>';
+      let html = chip('All open', '', open.length, 'bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary');
+      html += chip('Expired', 'Expired', cnt('Expired'), 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400');
+      html += chip('&lt;15h', 'Expiring (<15h)', cnt('Expiring (<15h)'), 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400');
+      html += chip('&lt;24h', 'Expiring (<24h)', cnt('Expiring (<24h)'), 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400');
+      html += '<span class="px-3 py-1 rounded-full font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">Worked: ' + base.filter(r => r.state === 'Worked').length + '</span>';
+      html += '<span class="px-3 py-1 rounded-full font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Cleared: ' + base.filter(r => r.state === 'Cleared').length + '</span>';
+      el.innerHTML = html;
+    }
+
+    function buildCaseConnectUrl(ids) {
+      return 'https://cases.connect.corp.google.com/#/queues/org/gup/' + encodeURIComponent(ids.map(id => 'caseid:' + id).join(' | '));
+    }
+
+    function renderCaseConnectLinks() {
+      const el = document.getElementById('expAssignArea');
+      const ids = expFiltered.filter(r => r.state === 'Open').map(r => r.caseId);
+      if (ids.length === 0) {
+        el.innerHTML = '<span class="text-xs cell-muted">No open cases in this view to assign.</span>';
+        return;
+      }
+      const batches = Math.ceil(ids.length / EXP_LINK_CAP);
+      let html = '';
+      for (let i = 0; i < batches; i++) {
+        const chunk = ids.slice(i * EXP_LINK_CAP, (i + 1) * EXP_LINK_CAP);
+        const label = batches === 1
+          ? 'Assign via CaseConnect (' + chunk.length + ')'
+          : 'Assign via CaseConnect: ' + (i * EXP_LINK_CAP + 1) + '&ndash;' + (i * EXP_LINK_CAP + chunk.length);
+        html += '<a href="' + buildCaseConnectUrl(chunk) + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition">' +
+                '<span class="material-symbols-outlined text-[18px]">open_in_new</span>' + label + '</a>';
+      }
+      if (batches > 1) html += '<span class="text-[11px] cell-faint">Each link holds up to ' + EXP_LINK_CAP + ' cases</span>';
+      el.innerHTML = html;
+    }
+
+    function expTypeBadge(t) {
+      const cls = {
+        'Expired': 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400',
+        'Expiring (<15h)': 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400',
+        'Expiring (<24h)': 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400'
+      }[t] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+      return '<span class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap ' + cls + '">' + escAttr(t) + '</span>';
+    }
+
+    function expStateBadge(r) {
+      if (r.state === 'Worked') {
+        return '<span class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400" title="' + escAttr(r.resolvedAt ? formatRelativeTime(r.resolvedAt) : '') + '">Worked by ' + ldapLink(r.resolvedBy) + '</span>';
+      }
+      if (r.state === 'Cleared') {
+        return '<span class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300" title="' + escAttr(r.resolvedBy || '') + '">Cleared</span>';
+      }
+      return '<span class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">Open</span>';
+    }
+
+    // Case Status was true when the source list was last refreshed; show a rough "now" value once an hour or more has passed.
+    function expEstimate(r) {
+      if (r.state !== 'Open' || r.type === 'Expired' || r.hoursLeft === null) return '';
+      const ref = expMeta.sourceChangedAt || r.lastSeen;
+      const elapsed = (Date.now() - ref) / 3600000;
+      if (!ref || elapsed < 1) return '';
+      const est = r.hoursLeft - elapsed;
+      if (est <= 0) return '<span class="text-red-500">may be expired now</span>';
+      return est < 1 ? '&lt;1h left now' : '~' + Math.floor(est) + 'h left now';
+    }
+
+    function renderExpiringPage() {
+      const tbody = document.getElementById('expTableBody');
+      const pagination = document.getElementById('expPagination');
+      if (expFiltered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">No cases match this view.</td></tr>';
+        pagination.classList.add('hidden');
+        return;
+      }
+      const totalPages = Math.ceil(expFiltered.length / EXP_PAGE_SIZE);
+      expPage = Math.max(0, Math.min(expPage, totalPages - 1));
+      const start = expPage * EXP_PAGE_SIZE;
+      const pageRows = expFiltered.slice(start, start + EXP_PAGE_SIZE);
+
+      tbody.innerHTML = pageRows.map(r => `
+        <tr class="row-hover transition ${r.state !== 'Open' ? 'opacity-70' : ''}">
+          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId)}</td>
+          <td class="p-4 cell-strong whitespace-nowrap">${escAttr(r.status)}<div class="text-[10px] cell-faint">${expEstimate(r)}</div></td>
+          <td class="p-4 cell-muted">${escAttr(r.pool)}</td>
+          <td class="p-4">${expTypeBadge(r.type)}</td>
+          <td class="p-4 cell-muted whitespace-nowrap">${r.firstSeen ? formatRelativeTime(r.firstSeen) : ''}</td>
+          <td class="p-4">${expStateBadge(r)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('expPageInfo').textContent =
+        'Showing ' + (start + 1) + '-' + Math.min(start + EXP_PAGE_SIZE, expFiltered.length) + ' of ' + expFiltered.length;
+      document.getElementById('expPrevBtn').disabled = expPage === 0;
+      document.getElementById('expNextBtn').disabled = expPage >= totalPages - 1;
+      pagination.classList.remove('hidden');
+    }
+
+    function expPrevPage() { if (expPage > 0) { expPage--; renderExpiringPage(); } }
+    function expNextPage() {
+      if (expPage < Math.ceil(expFiltered.length / EXP_PAGE_SIZE) - 1) { expPage++; renderExpiringPage(); }
+    }
+
+    // --- POOL BOARD (top of Expired/Expiring Cases) ---
+    function expBoardWindowCutoff(win) {
+      if (win === 'today') { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+      if (win === '24h') return Date.now() - 24 * 3600000;
+      return 0; // last 3 days = everything the queue still holds
+    }
+
+    function toggleExpBoard() {
+      const c = document.getElementById('expBoardContent');
+      c.classList.toggle('hidden');
+      document.getElementById('expBoardChevron').textContent = c.classList.contains('hidden') ? 'expand_more' : 'expand_less';
+    }
+
+    function setExpPool(pool) {
+      const sel = document.getElementById('expPool');
+      sel.value = (sel.value === pool) ? '' : pool;
+      applyExpiringFilter();
+    }
+
+    function renderPoolBoard() {
+      const body = document.getElementById('expBoardBody');
+      if (!body) return;
+      const win = document.getElementById('expBoardWindow').value;
+      const sortBy = document.getElementById('expBoardSort').value;
+      const cutoff = expBoardWindowCutoff(win);
+      const selected = document.getElementById('expPool').value;
+
+      // Open cases are always counted as of now; Worked/Cleared only if resolved inside the chosen window
+      const map = {};
+      const row = p => map[p] || (map[p] = { pool: p, expired: 0, lt15: 0, lt24: 0, worked: 0, cleared: 0, oldest: 0 });
+      expAllRows.forEach(r => {
+        if (!r.pool) return;
+        const p = row(r.pool);
+        if (r.state === 'Open') {
+          if (r.type === 'Expired') { p.expired++; if (r.firstSeen && (!p.oldest || r.firstSeen < p.oldest)) p.oldest = r.firstSeen; }
+          else if (r.type === 'Expiring (<15h)') p.lt15++;
+          else p.lt24++;
+        } else if (r.resolvedAt >= cutoff) {
+          if (r.state === 'Worked') p.worked++; else p.cleared++;
+        }
+      });
+      const list = Object.keys(map).map(k => {
+        const p = map[k];
+        p.open = p.expired + p.lt15 + p.lt24;
+        p.handled = p.worked + p.cleared;
+        p.total = p.open + p.handled;
+        p.pct = p.total ? Math.round(p.handled * 100 / p.total) : null;
+        return p;
+      }).filter(p => p.total > 0);
+
+      const winText = { today: 'since 12:00 AM today', '24h': 'in the last 24 hours', all: 'in the last 3 days' }[win];
+      if (list.length === 0) {
+        document.getElementById('expBoardSub').textContent = 'No cases yet for this window.';
+        body.innerHTML = '<div class="p-8 text-center text-gray-400 text-sm">No cases to show.</div>';
+        return;
+      }
+
+      const sorters = {
+        urgency: (a, b) => (b.expired - a.expired) || (b.lt15 - a.lt15) || (b.lt24 - a.lt24) || a.pool.localeCompare(b.pool),
+        open: (a, b) => (b.open - a.open) || a.pool.localeCompare(b.pool),
+        handled: (a, b) => ((a.pct === null ? 101 : a.pct) - (b.pct === null ? 101 : b.pct)) || (b.open - a.open),
+        name: (a, b) => a.pool.localeCompare(b.pool)
+      };
+      list.sort(sorters[sortBy] || sorters.urgency);
+
+      const total = list.reduce((t, p) => {
+        ['expired', 'lt15', 'lt24', 'worked', 'cleared'].forEach(k => { t[k] += p[k]; });
+        return t;
+      }, { pool: 'All pools', expired: 0, lt15: 0, lt24: 0, worked: 0, cleared: 0, oldest: 0 });
+      total.open = total.expired + total.lt15 + total.lt24;
+      total.handled = total.worked + total.cleared;
+      total.total = total.open + total.handled;
+      total.pct = total.total ? Math.round(total.handled * 100 / total.total) : null;
+
+      document.getElementById('expBoardSub').textContent =
+        'Open cases as of now \u00b7 Worked/Cleared ' + winText + ' \u00b7 ' + list.length + ' pools \u00b7 ' + (total.pct === null ? 0 : total.pct) + '% handled';
+
+      const max = Math.max(1, ...list.map(p => p.total));
+      const dash = '<span class="cell-faint">&ndash;</span>';
+      const num = (v, cls) => v ? '<span class="font-medium ' + cls + '">' + v + '</span>' : dash;
+      const seg = (n, p, cls, label) => n ? '<div class="' + cls + '" style="width:' + (n / p.total * 100) + '%" title="' + label + ': ' + n + '"></div>' : '';
+      const ageTxt = ms => { const m = Math.round(ms / 60000); return m < 60 ? m + 'm' : Math.round(m / 60) + 'h'; };
+      const pctHtml = v => v === null ? dash
+        : '<span class="font-semibold ' + (v >= 80 ? 'text-emerald-600 dark:text-emerald-400' : (v >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400')) + '">' + v + '%</span>';
+
+      const rowHtml = (p, isTotal) => {
+        const barW = Math.max(4, p.total / (isTotal ? p.total : max) * 100);
+        const isSel = !isTotal && selected === p.pool;
+        const attrs = isTotal ? ' onclick="setExpPool(\'\')" title="Clear pool filter"' : ' data-pool="' + escAttr(p.pool) + '" onclick="setExpPool(this.dataset.pool)"';
+        const cls = 'grid items-center gap-3 px-5 py-2.5 text-sm cursor-pointer transition border-b border-gray-50 dark:border-gray-800 ' +
+          (isTotal ? 'bg-theme-canvas/60 dark:bg-gray-700/40 font-semibold' : 'row-hover') +
+          (isSel ? ' ring-2 ring-inset ring-theme-primary bg-theme-accent-muted/40' : '');
+        return `
+          <div${attrs} class="${cls}" style="grid-template-columns:110px 1fr repeat(5,58px) 70px">
+            <div class="min-w-0">
+              <div class="font-medium cell-strong truncate">${escAttr(p.pool)}</div>
+              ${(!isTotal && p.oldest) ? '<div class="text-[10px] text-red-500" title="Time in queue for the oldest open expired case">oldest ' + ageTxt(Date.now() - p.oldest) + '</div>' : ''}
+            </div>
+            <div class="h-5 bg-gray-100 dark:bg-gray-700/50 rounded overflow-hidden" title="${p.open} open \u00b7 ${p.handled} handled">
+              <div class="h-full flex" style="width:${barW}%">
+                ${seg(p.expired, p, 'bg-red-500', 'Expired')}${seg(p.lt15, p, 'bg-orange-400', '<15h')}${seg(p.lt24, p, 'bg-amber-300', '<24h')}${seg(p.worked, p, 'bg-emerald-500', 'Worked')}${seg(p.cleared, p, 'bg-gray-300 dark:bg-gray-500', 'Cleared')}
+              </div>
+            </div>
+            <div class="text-center">${num(p.expired, 'text-red-600 dark:text-red-400')}</div>
+            <div class="text-center">${num(p.lt15, 'text-orange-600 dark:text-orange-400')}</div>
+            <div class="text-center">${num(p.lt24, 'text-amber-600 dark:text-amber-400')}</div>
+            <div class="text-center">${num(p.worked, 'text-emerald-600 dark:text-emerald-400')}</div>
+            <div class="text-center">${num(p.cleared, 'cell-muted')}</div>
+            <div class="text-center">${pctHtml(p.pct)}</div>
+          </div>`;
+      };
+
+      body.innerHTML = rowHtml(total, true) + list.map(p => rowHtml(p, false)).join('');
+    }
+
+    // --- EXPIRED/EXPIRING ANALYTICS (inside Performance Analytics) ---
+    let analyticsMode = 'production';
+    let expAnalyticsData = null;
+    const expCharts = {};
+
+    function analyticsModeBtnClass(active) {
+      return 'px-4 py-1.5 rounded-full text-sm font-medium border transition ' + (active
+        ? 'bg-theme-primary text-white border-theme-primary'
+        : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600');
+    }
+
+    function setAnalyticsMode(mode) {
+      analyticsMode = mode;
+      const view = document.getElementById('analyticsView');
+      Array.from(view.children).forEach(el => {
+        if (el === view.firstElementChild || el.id === 'analyticsModeBar') return;
+        if (el.id === 'expAnalyticsSection') el.classList.toggle('hidden', mode !== 'expiring');
+        else el.classList.toggle('hidden', mode === 'expiring');
+      });
+      document.getElementById('analyticsModeProd').className = analyticsModeBtnClass(mode === 'production');
+      document.getElementById('analyticsModeExp').className = analyticsModeBtnClass(mode === 'expiring');
+      loadAnalytics();
+    }
+
+    function loadExpiringAnalytics(startDateStr, endDateStr) {
+      ['expKpiSaved', 'expKpiNew', 'expKpiClear', 'expKpiCoverage'].forEach(id => { document.getElementById(id).innerText = '...'; });
+      google.script.run
+        .withSuccessHandler(data => {
+          ensureApex().then(ok => { expAnalyticsData = data; renderExpiringAnalytics(data, ok); });
+        })
+        .withFailureHandler(err => showToast(err && err.message ? err.message : 'Error loading expired/expiring analytics.', 'error'))
+        .getExpiringAnalytics(startDateStr, endDateStr);
+    }
+
+    function expDrawChart(key, elId, options, isEmpty, emptyMsg) {
+      const el = document.getElementById(elId);
+      if (expCharts[key]) { try { expCharts[key].destroy(); } catch (e) {} expCharts[key] = null; }
+      el.innerHTML = '';
+      if (isEmpty) { el.innerHTML = '<div class="text-gray-400 text-sm py-16">' + emptyMsg + '</div>'; return; }
+      expCharts[key] = new ApexCharts(el, options);
+      expCharts[key].render();
+    }
+
+    function renderExpiringAnalytics(data, chartsOk) {
+      const k = data.kpis, o = data.outcomes, live = data.live;
+      const isDark = document.documentElement.classList.contains('dark');
+      const mode = isDark ? 'dark' : 'light';
+      const fmtH = h => (h === null || h === undefined) ? '\u2013' : (h < 1 ? Math.max(1, Math.round(h * 60)) + ' min' : h + ' h');
+
+      // KPI cards
+      document.getElementById('expKpiSaved').innerText = k.savedRate === null ? '--' : k.savedRate + '%';
+      document.getElementById('expKpiSavedSub').innerText = k.saved + ' saved \u00b7 ' + k.missed + ' missed' + (k.missedOpen ? ' (' + k.missedOpen + ' still open)' : '');
+      document.getElementById('expKpiNew').innerText = k.newCases;
+      document.getElementById('expKpiNewSub').innerText = k.arrived + ' arrived already expired \u00b7 ' + k.openAtRisk + ' still open';
+      document.getElementById('expKpiClear').innerText = fmtH(k.medianClearHrs);
+      document.getElementById('expKpiClearSub').innerText = 'assigned ' + fmtH(k.medianAssignHrs) + ' \u00b7 agent-logged ' + fmtH(k.medianWorkedHrs);
+      document.getElementById('expKpiCoverage').innerText = k.workedCoverage === null ? '--' : k.workedCoverage + '%';
+
+      // Live strip
+      const chip = (txt, cls) => '<span class="px-3 py-1 rounded-full font-medium ' + cls + '">' + txt + '</span>';
+      let liveHtml = '<span class="text-xs font-semibold uppercase tracking-wide cell-muted mr-1">Right now</span>';
+      liveHtml += chip('Expired open: ' + live.expired, 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400');
+      liveHtml += chip('&lt;15h: ' + live.lt15, 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400');
+      liveHtml += chip('&lt;24h: ' + live.lt24, 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400');
+      if (live.oldestExpiredHrs !== null) liveHtml += chip('Oldest expired: ' + fmtH(live.oldestExpiredHrs), 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300');
+      if (live.lastScanAt) liveHtml += '<span class="cell-faint ml-1">extracted ' + formatRelativeTime(live.lastScanAt) + '</span>';
+      document.getElementById('expLiveStrip').innerHTML = liveHtml;
+
+      // Pool table
+      const pct = p => p === null ? '<span class="cell-faint">&ndash;</span>'
+        : '<span class="font-semibold ' + (p >= 90 ? 'text-green-600 dark:text-green-400' : (p >= 70 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400')) + '">' + p + '%</span>';
+      const dash = '<span class="cell-faint">&ndash;</span>';
+      const tbody = document.getElementById('expPoolTableBody');
+      tbody.innerHTML = data.pools.length === 0
+        ? '<tr><td colspan="8" class="p-8 text-center text-gray-400">No cases in this range.</td></tr>'
+        : data.pools.map(p => `
+          <tr class="row-hover transition">
+            <td class="p-4 font-medium cell-strong">${escAttr(p.pool)}</td>
+            <td class="p-4 text-center">${p.newCases || dash}</td>
+            <td class="p-4 text-center text-green-600 dark:text-green-400">${p.saved || dash}</td>
+            <td class="p-4 text-center ${p.missed ? 'text-red-600 dark:text-red-400 font-medium' : ''}">${p.missed || dash}</td>
+            <td class="p-4 text-center cell-muted">${p.arrived || dash}</td>
+            <td class="p-4 text-center">${p.openNow ? p.openNow + (p.openExpired ? ' <span class="text-[10px] text-red-500">(' + p.openExpired + ' expired)</span>' : '') : dash}</td>
+            <td class="p-4 text-center">${pct(p.savedRate)}</td>
+            <td class="p-4 text-center cell-muted">${p.medianClearHrs === null ? dash : p.medianClearHrs + ' h'}</td>
+          </tr>`).join('');
+
+      // Agents
+      const agents = data.agents || [];
+      document.getElementById('expAgentBoard').innerHTML = agents.length === 0
+        ? '<div class="text-center text-gray-400 py-8">No agent-logged cases in this range.</div>'
+        : agents.map((a, i) => `
+          <div class="flex items-center gap-4">
+            <span class="w-6 h-6 flex items-center justify-center text-xs font-medium text-gray-400">${i + 1}</span>
+            ${getMomaImgClass(a.ldap, 'w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600 object-cover', 100)}
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-end mb-1">
+                <span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">${ldapLink(a.ldap)}</span>
+                <span class="text-sm font-bold text-gray-800 dark:text-gray-100">${a.count} <span class="text-[10px] font-normal cell-faint">(${a.beforeExpiry} before expiry)</span></span>
+              </div>
+              <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5"><div class="bg-theme-primary h-1.5 rounded-full" style="width:${Math.max(5, (a.count / agents[0].count) * 100)}%"></div></div>
+            </div>
+          </div>`).join('');
+
+      if (!chartsOk) { showToast("Charts couldn't load. KPIs and tables are still shown.", 'warning'); return; }
+
+      // Outcome donut
+      const outcomeSeries = [o.saved, o.missedLate, o.missedOpen, o.arrived, o.open];
+      expDrawChart('outcome', 'expOutcomeChart', {
+        series: outcomeSeries,
+        labels: ['Saved', 'Missed (resolved late)', 'Missed (still open)', 'Arrived expired', 'Open (not expired)'],
+        theme: { mode: mode },
+        chart: { type: 'donut', height: 300, background: 'transparent' },
+        colors: ['#34a853', '#ea4335', '#a50e0e', '#9aa0a6', '#fbbc04'],
+        legend: { position: 'bottom' },
+        plotOptions: { pie: { donut: { size: '65%' } } },
+        stroke: { show: false }
+      }, outcomeSeries.every(v => v === 0), 'No cases in this range.');
+
+      // Trend (stacked by outcome)
+      const t = data.trend;
+      expDrawChart('trend', 'expTrendChart', {
+        series: [
+          { name: 'Saved', data: t.saved },
+          { name: 'Missed', data: t.missed },
+          { name: 'Arrived expired', data: t.arrived },
+          { name: 'Open', data: t.open }
+        ],
+        theme: { mode: mode },
+        chart: { type: 'bar', stacked: true, height: 300, toolbar: { show: false }, background: 'transparent' },
+        colors: ['#34a853', '#ea4335', '#9aa0a6', '#fbbc04'],
+        plotOptions: { bar: { columnWidth: '70%', borderRadius: 2 } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: t.labels, labels: { rotate: -45, hideOverlappingLabels: true, style: { fontSize: '11px' } } },
+        legend: { position: 'bottom' }
+      }, t.labels.length === 0 || o.saved + o.missedLate + o.missedOpen + o.arrived + o.open === 0, 'No cases in this range.');
+
+      // Misses by hour of day
+      const hourLabels = Array.from({ length: 24 }, (_, h) => (h % 12 || 12) + (h < 12 ? 'a' : 'p'));
+      expDrawChart('hour', 'expHourChart', {
+        series: [{ name: 'Misses', data: data.missByHour }],
+        theme: { mode: mode },
+        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent' },
+        colors: ['#ea4335'],
+        plotOptions: { bar: { columnWidth: '60%', borderRadius: 3 } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: hourLabels, labels: { style: { fontSize: '11px' } } }
+      }, data.missByHour.every(v => v === 0), 'No misses in this range.');
+    }
+
+    function copyExpiringSummary() {
+      const d = expAnalyticsData;
+      if (!d) return showToast('Nothing to copy yet.', 'warning');
+      const k = d.kpis, live = d.live;
+      const sel = document.getElementById('analyticsDateRange');
+      const fmtH = h => (h === null || h === undefined) ? 'n/a' : (h < 1 ? Math.max(1, Math.round(h * 60)) + ' min' : h + ' h');
+      const lines = [
+        'Expired/Expiring Cases \u2014 ' + sel.options[sel.selectedIndex].text,
+        'New: ' + k.newCases + ' | Saved: ' + k.saved + ' | Missed: ' + k.missed + ' | Arrived expired: ' + k.arrived + ' | Saved rate: ' + (k.savedRate === null ? 'n/a' : k.savedRate + '%'),
+        'Median time to clear: ' + fmtH(k.medianClearHrs) + ' (assigned ' + fmtH(k.medianAssignHrs) + ', agent-logged ' + fmtH(k.medianWorkedHrs) + ')',
+        'Open now: ' + live.expired + ' expired, ' + live.lt15 + ' <15h, ' + live.lt24 + ' <24h'
+      ];
+      const worst = d.pools.filter(p => p.missed > 0).slice(0, 3);
+      if (worst.length) lines.push('Most misses: ' + worst.map(p => p.pool + ' (' + p.missed + ')').join(', '));
+      navigator.clipboard.writeText(lines.join('\n'))
+        .then(() => showToast('Summary copied to clipboard!', 'success'))
+        .catch(() => showToast('Failed to copy. Please copy manually.', 'error'));
     }
 
     // --- COPY REPORT LOGIC ---
@@ -3776,22 +5133,20 @@ function refreshAccess() {
 
       rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        if(cells.length === 9) {
-          // Clean up the LDAP text (removes the visual 'OT' tag if present)
-          const ldap = cells[0].innerText.replace('OT', '').trim(); 
-          const sos = cells[1].innerText.trim();
-          const eos = cells[2].innerText.trim();
-          const site = cells[3].innerText.trim();
-          
-          // Grab the live selected value from the dropdown box!
-          const statusSelect = cells[4].querySelector('select');
+                if(cells.length === 10) {
+          const ldap = cells[0].querySelector('input').dataset.ldap;
+          const sos = cells[2].innerText.trim();
+          const eos = cells[3].innerText.trim();
+          const site = cells[4].innerText.trim();
+
+          const statusSelect = cells[5].querySelector('select');
           const status = statusSelect ? statusSelect.value : '';
-          
+
           const num = c => { const t = c.innerText.trim(); return (t === '' || t === '\u2013') ? '0' : t; };
-          const regular = num(cells[5]);
-          const manual = num(cells[6]);
-          const reopened = num(cells[7]);
-          const total = num(cells[8]);
+          const regular = num(cells[6]);
+          const manual = num(cells[7]);
+          const reopened = num(cells[8]);
+          const total = num(cells[9]);
           
           reportText += `${ldap}\t${sos}\t${eos}\t${site}\t${status}\t${regular}\t${manual}\t${reopened}\t${total}\n`;
         }
