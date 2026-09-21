@@ -1612,6 +1612,29 @@
     </div>
   </div>
 
+
+  <!-- Custom Confirm Modal -->
+  <div id="customConfirmModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeConfirmModal()"></div>
+    <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
+        <span id="confirmModalIcon" class="material-symbols-outlined text-red-500">warning</span>
+        <h2 id="confirmModalTitle" class="text-lg font-medium text-theme-primary">Confirm Action</h2>
+      </div>
+      <div class="p-5">
+        <p id="confirmModalMessage" class="text-sm text-theme-secondary">Are you sure you want to proceed?</p>
+      </div>
+      <div class="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-700">
+        <button onclick="closeConfirmModal()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-theme transition">
+          Cancel
+        </button>
+        <button id="confirmModalActionBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-theme transition">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Check-In Modal -->
   <div id="checkInModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeCheckInModal()"></div>
@@ -3663,79 +3686,111 @@ function refreshAccess() {
       const checkedBoxes = document.querySelectorAll('.audit-checkbox:checked');
       if (checkedBoxes.length === 0) return;
 
-      if (resolution === 'Reject' && !confirm(`Reject ${checkedBoxes.length} flagged submission(s) as duplicate/fraud? This can't be undone from this screen.`)) {
-        return;
-      }
+      const executeBulkAudit = () => {
+        const auditsToProcess = Array.from(checkedBoxes).map(cb => ({
+          auditRow: parseInt(cb.getAttribute('data-audit-row'), 10),
+          rawRowRef: parseInt(cb.getAttribute('data-raw-row'), 10)
+        }));
 
-      if (resolution === 'Approve' && checkedBoxes.length > 1 && !confirm(`Approve ${checkedBoxes.length} flagged submissions? This will count them as valid across ${checkedBoxes.length} case(s).`)) {
-        return;
-      }
+        // Optimistically hide rows
+        auditsToProcess.forEach(audit => {
+          const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
+          if (rowEl) rowEl.style.opacity = '0.5';
+        });
 
-      const auditsToProcess = Array.from(checkedBoxes).map(cb => ({
-        auditRow: parseInt(cb.getAttribute('data-audit-row'), 10),
-        rawRowRef: parseInt(cb.getAttribute('data-raw-row'), 10)
-      }));
+        // Disable buttons while processing
+        const buttons = document.querySelectorAll('.bulk-audit-btn');
+        buttons.forEach(btn => btn.disabled = true);
 
-      // Optimistically hide rows
-      auditsToProcess.forEach(audit => {
-        const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
-        if (rowEl) rowEl.style.opacity = '0.5';
-      });
-
-      // Disable buttons while processing
-      const buttons = document.querySelectorAll('.bulk-audit-btn');
-      buttons.forEach(btn => btn.disabled = true);
-
-      google.script.run
-        .withSuccessHandler(res => {
-          buttons.forEach(btn => btn.disabled = false);
-          if (res.success) {
-            showToast(`Successfully ${resolution.toLowerCase()}d ${auditsToProcess.length} cases.`, 'success');
-            loadDashboard(); // Reload to refresh metrics and clear queue
-          } else {
-            showToast(res.error, 'error');
+        google.script.run
+          .withSuccessHandler(res => {
+            buttons.forEach(btn => btn.disabled = false);
+            if (res.success) {
+              showToast(`Successfully ${resolution.toLowerCase()}d ${auditsToProcess.length} cases.`, 'success');
+              loadDashboard(); // Reload to refresh metrics and clear queue
+            } else {
+              showToast(res.error, 'error');
+              auditsToProcess.forEach(audit => {
+                const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
+                if (rowEl) rowEl.style.opacity = '1';
+              });
+            }
+          })
+          .withFailureHandler(err => {
+            buttons.forEach(btn => btn.disabled = false);
+            showToast("Network error.", 'error');
             auditsToProcess.forEach(audit => {
               const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
               if (rowEl) rowEl.style.opacity = '1';
             });
-          }
-        })
-        .withFailureHandler(err => {
-          buttons.forEach(btn => btn.disabled = false);
-          showToast("Network error.", 'error');
-          auditsToProcess.forEach(audit => {
-            const rowEl = document.getElementById(`audit-row-${audit.auditRow}`);
-            if (rowEl) rowEl.style.opacity = '1';
-          });
-        })
-        .resolveAuditsBulk(auditsToProcess, resolution);
+          })
+          .resolveAuditsBulk(auditsToProcess, resolution);
+      };
+
+      if (resolution === 'Reject') {
+        showConfirmModal(
+          'Confirm Bulk Rejection',
+          `Reject <b>${checkedBoxes.length}</b> flagged submission(s) as duplicate/fraud? <br><br><b>This can\'t be undone from this screen.</b>`,
+          'Reject Cases',
+          'bg-red-600 hover:bg-red-700',
+          'warning',
+          'text-red-500',
+          executeBulkAudit
+        );
+      } else if (resolution === 'Approve' && checkedBoxes.length > 1) {
+        showConfirmModal(
+          'Confirm Bulk Approval',
+          `Approve <b>${checkedBoxes.length}</b> flagged submissions? <br><br>This will count them as valid across ${checkedBoxes.length} case(s).`,
+          'Approve Cases',
+          'bg-green-600 hover:bg-green-700',
+          'check_circle',
+          'text-green-500',
+          executeBulkAudit
+        );
+      } else {
+        // Direct execute if it's Approve for just 1 item (matches existing logic)
+        executeBulkAudit();
+      }
     }
 
     // Handle Approve/Reject Action
     function handleAudit(auditRow, rawRowRef, resolution) {
-      if (resolution === 'Reject' && !confirm("Reject this flagged submission as duplicate/fraud? This can't be undone from this screen.")) {
-        return;
-      }
+      const executeAudit = () => {
+        // Optimistically hide the row so the UI feels instant
+        const rowEl = document.getElementById(`audit-row-${auditRow}`);
+        if (rowEl) rowEl.style.opacity = '0.5';
 
-      // Optimistically hide the row so the UI feels instant
-      const rowEl = document.getElementById(`audit-row-${auditRow}`);
-      if (rowEl) rowEl.style.opacity = '0.5';
-      
-      google.script.run
-        .withSuccessHandler(res => {
-          if (res.success) {
-            showToast(`Successfully ${resolution.toLowerCase()}d cases.`, 'success');
-            loadDashboard(); // Reload to refresh metrics
-          } else {
-            showToast(res.error, 'error');
-            if (rowEl) rowEl.style.opacity = '1'; // Revert if failed
-          }
-        })
-        .withFailureHandler(err => {
-          showToast("Network error.", 'error');
-          if (rowEl) rowEl.style.opacity = '1';
-        })
-        .resolveAudit(auditRow, rawRowRef, resolution);
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res.success) {
+              showToast(`Successfully ${resolution.toLowerCase()}d cases.`, 'success');
+              loadDashboard(); // Reload to refresh metrics
+            } else {
+              showToast(res.error, 'error');
+              if (rowEl) rowEl.style.opacity = '1'; // Revert if failed
+            }
+          })
+          .withFailureHandler(err => {
+            showToast("Network error.", 'error');
+            if (rowEl) rowEl.style.opacity = '1';
+          })
+          .resolveAudit(auditRow, rawRowRef, resolution);
+      };
+
+      if (resolution === 'Reject') {
+        showConfirmModal(
+          'Confirm Rejection',
+          'Reject this flagged submission as duplicate/fraud? <br><br><b>This can\'t be undone from this screen.</b>',
+          'Reject Case',
+          'bg-red-600 hover:bg-red-700',
+          'warning',
+          'text-red-500',
+          executeAudit
+        );
+      } else {
+        // Existing behavior doesn't ask confirmation for single Approve. Keep it direct.
+        executeAudit();
+      }
     }
 
         const STATUS_OPTIONS = ['', 'Assigned - 7', 'Break - 3', 'VL/SL', 'on Live Channel', 'SKIP - EOS', 'SKIP SOS', 'Absent', 'Late', 'on Coaching/Training', 'Closing Reopens'];
@@ -3957,6 +4012,42 @@ function refreshAccess() {
        document.getElementById('checkInModalLdaps').innerText = ldapsStr;
        document.getElementById('checkInModalNote').value = "";
        document.getElementById('checkInModal').classList.remove('hidden');
+    }
+
+
+    // --- Custom Confirm Modal Logic ---
+    let pendingConfirmAction = null;
+
+    function showConfirmModal(title, message, confirmBtnText, confirmBtnClass, iconName, iconClass, onConfirm) {
+      document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalMessage').innerHTML = message;
+
+      const actionBtn = document.getElementById('confirmModalActionBtn');
+      actionBtn.innerText = confirmBtnText;
+      actionBtn.className = `px-4 py-2 text-sm font-medium text-white rounded-theme transition ${confirmBtnClass}`;
+
+      const iconEl = document.getElementById('confirmModalIcon');
+      iconEl.innerText = iconName;
+      iconEl.className = `material-symbols-outlined ${iconClass}`;
+
+      pendingConfirmAction = onConfirm;
+
+      const modal = document.getElementById('customConfirmModal');
+      modal.classList.remove('hidden');
+
+      // Cleanup previous listeners to avoid duplicates
+      const newActionBtn = actionBtn.cloneNode(true);
+      actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
+
+      newActionBtn.addEventListener('click', () => {
+        if (pendingConfirmAction) pendingConfirmAction();
+        closeConfirmModal();
+      });
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('customConfirmModal').classList.add('hidden');
+      pendingConfirmAction = null;
     }
 
     function closeCheckInModal() {
