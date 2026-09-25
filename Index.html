@@ -429,7 +429,12 @@
       background-color: #334155;
     }
 
-    body { font-family: 'Roboto', sans-serif; background-color: var(--color-canvas); }
+    html { height: 100%; overflow: hidden; }
+    body { font-family: 'Roboto', sans-serif; background-color: var(--color-canvas); height: 100vh; overflow: hidden; }
+    .backdrop-blur-theme, .backdrop-blur-md, .backdrop-blur-sm {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
     .dark body { background-color: var(--color-canvas); color: #f3f4f6; }
 
     .material-symbols-outlined {
@@ -516,10 +521,10 @@
     #tutorialCard { z-index: 72; }
   </style>
 </head>
-<body class="text-gray-800 dark:text-gray-200 antialiased h-screen overflow-hidden flex bg-theme-canvas transition-colors">
+<body class="text-gray-800 dark:text-gray-200 antialiased overflow-hidden flex bg-theme-canvas transition-colors">
 
   <!-- Left Sidebar (SaaS Pattern) -->
-  <aside id="sidebar" class="sidebar-expanded bg-theme-sidebar border-r border-gray-200 dark:border-gray-700 flex flex-col justify-between shadow-sm z-50 h-full shrink-0 transition-colors">
+  <aside id="sidebar" class="sidebar-expanded bg-theme-sidebar border-r border-gray-200 dark:border-gray-700 flex flex-col justify-between shadow-sm z-50 h-full min-h-0 overflow-y-auto overflow-x-hidden shrink-0 transition-colors">
     <div>
       <!-- Header / Logo -->
       <div id="sidebarHeader" class="h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-700 gap-2">
@@ -622,7 +627,7 @@
             <span class="material-symbols-outlined text-[18px]">palette</span>
           </button>
           <!-- Palette Dropdown -->
-          <div id="paletteDropdown" class="hidden absolute bottom-8 left-0 mt-2 w-36 bg-theme-sidebar border border-theme-card-border rounded-theme shadow-theme overflow-hidden z-50 transition-opacity">
+          <div id="paletteDropdown" class="hidden absolute bottom-8 right-0 mt-2 w-36 bg-theme-sidebar border border-theme-card-border rounded-theme shadow-theme overflow-hidden z-50 transition-opacity">
             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
               <li>
                 <button onclick="changeThemePalette('default')" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-theme-canvas transition">
@@ -661,7 +666,7 @@
   </aside>
 
   <!-- Main Content Area -->
-  <main class="flex-1 flex flex-col h-full overflow-y-auto relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+  <main class="flex-1 min-h-0 min-w-0 flex flex-col h-full overflow-y-auto relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
 
     <!-- View Containers -->
     <div class="w-full px-8 py-8 mx-auto max-w-7xl pb-24 flex flex-col items-center">
@@ -1988,6 +1993,15 @@ function refreshAccess() {
       localStorage.removeItem('caseIdsDraft');
     }
 
+    // Keep the layout matched to the real viewport height (iframe-safe)
+    function syncAppHeight() {
+      document.body.style.height = window.innerHeight + 'px';
+    }
+    syncAppHeight();
+    window.addEventListener('resize', syncAppHeight);
+    window.addEventListener('orientationchange', syncAppHeight);
+    window.addEventListener('load', function() { syncAppHeight(); setTimeout(syncAppHeight, 500); });
+
     // 1. App Initialization (Run on load)
     document.addEventListener("DOMContentLoaded", function() {
       // Initialize Theme
@@ -2101,7 +2115,7 @@ function refreshAccess() {
       }
 
       pocContainer.innerHTML = `
-        <div class="relative max-h-[250px] overflow-y-auto pr-1 overflow-x-hidden custom-scrollbar">
+        <div class="relative max-h-[clamp(96px,22vh,250px)] overflow-y-auto pr-1 overflow-x-hidden custom-scrollbar">
           <div class="absolute left-[3.25rem] top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
           ${itemsHtml}
         </div>
@@ -2110,8 +2124,12 @@ function refreshAccess() {
       // Auto-scroll to current item
       setTimeout(() => {
         const currentItem = document.getElementById('current-poc-item');
-        if (currentItem) {
-          currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const scroller = currentItem ? currentItem.parentElement : null;
+        if (scroller) {
+          scroller.scrollTo({
+            top: currentItem.offsetTop - (scroller.clientHeight / 2) + (currentItem.offsetHeight / 2),
+            behavior: 'smooth'
+          });
         }
       }, 100);
 
@@ -4338,8 +4356,13 @@ function refreshAccess() {
         const cellA = a.children[columnIndex];
         const cellB = b.children[columnIndex];
 
-        let valA = cellA ? cellA.innerText.trim() : '';
-        let valB = cellB ? cellB.innerText.trim() : '';
+        const cellVal = c => {
+          if (!c) return '';
+          const sel = c.querySelector('select');
+          return sel ? sel.value : c.innerText.trim();
+        };
+        let valA = cellVal(cellA);
+        let valB = cellVal(cellB);
 
         if (isNumeric) {
           valA = parseFloat(valA) || 0;
