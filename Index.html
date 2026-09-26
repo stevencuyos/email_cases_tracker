@@ -45,31 +45,6 @@
               'primary-hover': 'var(--color-primary-hover)',
               'card-border': 'var(--color-card-border)',
               'accent-muted': 'var(--color-accent-muted)'
-            },
-            success: {
-              DEFAULT: 'color-mix(in srgb, var(--color-success) calc(<alpha-value> * 100%), transparent)',
-              bg: 'color-mix(in srgb, var(--color-success-bg) calc(<alpha-value> * 100%), transparent)',
-              text: 'color-mix(in srgb, var(--color-success-text) calc(<alpha-value> * 100%), transparent)',
-            },
-            warning: {
-              DEFAULT: 'color-mix(in srgb, var(--color-warning) calc(<alpha-value> * 100%), transparent)',
-              bg: 'color-mix(in srgb, var(--color-warning-bg) calc(<alpha-value> * 100%), transparent)',
-              text: 'color-mix(in srgb, var(--color-warning-text) calc(<alpha-value> * 100%), transparent)',
-            },
-            danger: {
-              DEFAULT: 'color-mix(in srgb, var(--color-danger) calc(<alpha-value> * 100%), transparent)',
-              bg: 'color-mix(in srgb, var(--color-danger-bg) calc(<alpha-value> * 100%), transparent)',
-              text: 'color-mix(in srgb, var(--color-danger-text) calc(<alpha-value> * 100%), transparent)',
-            },
-            neutral: {
-              DEFAULT: 'color-mix(in srgb, var(--color-neutral) calc(<alpha-value> * 100%), transparent)',
-              bg: 'color-mix(in srgb, var(--color-neutral-bg) calc(<alpha-value> * 100%), transparent)',
-              text: 'color-mix(in srgb, var(--color-neutral-text) calc(<alpha-value> * 100%), transparent)',
-            },
-            info: {
-              DEFAULT: 'color-mix(in srgb, var(--color-info) calc(<alpha-value> * 100%), transparent)',
-              bg: 'color-mix(in srgb, var(--color-info-bg) calc(<alpha-value> * 100%), transparent)',
-              text: 'color-mix(in srgb, var(--color-info-text) calc(<alpha-value> * 100%), transparent)',
             }
           },
           borderRadius: {
@@ -106,26 +81,17 @@
       --shadow-card: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
       --blur-card: 12px; /* backdrop-blur-md */
 
-      /* Semantic Tokens (Light) */
-      --color-success: #34a853;
-      --color-success-bg: #e6f4ea;
-      --color-success-text: #137333;
-
-      --color-warning: #fbbc04;
-      --color-warning-bg: #fef7e0;
-      --color-warning-text: #b06000;
-
-      --color-danger: #ea4335;
-      --color-danger-bg: #fce8e6;
-      --color-danger-text: #c5221f;
-
-      --color-neutral: #9aa0a6;
-      --color-neutral-bg: #f1f3f4;
-      --color-neutral-text: #5f6368;
-
-      --color-info: #1a73e8;
-      --color-info-bg: #e8f0fe;
-      --color-info-text: #1967d2;
+      /* Status chip tokens (Interval View) — override per theme later if desired */
+      --status-assigned7-bg: #1e8e3e; --status-assigned7-fg: #ffffff;
+      --status-break3-bg: #f29900; --status-break3-fg: #ffffff;
+      --status-vlsl-bg: #d2e3fc; --status-vlsl-fg: #1f2937;
+      --status-livechannel-bg: #f3e8fd; --status-livechannel-fg: #581c87;
+      --status-skipeos-bg: #cbf0f8; --status-skipeos-fg: #134e4a;
+      --status-skipsos-bg: #fce8e6; --status-skipsos-fg: #7f1d1d;
+      --status-absent-bg: #d93025; --status-absent-fg: #ffffff;
+      --status-late-bg: #e37400; --status-late-fg: #ffffff;
+      --status-coaching-bg: #681da8; --status-coaching-fg: #ffffff;
+      --status-closingreopens-bg: #5d4037; --status-closingreopens-fg: #ffffff;
     }
 
     /* Dark Mode Defaults */
@@ -135,27 +101,6 @@
       --color-card: rgba(31, 41, 55, 0.8); /* gray-800/80 */
       --color-card-border: rgba(55, 65, 81, 0.5); /* gray-700/50 */
       --color-accent-muted: #1e3a8a; /* blue-900 */
-
-      /* Semantic Tokens (Dark) */
-      --color-success: #81c995;
-      --color-success-bg: rgba(52, 168, 83, 0.15);
-      --color-success-text: #81c995;
-
-      --color-warning: #fdd663;
-      --color-warning-bg: rgba(251, 188, 4, 0.15);
-      --color-warning-text: #fdd663;
-
-      --color-danger: #f28b82;
-      --color-danger-bg: rgba(234, 67, 53, 0.15);
-      --color-danger-text: #f28b82;
-
-      --color-neutral: #9aa0a6;
-      --color-neutral-bg: rgba(154, 160, 166, 0.15);
-      --color-neutral-text: #9aa0a6;
-
-      --color-info: #8ab4f8;
-      --color-info-bg: rgba(26, 115, 232, 0.15);
-      --color-info-text: #8ab4f8;
     }
 
     /* Theme 2: Fintech (Stripe-style) */
@@ -571,6 +516,21 @@
     .dark .case-link { color: #8ab4f8; }
     .select-default { background-color: #ffffff; color: #3c4043; }
     .dark .select-default { background-color: #374151; color: #e5e7eb; }
+
+    .status-select {
+      background-color: var(--status-bg, transparent);
+      color: var(--status-fg, inherit);
+    }
+    .status-select[data-status="Assigned - 7"]         { --status-bg: var(--status-assigned7-bg); --status-fg: var(--status-assigned7-fg); }
+    .status-select[data-status="Break - 3"]            { --status-bg: var(--status-break3-bg); --status-fg: var(--status-break3-fg); }
+    .status-select[data-status="VL/SL"]                { --status-bg: var(--status-vlsl-bg); --status-fg: var(--status-vlsl-fg); }
+    .status-select[data-status="on Live Channel"]      { --status-bg: var(--status-livechannel-bg); --status-fg: var(--status-livechannel-fg); }
+    .status-select[data-status="SKIP - EOS"]           { --status-bg: var(--status-skipeos-bg); --status-fg: var(--status-skipeos-fg); }
+    .status-select[data-status="SKIP SOS"]             { --status-bg: var(--status-skipsos-bg); --status-fg: var(--status-skipsos-fg); }
+    .status-select[data-status="Absent"]               { --status-bg: var(--status-absent-bg); --status-fg: var(--status-absent-fg); }
+    .status-select[data-status="Late"]                 { --status-bg: var(--status-late-bg); --status-fg: var(--status-late-fg); }
+    .status-select[data-status="on Coaching/Training"] { --status-bg: var(--status-coaching-bg); --status-fg: var(--status-coaching-fg); }
+    .status-select[data-status="Closing Reopens"]      { --status-bg: var(--status-closingreopens-bg); --status-fg: var(--status-closingreopens-fg); }
 
     @keyframes viewFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .view-enter { animation: viewFadeIn 0.22s ease-out; }
@@ -1170,6 +1130,12 @@
               Copy Chat Report
             </button>
           </div>
+          <div id="intervalQuickFilters" class="flex items-center gap-1.5">
+            <button type="button" data-qf="all" onclick="setIntervalQuickFilter('all')" class="qf-chip px-3 py-1.5 rounded-full text-xs font-medium border transition bg-theme-primary text-white border-theme-primary">All</button>
+            <button type="button" data-qf="attention" onclick="setIntervalQuickFilter('attention')" class="qf-chip px-3 py-1.5 rounded-full text-xs font-medium border transition bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Needs Attention</button>
+            <button type="button" data-qf="ot" onclick="setIntervalQuickFilter('ot')" class="qf-chip px-3 py-1.5 rounded-full text-xs font-medium border transition bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">OT</button>
+            <button type="button" data-qf="flagged" onclick="setIntervalQuickFilter('flagged')" class="qf-chip px-3 py-1.5 rounded-full text-xs font-medium border transition bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Flagged</button>
+          </div>
           <div class="ml-auto relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <span class="material-symbols-outlined text-gray-400 text-[18px]">search</span>
@@ -1195,6 +1161,13 @@
           <div class="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full font-medium">
              <span class="material-symbols-outlined text-[16px]">done_all</span>
              <span id="summaryTotalCases">0</span> cases logged
+          </div>
+
+          <div class="flex items-center gap-2 min-w-[170px]">
+             <div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div id="summaryProgressBar" class="h-full bg-emerald-500 transition-all" style="width:0%"></div>
+             </div>
+             <span id="summaryProgressText" class="font-medium cell-muted whitespace-nowrap">0 / 0 resolved</span>
           </div>
 
           <!-- Check-In Area -->
@@ -1610,7 +1583,30 @@
 
     <!-- VIEW: My Profile -->
     <div id="profileView" class="hidden w-full max-w-5xl space-y-6 pb-12">
-      <div id="profileCardContainer" class="space-y-6 mt-4">
+      <div id="profileManagerBar" class="hidden">
+        <button type="button" onclick="toggleProfileLookup()" class="text-sm font-medium text-theme-primary dark:text-theme-primary hover:underline flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">manage_search</span> Look up another agent
+        </button>
+        <div id="profileLookupPanel" class="hidden mt-2 flex items-center gap-3 bg-theme-card border border-theme-card-border rounded-theme-sm shadow-sm px-4 py-3">
+          <div class="relative flex-1">
+            <input type="text" id="profileTargetLdap" placeholder="Look up an agent by LDAP" autocomplete="off" oninput="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onfocus="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onkeydown="handleAgentAutocompleteKeydown(event, this, 'profileTargetLdapDropdown', viewAgentProfile)" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+            <div id="profileTargetLdapDropdown" class="hidden absolute left-0 top-full mt-1 w-full max-h-56 overflow-y-auto bg-theme-sidebar border border-theme-card-border rounded-theme-sm shadow-theme z-50"></div>
+          </div>
+          <button onclick="viewAgentProfile()" class="bg-theme-primary text-white text-sm font-medium px-4 py-2 rounded-theme shadow-sm hover:bg-theme-primary-hover transition shrink-0">View Profile</button>
+        </div>
+      </div>
+
+      <div id="profileViewingBanner" class="hidden items-center justify-between bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-theme-sm px-4 py-2.5">
+        <span class="text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">visibility</span>
+          Viewing <strong id="profileViewingLdap"></strong>'s profile
+        </span>
+        <button onclick="loadMyProfile()" class="text-sm font-medium text-amber-800 dark:text-amber-300 hover:underline flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span> Back to my profile
+        </button>
+      </div>
+
+      <div id="profileCardContainer" class="space-y-6">
         <div class="text-center text-gray-400 py-12">Loading profile...</div>
       </div>
     </div>
@@ -2732,7 +2728,7 @@ function refreshAccess() {
     }
 
     document.addEventListener('click', function(ev) {
-      if (!ev.target.closest('#managerLdapSearch, #profileManagerDropdown')) closeAllAgentDropdowns();
+      if (!ev.target.closest('#managerLdapSearch, #profileManagerBar')) closeAllAgentDropdowns();
     });
 
     // --- GLOBAL ESCAPE KEY: close whichever modal is open ---
@@ -2753,15 +2749,80 @@ function refreshAccess() {
     // --- MY PROFILE LOGIC ---
     let currentCalendarDate = new Date();
     let profileHistoryData = null; // Caches daily heatmap data
-    let calendarDenseMode = true;
+    let calendarViewMode = 'strip';
 
-    function toggleCalendarDensity() {
-      calendarDenseMode = !calendarDenseMode;
-      const icon = document.getElementById('calendarDensityIcon');
-      const text = document.getElementById('calendarDensityText');
-      if (icon) icon.textContent = calendarDenseMode ? 'grid_view' : 'calendar_view_week';
-      if (text) text.textContent = calendarDenseMode ? 'Expand' : 'Compact';
+    function toggleProfileLookup() {
+      const panel = document.getElementById('profileLookupPanel');
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) {
+        const input = document.getElementById('profileTargetLdap');
+        if (input) input.focus();
+      }
+    }
+
+    function toggleCalendarView() {
+      calendarViewMode = calendarViewMode === 'strip' ? 'month' : 'strip';
+      document.getElementById('calendarStripWrap').classList.toggle('hidden', calendarViewMode !== 'strip');
+      document.getElementById('calendarMonthWrap').classList.toggle('hidden', calendarViewMode !== 'month');
+      document.getElementById('calendarViewToggleBtn').textContent = calendarViewMode === 'strip' ? 'View full month' : 'Show compact view';
+      if (calendarViewMode === 'month') { currentCalendarDate = new Date(); renderCalendarHeatmap(); }
+      else renderCalendarStrip();
+    }
+
+    function refreshCalendarViews() {
+      renderCalendarStrip();
       renderCalendarHeatmap();
+    }
+
+    function renderCalendarStrip() {
+      const grid = document.getElementById('calendarStripGrid');
+      if (!grid) return;
+
+      const filterType = document.getElementById('calendarTypeFilter') ? document.getElementById('calendarTypeFilter').value : 'All';
+      const today = new Date();
+      const start = new Date(today);
+      start.setDate(start.getDate() - 55);
+      start.setDate(start.getDate() - start.getDay()); // back up to the Sunday starting that week
+
+      const days = [];
+      for (let i = 0; i < 56; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        days.push(d);
+      }
+
+      let maxCount = 0;
+      days.forEach(d => {
+        if (d > today) return;
+        const dayData = profileHistoryData ? profileHistoryData[toDateStringFastClient(d)] : null;
+        const count = dayData ? (dayData[filterType] || 0) : 0;
+        if (count > maxCount) maxCount = count;
+      });
+      const t1 = maxCount * 0.33, t2 = maxCount * 0.66;
+
+      const weeks = [];
+      for (let w = 0; w < 8; w++) weeks.push(days.slice(w * 7, w * 7 + 7));
+
+      grid.innerHTML = weeks.map(week => `
+        <div class="flex flex-col gap-1">
+          ${week.map(d => {
+            if (d > today) return '<div class="w-3.5 h-3.5"></div>';
+            const dayData = profileHistoryData ? profileHistoryData[toDateStringFastClient(d)] : null;
+            const count = dayData ? (dayData[filterType] || 0) : 0;
+            const allCount = dayData ? (dayData['All'] || 0) : 0;
+            const hasAbsent = dayData ? !!dayData.hasAbsent : false;
+            let cls = 'bg-gray-100 dark:bg-gray-700';
+            if (allCount === 0 && hasAbsent) cls = 'bg-red-200 dark:bg-red-900/50';
+            else if (count > 0) {
+              if (count <= t1 || maxCount === 0) cls = 'bg-theme-accent-muted dark:bg-theme-accent-muted/50';
+              else if (count <= t2) cls = 'bg-theme-primary/60';
+              else cls = 'bg-theme-primary';
+            }
+            const lbl = (allCount === 0 && hasAbsent) ? 'Absent' : (count > 0 ? count + ' cases' : 'No cases');
+            return `<div class="w-3.5 h-3.5 rounded-sm ${cls}" title="${escAttr(d.toLocaleDateString(undefined, {month:'short', day:'numeric'}))}: ${escAttr(lbl)}"></div>`;
+          }).join('')}
+        </div>
+      `).join('');
     }
 
     function changeCalendarMonth(offset) {
@@ -2796,13 +2857,6 @@ function refreshAccess() {
 
       let html = '';
       const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-      if (calendarDenseMode) {
-        grid.className = "grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs";
-      } else {
-        grid.className = "grid grid-cols-7 gap-2 text-center text-xs";
-      }
-
       daysOfWeek.forEach(d => {
         html += `<div class="font-medium text-gray-400 uppercase tracking-wider mb-2">${d}</div>`;
       });
@@ -2849,11 +2903,11 @@ function refreshAccess() {
           // Zero cases AND tagged Absent for at least one interval — distinct
           // from an ordinary zero-case day (rest day, VL, etc.) which carries
           // no tag at all.
-          opacityClass = 'bg-danger-bg text-danger-text';
+          opacityClass = 'bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400';
         } else if (caseCount === 0) {
-          opacityClass = 'bg-neutral-bg text-neutral-text';
+          opacityClass = 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500';
         } else if (caseCount <= t1 || maxCountForMonth === 0) {
-          opacityClass = 'bg-theme-accent-muted text-theme-primary';
+          opacityClass = 'bg-theme-accent-muted text-theme-primary dark:bg-theme-accent-muted/40 dark:text-theme-primary';
         } else if (caseCount <= t2) {
           // Tailwind's `/70` opacity modifier can't apply to a CSS-variable
           // color like var(--color-primary), so it silently produced no
@@ -2862,13 +2916,13 @@ function refreshAccess() {
           opacityClass = 'text-white';
           pillStyle = 'background-color: color-mix(in srgb, var(--color-primary) 70%, white);';
         } else {
-          opacityClass = 'bg-theme-primary text-white';
+          opacityClass = 'bg-theme-primary text-white dark:bg-theme-primary dark:text-white';
         }
 
         const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
         const borderClass = isToday
           ? 'border-2 border-theme-primary'
-          : (hasAbsent && allCount === 0 ? 'border border-danger' : 'border border-theme-card-border');
+          : (hasAbsent && allCount === 0 ? 'border border-red-200 dark:border-red-800/50' : 'border border-gray-200 dark:border-gray-700');
 
         let tooltipText = '';
         if (allCount === 0 && hasAbsent) {
@@ -2882,56 +2936,20 @@ function refreshAccess() {
            tooltipText = 'No Cases';
         }
 
-        if (calendarDenseMode) {
-          // GitHub style compact boxes
-          let compactBg = 'bg-gray-100 dark:bg-gray-800'; // empty
-          if (allCount === 0 && hasAbsent) compactBg = 'bg-danger-bg text-danger-text';
-          else if (caseCount > 0) {
-            if (caseCount <= t1 || maxCountForMonth === 0) compactBg = 'bg-theme-accent-muted';
-            else if (caseCount <= t2) compactBg = 'opacity-70';
-            else compactBg = 'bg-theme-primary';
-          }
-
-          let styleAttr = '';
-          if (caseCount > 0 && caseCount <= t2 && maxCountForMonth > 0) {
-            styleAttr = `style="background-color: color-mix(in srgb, var(--color-primary) 70%, transparent);"`;
-            compactBg = ''; // clear class since we use style
-          } else if (caseCount > t2) {
-             compactBg = 'bg-theme-primary';
-          }
-
-          const compactBorderClass = isToday ? 'border-2 border-theme-primary' : 'border border-theme-card-border';
-
-          html += `
-            <div onclick="goToIntervalFromCalendar('${dStr}')" class="aspect-square rounded-sm ${compactBorderClass} ${compactBg} relative flex items-center justify-center transition hover:shadow-md cursor-pointer group" ${styleAttr} title="${tooltipText}">
-              ${(allCount === 0 && hasAbsent) ? '<span class="text-[8px] font-bold">\u00d7</span>' : ''}
-              ${hasLate && allCount > 0 ? '<span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-warning border border-theme-sidebar"></span>' : ''}
-
-              <!-- Custom tooltip on hover -->
-              <div class="absolute bottom-full mb-1 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10 pointer-events-none">
-                <div class="font-semibold">${monthNames[month]} ${day}</div>
-                <div>${tooltipText}</div>
-              </div>
+        html += `
+          <div onclick="goToIntervalFromCalendar('${dStr}')" class="h-20 bg-theme-sidebar rounded-theme ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md hover:border-theme-primary cursor-pointer group" title="${tooltipText}">
+            <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
+            ${hasLate && allCount > 0 ? '<span class="material-symbols-outlined absolute top-1 right-1.5 text-[13px] text-amber-500" title="Started Late">schedule</span>' : ''}
+            <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm" style="${pillStyle}">
+               ${(allCount === 0 && hasAbsent) ? '\u00d7' : (caseCount > 0 ? caseCount : '-')}
             </div>
-          `;
 
-        } else {
-          // Full expanded card style
-          html += `
-            <div onclick="goToIntervalFromCalendar('${dStr}')" class="h-20 bg-theme-sidebar rounded-theme ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md hover:border-theme-primary cursor-pointer group" title="${tooltipText}">
-              <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
-              ${hasLate && allCount > 0 ? '<span class="material-symbols-outlined absolute top-1 right-1.5 text-[13px] text-warning" title="Started Late">schedule</span>' : ''}
-              <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm" style="${pillStyle}">
-                 ${(allCount === 0 && hasAbsent) ? '\u00d7' : (caseCount > 0 ? caseCount : '-')}
-              </div>
-
-              <!-- Custom tooltip on hover -->
-              <div class="absolute bottom-full mb-2 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10">
-                ${tooltipText}
-              </div>
+            <!-- Custom tooltip on hover -->
+            <div class="absolute bottom-full mb-2 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10">
+              ${tooltipText}
             </div>
-          `;
-        }
+          </div>
+        `;
       }
 
       grid.innerHTML = html;
@@ -2949,6 +2967,14 @@ function refreshAccess() {
 
     function loadMyProfile(targetLdap) {
       const container = document.getElementById('profileCardContainer');
+      const managerBar = document.getElementById('profileManagerBar');
+      if (managerBar) managerBar.classList.toggle('hidden', !currentUserIsManager);
+      const lookupPanel = document.getElementById('profileLookupPanel');
+      if (lookupPanel) lookupPanel.classList.add('hidden');
+
+      const banner = document.getElementById('profileViewingBanner');
+      banner.classList.add('hidden');
+      banner.classList.remove('flex');
 
       container.innerHTML = '<div class="text-center text-gray-400 py-12">Loading profile...</div>';
       google.script.run
@@ -2971,13 +2997,22 @@ function refreshAccess() {
       profileHistoryData = data.history || {};
       renderCalendarHeatmap();
 
+      const banner = document.getElementById('profileViewingBanner');
+      if (!data.isOwnProfile) {
+        document.getElementById('profileViewingLdap').textContent = data.ldap;
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+      } else {
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+      }
 
       const weekDelta = data.stats.lastWeek > 0
         ? Math.round(((data.stats.thisWeek - data.stats.lastWeek) / data.stats.lastWeek) * 100)
         : (data.stats.thisWeek > 0 ? 100 : 0);
       const weekDeltaHtml = (data.stats.lastWeek === 0 && data.stats.thisWeek === 0)
         ? ''
-        : `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${weekDelta >= 0 ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}">${weekDelta >= 0 ? '+' : ''}${weekDelta}% vs last wk</span>`;
+        : `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${weekDelta >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400'}">${weekDelta >= 0 ? '+' : ''}${weekDelta}% vs last wk</span>`;
 
       const auditClickable = currentUserIsManager;
       const auditCardOnClick = auditClickable ? `onclick="switchTab('dashboardView')"` : '';
@@ -2986,8 +3021,8 @@ function refreshAccess() {
       const container = document.getElementById('profileCardContainer');
       const avatarHTML = getMomaImgClass(data.ldap, 'w-16 h-16 rounded-full border border-gray-200 dark:border-gray-600 object-cover shrink-0', 128);
       const statusColor = (data.employeeStatus || '').toLowerCase() === 'active'
-        ? 'bg-success-bg text-success-text'
-        : 'bg-neutral-bg text-neutral-text';
+        ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400'
+        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
 
       const reportsToHtml = data.reportsTo.length
         ? data.reportsTo.map(r => escAttr(r.name)).join(' &rarr; ')
@@ -3015,120 +3050,74 @@ function refreshAccess() {
           </div>`;
       }
 
-      const managerSearchHtml = currentUserIsManager ? `
-        <div class="relative inline-block ml-3">
-          <button onclick="document.getElementById('profileManagerDropdown').classList.toggle('hidden')" class="flex items-center gap-1 text-xs font-medium text-theme-primary hover:bg-theme-accent-muted px-2 py-1 rounded transition">
-            viewing: ${data.isOwnProfile ? 'me' : escAttr(data.ldap)} <span class="material-symbols-outlined text-[16px]">arrow_drop_down</span>
-          </button>
-          <div id="profileManagerDropdown" class="hidden absolute left-0 top-full mt-1 w-64 bg-theme-sidebar border border-theme-card-border rounded-theme-sm shadow-theme z-50 p-2">
-            <div class="relative">
-              <input type="text" id="profileTargetLdap" placeholder="Look up agent..." autocomplete="off" oninput="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onfocus="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onkeydown="handleAgentAutocompleteKeydown(event, this, 'profileTargetLdapDropdown', viewAgentProfile)" class="w-full p-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
-              <div id="profileTargetLdapDropdown" class="hidden absolute left-0 top-full mt-1 w-full max-h-40 overflow-y-auto bg-theme-sidebar border border-theme-card-border rounded-theme-sm shadow-theme z-[60]"></div>
-            </div>
-            ${!data.isOwnProfile ? `<button onclick="loadMyProfile()" class="w-full mt-2 text-left px-2 py-1.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-theme-canvas rounded transition flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">arrow_back</span> Back to my profile</button>` : ''}
-          </div>
-        </div>
-      ` : '';
-
       container.innerHTML = `
-        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
-          <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-emerald-400 to-amber-400"></div>
-          <div class="p-6 pt-8 flex flex-col sm:flex-row gap-6 items-start">
-            <div class="flex items-center gap-4">
-              <div class="relative">
-                ${avatarHTML}
-                ${(data.employeeStatus || '').toLowerCase() === 'active' ? '<span class="absolute bottom-0 right-0 w-4 h-4 bg-success border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center"><span class="w-2.5 h-2.5 bg-success rounded-full animate-ping opacity-50"></span></span>' : ''}
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center">
-                  <div class="font-medium text-lg leading-tight cell-strong">${escAttr(data.name)}</div>
-                  ${managerSearchHtml}
-                </div>
-                <div class="text-sm cell-muted">${escAttr(data.position || '\u2014')}</div>
-                ${data.employeeStatus ? `<span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}">${escAttr(data.employeeStatus)}</span>` : ''}
-              </div>
+        <div class="bg-theme-card rounded-theme shadow-sm border border-theme-card-border">
+          <div class="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="relative shrink-0">
+              ${avatarHTML}
+              ${(data.employeeStatus || '').toLowerCase() === 'active' ? '<span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center"><span class="w-2.5 h-2.5 bg-emerald-300 rounded-full animate-ping"></span></span>' : ''}
             </div>
-            <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm items-start">
-              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
-                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Tenure</div>
-                <div class="font-medium cell-strong">${escAttr(data.tenureText || '\u2014')}</div>
-                <div class="text-[10px] text-neutral-text">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <div class="font-medium text-lg leading-tight cell-strong" title="${escAttr(data.name)}">${escAttr(data.name)}</div>
+                ${data.employeeStatus ? `<span class="text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}">${escAttr(data.employeeStatus)}</span>` : ''}
               </div>
-              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
-                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Site</div>
-                <div class="font-medium cell-strong">${escAttr(data.site || '\u2014')}</div>
+              <div class="text-sm cell-muted">${escAttr(data.position || '\u2014')}</div>
+              <div class="text-xs cell-faint mt-1.5">
+                ${escAttr(data.tenureText || '\u2014')}${data.hireDateStr ? ' (since ' + escAttr(data.hireDateStr) + ')' : ''}
+                <span class="mx-1.5">&middot;</span>${escAttr(data.site || '\u2014')}
+                <span class="mx-1.5">&middot;</span>${escAttr(data.team || '\u2014')}${data.workflow ? ' (' + escAttr(data.workflow) + ')' : ''}
+                <span class="mx-1.5">&middot;</span>${escAttr(data.gradeLevel || '\u2014')}
               </div>
-              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
-                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Team</div>
-                <div class="font-medium cell-strong">${escAttr(data.team || '\u2014')}</div>
-                <div class="text-[10px] text-neutral-text truncate">${escAttr(data.workflow || '')}</div>
-              </div>
-              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
-                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Grade</div>
-                <div class="font-medium cell-strong">${escAttr(data.gradeLevel || '\u2014')}</div>
-              </div>
-              <div class="col-span-2 sm:col-span-4 pt-3 mt-1 flex items-center gap-2">
-                <span class="text-[10px] uppercase tracking-wide cell-faint font-semibold bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">Reports to</span>
-                <span class="text-sm">${reportsToHtml}</span>
-              </div>
+              <div class="text-xs cell-faint mt-1">Reports to <span class="cell-muted">${reportsToHtml}</span></div>
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-2">
-               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400">Today</div>
-               ${data.stats.today > 0 ? `<span class="bg-theme-accent-muted dark:bg-theme-accent-muted/50 text-theme-primary dark:text-theme-primary text-[10px] font-bold px-2 py-0.5 rounded-full">+${data.stats.today}</span>` : ''}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2 bg-theme-card p-5 rounded-theme shadow-sm border border-theme-card-border flex flex-wrap items-end gap-x-8 gap-y-3">
+            <div>
+              <div class="text-[10px] uppercase font-semibold cell-faint mb-1 flex items-center gap-1.5">This Week ${weekDeltaHtml}</div>
+              <div class="text-4xl font-bold cell-strong leading-none">${data.stats.thisWeek}</div>
             </div>
-            <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.today}</div>
+            <div class="flex items-center gap-6 pb-0.5">
+              <div>
+                <div class="text-[10px] uppercase font-semibold cell-faint mb-1">Today</div>
+                <div class="text-xl font-semibold cell-muted">${data.stats.today}</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase font-semibold cell-faint mb-1">This Month</div>
+                <div class="text-xl font-semibold cell-muted">${data.stats.thisMonth}</div>
+              </div>
+            </div>
           </div>
-          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-2">
-               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400">This Week</div>
-               ${weekDeltaHtml}
+          <div ${auditCardOnClick} class="bg-theme-card p-5 rounded-theme shadow-sm border ${data.stats.pendingAudits > 0 ? 'border-amber-300 dark:border-amber-700' : 'border-theme-card-border'} flex items-center justify-between ${auditCardCursor}">
+            <div>
+              <div class="text-[10px] uppercase font-semibold cell-faint mb-1">My Pending Audits</div>
+              <div class="text-3xl font-bold ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-400' : 'cell-strong'}">${data.stats.pendingAudits}</div>
             </div>
-            <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisWeek}</div>
-          </div>
-          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-2">
-               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400">This Month</div>
-            </div>
-            <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisMonth}</div>
-          </div>
-          <div ${auditCardOnClick} class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border ${data.stats.pendingAudits > 0 ? 'border-warning' : 'border-theme-card-border'} flex flex-col justify-between relative overflow-hidden ${auditCardCursor}">
-            ${data.stats.pendingAudits > 0 ? '<div class="absolute top-0 right-0 w-16 h-16 bg-warning-bg rounded-bl-full -mr-8 -mt-8 animate-pulse"></div>' : ''}
-            <div class="flex items-center justify-between mb-3 relative z-10">
-               <div class="w-10 h-10 rounded-theme bg-warning-bg text-warning-text flex items-center justify-center">
-                 <span class="material-symbols-outlined">gavel</span>
-               </div>
-               ${data.stats.pendingAudits > 0 ? `<span class="bg-warning-bg text-warning-text text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span> Action</span>` : ''}
-            </div>
-            <div class="relative z-10">
-              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">My Pending Audits</div>
-              <div class="text-3xl font-bold ${data.stats.pendingAudits > 0 ? 'text-warning-text' : 'text-gray-800 dark:text-gray-100'}">${data.stats.pendingAudits}</div>
-            </div>
+            ${data.stats.pendingAudits > 0 ? '<span class="material-symbols-outlined text-amber-500 text-[28px]">gavel</span>' : ''}
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div class="bg-theme-card backdrop-blur-md sm:col-span-2 p-5 rounded-theme shadow border border-theme-card-border">
+          <div class="bg-theme-card sm:col-span-2 p-5 rounded-theme shadow-sm border border-theme-card-border">
             <div class="text-sm font-medium mb-3 cell-strong">Last 7 Days</div>
             <div class="flex items-end gap-2">${trendBars}</div>
           </div>
-          <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border">
+          <div class="bg-theme-card p-5 rounded-theme shadow-sm border border-theme-card-border">
             <div class="text-sm font-medium mb-3 cell-strong">This Month by Type</div>
             <div class="space-y-2">
               ${breakdownRow('Regular', data.breakdown.Regular, 'bg-theme-primary')}
-              ${breakdownRow('Reopened', data.breakdown.Reopened, 'bg-warning')}
-              ${breakdownRow('Manual', data.breakdown.Manual, 'bg-info')}
-              ${data.breakdown.Telus > 0 ? breakdownRow('Telus', data.breakdown.Telus, 'bg-neutral') : ''}
-              ${data.breakdown.Cimba > 0 ? breakdownRow('Cimba', data.breakdown.Cimba, 'bg-danger') : ''}
+              ${breakdownRow('Reopened', data.breakdown.Reopened, 'bg-amber-400')}
+              ${breakdownRow('Manual', data.breakdown.Manual, 'bg-purple-400')}
+              ${data.breakdown.Telus > 0 ? breakdownRow('Telus', data.breakdown.Telus, 'bg-sky-400') : ''}
+              ${data.breakdown.Cimba > 0 ? breakdownRow('Cimba', data.breakdown.Cimba, 'bg-rose-400') : ''}
             </div>
           </div>
         </div>
 
-        <button onclick="switchTab('mySubmissionsView')" class="w-full flex items-center justify-between bg-theme-card p-4 rounded-theme shadow-theme backdrop-blur-theme border border-theme-card-border hover:border-theme-primary transition text-left">
+        <button onclick="switchTab('mySubmissionsView')" class="w-full flex items-center justify-between bg-theme-card p-4 rounded-theme shadow-sm border border-theme-card-border hover:border-theme-primary transition text-left">
           <span class="text-sm font-medium flex items-center gap-2 cell-strong">
             <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[20px]">list_alt</span>
             View my full submissions
@@ -3136,25 +3125,14 @@ function refreshAccess() {
           <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
         </button>
 
-        <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow border border-theme-card-border mt-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">calendar_month</span>
-              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200" id="calendarMonthLabel">Loading...</h3>
-              <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-theme-sm ml-2">
-                <button onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-l-lg transition text-gray-500 dark:text-gray-300">
-                  <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-                </button>
-                <button onclick="changeCalendarMonth(1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-r-lg transition text-gray-500 dark:text-gray-300">
-                  <span class="material-symbols-outlined text-[18px]">chevron_right</span>
-                </button>
-              </div>
+        <div class="bg-theme-card p-5 rounded-theme shadow-sm border border-theme-card-border mt-6">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[20px]">calendar_month</span>
+              <h3 class="text-sm font-medium cell-strong" id="calendarStripLabel">Last 8 weeks</h3>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="toggleCalendarDensity()" class="text-xs font-medium text-theme-primary hover:text-theme-primary-hover flex items-center gap-1 transition">
-                <span id="calendarDensityIcon" class="material-symbols-outlined text-[16px]">grid_view</span> <span id="calendarDensityText">Expand</span>
-              </button>
-              <select id="calendarTypeFilter" onchange="renderCalendarHeatmap()" class="p-1.5 border border-gray-300 dark:border-gray-600 rounded-theme-sm text-xs focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm">
+              <select id="calendarTypeFilter" onchange="refreshCalendarViews()" class="p-1.5 border border-gray-300 dark:border-gray-600 rounded-theme-sm text-xs focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm">
                 <option value="All">All Case Types</option>
                 <option value="Regular">Regular</option>
                 <option value="Reopened">Reopened</option>
@@ -3162,17 +3140,38 @@ function refreshAccess() {
                 <option value="Telus">Telus</option>
                 <option value="Cimba">Cimba</option>
               </select>
+              <button type="button" id="calendarViewToggleBtn" onclick="toggleCalendarView()" class="text-xs font-medium text-theme-primary hover:underline whitespace-nowrap">View full month</button>
             </div>
           </div>
-          <div id="calendarHeatmapGrid" class="grid grid-cols-7 gap-2 text-center text-xs">
-            <!-- Rendered via JS -->
+
+          <div id="calendarStripWrap" class="overflow-x-auto pb-1">
+            <div id="calendarStripGrid" class="flex gap-1 w-max"></div>
+          </div>
+
+          <div id="calendarMonthWrap" class="hidden">
+            <div class="flex items-center gap-1 mb-3">
+              <span class="text-sm font-medium cell-strong" id="calendarMonthLabel">Loading...</span>
+              <button onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-l-lg transition text-gray-500 dark:text-gray-300">
+                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+              </button>
+              <button onclick="changeCalendarMonth(1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-r-lg transition text-gray-500 dark:text-gray-300">
+                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+              </button>
+            </div>
+            <div id="calendarHeatmapGrid" class="grid grid-cols-7 gap-2 text-center text-xs">
+              <!-- Rendered via JS -->
+            </div>
           </div>
         </div>
       `;
 
       // Initialize Calendar
       currentCalendarDate = new Date();
-      renderCalendarHeatmap();
+      calendarViewMode = 'strip';
+      document.getElementById('calendarStripWrap').classList.remove('hidden');
+      document.getElementById('calendarMonthWrap').classList.add('hidden');
+      document.getElementById('calendarViewToggleBtn').textContent = 'View full month';
+      refreshCalendarViews();
     }
 
     // --- HELP MODAL ---
@@ -4495,6 +4494,8 @@ function refreshAccess() {
       allIntervalAgents = agents;
       const filterInput = document.getElementById('intervalFilterInput');
       if (filterInput) filterInput.value = '';
+      intervalQuickFilter = 'all';
+      paintIntervalQuickFilterChips();
       renderIntervalRows(agents);
       hideIntervalRefreshBanner();
       captureIntervalBaseline();
@@ -4563,44 +4564,49 @@ function refreshAccess() {
       intervalFilterTimer = setTimeout(applyIntervalFilter, 150);
     }
 
-    function applyIntervalFilter() {
-      const q = document.getElementById('intervalFilterInput').value.trim().toLowerCase();
-      if (!q) {
-        renderIntervalRows(allIntervalAgents);
-        return;
-      }
-      const filtered = allIntervalAgents.filter(a =>
-        a.ldap.toLowerCase().includes(q) || (a.site || '').toLowerCase().includes(q)
-      );
-      renderIntervalRows(filtered);
+    let intervalQuickFilter = 'all';
+    let intervalResolvedCollapsed = false;
+
+    function intervalNeedsAttention(a) {
+      const status = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus;
+      return !status && a.casesLogged === 0;
     }
 
-    function renderIntervalRows(agents) {
-      const tbody = document.getElementById('intervalTableBody');
-      const copyBtn = document.getElementById('copyReportBtn');
-      const summaryBar = document.getElementById('intervalSummaryBar');
+    function paintIntervalQuickFilterChips() {
+      document.querySelectorAll('#intervalQuickFilters .qf-chip').forEach(btn => {
+        const active = btn.dataset.qf === intervalQuickFilter;
+        btn.className = 'qf-chip px-3 py-1.5 rounded-full text-xs font-medium border transition ' +
+          (active ? 'bg-theme-primary text-white border-theme-primary' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600');
+      });
+    }
 
-      if (allIntervalAgents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">No agents scheduled for this interval.</td></tr>';
-        copyBtn.classList.add('hidden');
-        document.getElementById('copyChatReportBtn').classList.add('hidden');
-        summaryBar.classList.add('hidden');
-        const bulkBtn = document.getElementById('bulkActionsBtn');
-        if (bulkBtn) bulkBtn.classList.add('hidden');
-        const selectFlaggedBtn = document.getElementById('selectFlaggedBtn');
-        if (selectFlaggedBtn) selectFlaggedBtn.classList.add('hidden');
-        return;
-      }
+    function setIntervalQuickFilter(qf) {
+      intervalQuickFilter = qf;
+      paintIntervalQuickFilterChips();
+      applyIntervalFilter();
+    }
 
-      if (agents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-400">No agents match your filter.</td></tr>';
-      } else {
-                const n = v => (v > 0 ? v : '<span class="cell-faint">&ndash;</span>');
-        tbody.innerHTML = agents.map(a => {
-          const status = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus;
-          const needsAttention = !status && a.casesLogged === 0;
-          return `
-          <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'bg-red-50/40 dark:bg-red-900/10' : ''}">
+    function toggleResolvedGroup() {
+      intervalResolvedCollapsed = !intervalResolvedCollapsed;
+      applyIntervalFilter();
+    }
+
+    function applyIntervalFilter() {
+      const q = document.getElementById('intervalFilterInput').value.trim().toLowerCase();
+      let list = allIntervalAgents;
+      if (q) list = list.filter(a => a.ldap.toLowerCase().includes(q) || (a.site || '').toLowerCase().includes(q));
+      if (intervalQuickFilter === 'attention') list = list.filter(intervalNeedsAttention);
+      else if (intervalQuickFilter === 'ot') list = list.filter(a => a.isOT);
+      else if (intervalQuickFilter === 'flagged') list = list.filter(a => a.pendingAudits && a.pendingAudits.length > 0);
+      renderIntervalRows(list);
+    }
+
+    function buildIntervalRowHtml(a, hidden) {
+      const n = v => (v > 0 ? v : '<span class="cell-faint">&ndash;</span>');
+      const status = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus;
+      const needsAttention = intervalNeedsAttention(a);
+      return `
+          <tr class="row-hover transition ${a.isOT ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''} ${needsAttention ? 'border-l-4 border-red-400 dark:border-red-500' : ''}" data-group="${needsAttention ? 'attention' : 'resolved'}" ${hidden ? 'style="display:none"' : ''}>
             <td class="p-3">
               <input type="checkbox" class="interval-checkbox w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700" onchange="updateBulkIntervalButtons()" data-ldap="${a.ldap}" data-needs-attention="${needsAttention ? '1' : '0'}">
             </td>
@@ -4624,33 +4630,75 @@ function refreshAccess() {
             <td class="p-3 text-center font-medium ${a.manualCount > 0 ? 'text-purple-600 dark:text-purple-400' : ''}">${n(a.manualCount)}</td>
             <td class="p-3 text-center font-medium ${a.reopenedCount > 0 ? 'text-teal-600 dark:text-teal-400' : ''}">${n(a.reopenedCount)}</td>
             <td class="p-3 text-center font-semibold ${a.casesLogged > 0 ? 'text-green-600 dark:text-green-400' : ''}">${n(a.casesLogged)}</td>
-          </tr>
-        `;}).join('');
+          </tr>`;
+    }
+
+    function renderIntervalRows(agents) {
+      const tbody = document.getElementById('intervalTableBody');
+      const copyBtn = document.getElementById('copyReportBtn');
+      const summaryBar = document.getElementById('intervalSummaryBar');
+
+      if (allIntervalAgents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400">No agents scheduled for this interval.</td></tr>';
+        copyBtn.classList.add('hidden');
+        document.getElementById('copyChatReportBtn').classList.add('hidden');
+        summaryBar.classList.add('hidden');
+        const bulkBtn = document.getElementById('bulkActionsBtn');
+        if (bulkBtn) bulkBtn.classList.add('hidden');
+        const selectFlaggedBtn = document.getElementById('selectFlaggedBtn');
+        if (selectFlaggedBtn) selectFlaggedBtn.classList.add('hidden');
+        return;
+      }
+
+      if (agents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400">No agents match your filter.</td></tr>';
+      } else {
+        const needsAttention = agents.filter(intervalNeedsAttention);
+        const resolved = agents.filter(a => !intervalNeedsAttention(a));
+        let html = '';
+        if (needsAttention.length > 0) {
+          html += `<tr data-group-header="1"><td colspan="10" class="px-3 py-2 bg-red-50/70 dark:bg-red-900/20 border-y border-red-100 dark:border-red-800/40">
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">
+              <span class="material-symbols-outlined text-[16px]">flag</span> Needs Attention — ${needsAttention.length}
+            </span>
+          </td></tr>`;
+          html += needsAttention.map(a => buildIntervalRowHtml(a, false)).join('');
+        }
+        if (resolved.length > 0) {
+          html += `<tr data-group-header="1"><td colspan="10" class="px-3 py-2 bg-theme-canvas dark:bg-gray-700/40 border-y border-gray-100 dark:border-gray-700 cursor-pointer" onclick="toggleResolvedGroup()">
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold cell-muted uppercase tracking-wide">
+              <span class="material-symbols-outlined text-[16px]">${intervalResolvedCollapsed ? 'expand_more' : 'expand_less'}</span> Resolved — ${resolved.length}
+            </span>
+          </td></tr>`;
+          html += resolved.map(a => buildIntervalRowHtml(a, intervalResolvedCollapsed)).join('');
+        }
+        tbody.innerHTML = html;
       }
 
       copyBtn.classList.remove('hidden');
       document.getElementById('copyChatReportBtn').classList.remove('hidden');
 
-      // Update colors for dynamically selected statuses
       const selects = tbody.querySelectorAll('select');
       selects.forEach(select => updateStatusColor(select));
 
-      // Summary bar always reflects the full (unfiltered) interval, not the filtered view
       const totalAgents = allIntervalAgents.length;
       const skipCount = allIntervalAgents.filter(a => { const s = (a.ldap in intervalStatusOverrides) ? intervalStatusOverrides[a.ldap] : a.computedStatus; return s === 'SKIP - EOS' || s === 'SKIP SOS'; }).length;
       const otCount = allIntervalAgents.filter(a => a.isOT).length;
       const totalCases = allIntervalAgents.reduce((sum, a) => sum + (a.casesLogged || 0), 0);
+      const resolvedCount = totalAgents - allIntervalAgents.filter(intervalNeedsAttention).length;
+      const pct = totalAgents > 0 ? Math.round((resolvedCount / totalAgents) * 100) : 0;
 
       document.getElementById('summaryTotalAgents').textContent = totalAgents;
       document.getElementById('summarySkipCount').textContent = skipCount;
       document.getElementById('summaryOtCount').textContent = otCount;
       document.getElementById('summaryTotalCases').textContent = totalCases;
+      document.getElementById('summaryProgressBar').style.width = pct + '%';
+      document.getElementById('summaryProgressText').textContent = resolvedCount + ' / ' + totalAgents + ' resolved';
       summaryBar.classList.remove('hidden');
 
       document.getElementById('bulkActionsBtn').classList.remove('hidden');
       document.getElementById('selectFlaggedBtn').classList.remove('hidden');
 
-      // Fetch check-in status
       document.getElementById('checkInBtn').classList.add('hidden');
       document.getElementById('checkInBadge').classList.add('hidden');
       const d = document.getElementById('intervalDate').value;
@@ -4665,77 +4713,71 @@ function refreshAccess() {
     // --- TABLE SORTING LOGIC ---
     function sortTable(tableBodyId, headerElement, columnIndex, isNumeric = false) {
       const tbody = document.getElementById(tableBodyId);
-      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const allRows = Array.from(tbody.querySelectorAll('tr'));
 
       // Ignore if empty or loading state
-      if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('Loading'))) return;
-      if (rows.length === 1 && rows[0].innerText.includes('No ')) return;
+      if (allRows.length === 0 || (allRows.length === 1 && allRows[0].innerText.includes('Loading'))) return;
+      if (allRows.length === 1 && allRows[0].innerText.includes('No ')) return;
 
       const currentDir = headerElement.dataset.sortDir || 'asc';
       const newDir = currentDir === 'asc' ? 'desc' : 'asc';
 
-      rows.sort((a, b) => {
-        const cellA = a.children[columnIndex];
-        const cellB = b.children[columnIndex];
-
-        const cellVal = c => {
-          if (!c) return '';
-          const sel = c.querySelector('select');
-          return sel ? sel.value : c.innerText.trim();
-        };
-        let valA = cellVal(cellA);
-        let valB = cellVal(cellB);
-
+      const cellVal = c => {
+        if (!c) return '';
+        const sel = c.querySelector('select');
+        return sel ? sel.value : c.innerText.trim();
+      };
+      const compareRows = (a, b) => {
+        let valA = cellVal(a.children[columnIndex]);
+        let valB = cellVal(b.children[columnIndex]);
         if (isNumeric) {
           valA = parseFloat(valA) || 0;
           valB = parseFloat(valB) || 0;
           return newDir === 'asc' ? valA - valB : valB - valA;
+        }
+        return newDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      };
+
+      // Sort within each contiguous run of data rows; group-header rows (if any) stay fixed in place
+      const segments = [];
+      let current = [];
+      allRows.forEach(row => {
+        if (row.dataset.groupHeader === '1') {
+          if (current.length) segments.push(current);
+          segments.push([row]);
+          current = [];
         } else {
-          return newDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          current.push(row);
         }
       });
+      if (current.length) segments.push(current);
+      segments.forEach(seg => { if (seg.length > 1 && seg[0].dataset.groupHeader !== '1') seg.sort(compareRows); });
 
-      // Clear existing sort indicators on all headers in this table
       const thead = headerElement.closest('thead');
       thead.querySelectorAll('th').forEach(th => {
         th.dataset.sortDir = '';
         const arrow = th.querySelector('.sort-arrow');
         if (arrow) arrow.innerText = 'unfold_more';
       });
-
-      // Update current header
       headerElement.dataset.sortDir = newDir;
       const arrow = headerElement.querySelector('.sort-arrow');
-      if (arrow) {
-        arrow.innerText = newDir === 'asc' ? 'expand_less' : 'expand_more';
-      }
+      if (arrow) arrow.innerText = newDir === 'asc' ? 'expand_less' : 'expand_more';
 
-      // Re-append sorted rows
       tbody.innerHTML = '';
-      rows.forEach(row => tbody.appendChild(row));
+      segments.forEach(seg => seg.forEach(row => tbody.appendChild(row)));
     }
 
     // --- STATUS DROPDOWN COLOR HELPER ---
     function getStatusColorClasses(val) {
-      // Added focus:border-theme-primary for better keyboard navigation visibility
-      let classes = "text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary w-36 font-medium cursor-pointer transition-colors ";
-      // Apply Google Sheets Chip Colors
-      if (val === 'Assigned - 7') classes += 'bg-[#1e8e3e] text-white';
-      else if (val === 'Break - 3') classes += 'bg-[#f29900] text-white';
-      else if (val === 'VL/SL') classes += 'bg-[#d2e3fc] text-gray-800'; // Light Blue
-      else if (val === 'on Live Channel') classes += 'bg-[#f3e8fd] text-purple-900'; // Light Purple
-      else if (val === 'SKIP - EOS') classes += 'bg-[#cbf0f8] text-teal-900'; // Light Teal
-      else if (val === 'SKIP SOS') classes += 'bg-[#fce8e6] text-red-900'; // Light Pink
-      else if (val === 'Absent') classes += 'bg-[#d93025] text-white';
-      else if (val === 'Late') classes += 'bg-[#e37400] text-white';
-      else if (val === 'on Coaching/Training') classes += 'bg-[#681da8] text-white';
-      else if (val === 'Closing Reopens') classes += 'bg-[#5d4037] text-white';
-      else classes += 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 select-default';
+      let classes = "status-select text-xs p-1.5 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-theme-primary w-36 font-medium cursor-pointer transition-colors ";
+      classes += val ? '' : 'select-default';
       return classes;
     }
 
     function updateStatusColor(selectElement) {
       selectElement.className = getStatusColorClasses(selectElement.value);
+      if (selectElement.value) selectElement.setAttribute('data-status', selectElement.value);
+      else selectElement.removeAttribute('data-status');
     }
 
     // --- APEXCHARTS LOADER (served by the script, not a CDN) ---
