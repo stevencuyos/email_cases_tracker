@@ -45,6 +45,31 @@
               'primary-hover': 'var(--color-primary-hover)',
               'card-border': 'var(--color-card-border)',
               'accent-muted': 'var(--color-accent-muted)'
+            },
+            success: {
+              DEFAULT: 'color-mix(in srgb, var(--color-success) calc(<alpha-value> * 100%), transparent)',
+              bg: 'color-mix(in srgb, var(--color-success-bg) calc(<alpha-value> * 100%), transparent)',
+              text: 'color-mix(in srgb, var(--color-success-text) calc(<alpha-value> * 100%), transparent)',
+            },
+            warning: {
+              DEFAULT: 'color-mix(in srgb, var(--color-warning) calc(<alpha-value> * 100%), transparent)',
+              bg: 'color-mix(in srgb, var(--color-warning-bg) calc(<alpha-value> * 100%), transparent)',
+              text: 'color-mix(in srgb, var(--color-warning-text) calc(<alpha-value> * 100%), transparent)',
+            },
+            danger: {
+              DEFAULT: 'color-mix(in srgb, var(--color-danger) calc(<alpha-value> * 100%), transparent)',
+              bg: 'color-mix(in srgb, var(--color-danger-bg) calc(<alpha-value> * 100%), transparent)',
+              text: 'color-mix(in srgb, var(--color-danger-text) calc(<alpha-value> * 100%), transparent)',
+            },
+            neutral: {
+              DEFAULT: 'color-mix(in srgb, var(--color-neutral) calc(<alpha-value> * 100%), transparent)',
+              bg: 'color-mix(in srgb, var(--color-neutral-bg) calc(<alpha-value> * 100%), transparent)',
+              text: 'color-mix(in srgb, var(--color-neutral-text) calc(<alpha-value> * 100%), transparent)',
+            },
+            info: {
+              DEFAULT: 'color-mix(in srgb, var(--color-info) calc(<alpha-value> * 100%), transparent)',
+              bg: 'color-mix(in srgb, var(--color-info-bg) calc(<alpha-value> * 100%), transparent)',
+              text: 'color-mix(in srgb, var(--color-info-text) calc(<alpha-value> * 100%), transparent)',
             }
           },
           borderRadius: {
@@ -80,6 +105,27 @@
       --radius-sm: 0.5rem; /* rounded-theme-sm */
       --shadow-card: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
       --blur-card: 12px; /* backdrop-blur-md */
+
+      /* Semantic Tokens (Light) */
+      --color-success: #34a853;
+      --color-success-bg: #e6f4ea;
+      --color-success-text: #137333;
+
+      --color-warning: #fbbc04;
+      --color-warning-bg: #fef7e0;
+      --color-warning-text: #b06000;
+
+      --color-danger: #ea4335;
+      --color-danger-bg: #fce8e6;
+      --color-danger-text: #c5221f;
+
+      --color-neutral: #9aa0a6;
+      --color-neutral-bg: #f1f3f4;
+      --color-neutral-text: #5f6368;
+
+      --color-info: #1a73e8;
+      --color-info-bg: #e8f0fe;
+      --color-info-text: #1967d2;
     }
 
     /* Dark Mode Defaults */
@@ -89,6 +135,27 @@
       --color-card: rgba(31, 41, 55, 0.8); /* gray-800/80 */
       --color-card-border: rgba(55, 65, 81, 0.5); /* gray-700/50 */
       --color-accent-muted: #1e3a8a; /* blue-900 */
+
+      /* Semantic Tokens (Dark) */
+      --color-success: #81c995;
+      --color-success-bg: rgba(52, 168, 83, 0.15);
+      --color-success-text: #81c995;
+
+      --color-warning: #fdd663;
+      --color-warning-bg: rgba(251, 188, 4, 0.15);
+      --color-warning-text: #fdd663;
+
+      --color-danger: #f28b82;
+      --color-danger-bg: rgba(234, 67, 53, 0.15);
+      --color-danger-text: #f28b82;
+
+      --color-neutral: #9aa0a6;
+      --color-neutral-bg: rgba(154, 160, 166, 0.15);
+      --color-neutral-text: #9aa0a6;
+
+      --color-info: #8ab4f8;
+      --color-info-bg: rgba(26, 115, 232, 0.15);
+      --color-info-text: #8ab4f8;
     }
 
     /* Theme 2: Fintech (Stripe-style) */
@@ -1543,26 +1610,7 @@
 
     <!-- VIEW: My Profile -->
     <div id="profileView" class="hidden w-full max-w-5xl space-y-6 pb-12">
-      <div id="profileManagerBar" class="hidden items-center gap-3 bg-theme-card border border-theme-card-border rounded-theme-sm shadow-sm px-4 py-3">
-        <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[20px] shrink-0">manage_search</span>
-        <div class="relative flex-1">
-          <input type="text" id="profileTargetLdap" placeholder="Look up an agent by LDAP" autocomplete="off" oninput="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onfocus="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onkeydown="handleAgentAutocompleteKeydown(event, this, 'profileTargetLdapDropdown', viewAgentProfile)" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
-          <div id="profileTargetLdapDropdown" class="hidden absolute left-0 top-full mt-1 w-full max-h-56 overflow-y-auto bg-theme-sidebar border border-theme-card-border rounded-theme-sm shadow-theme z-50"></div>
-        </div>
-        <button onclick="viewAgentProfile()" class="bg-theme-primary text-white text-sm font-medium px-4 py-2 rounded-theme shadow-sm hover:bg-theme-primary-hover transition shrink-0">View Profile</button>
-      </div>
-
-      <div id="profileViewingBanner" class="hidden items-center justify-between bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-theme-sm px-4 py-2.5">
-        <span class="text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">visibility</span>
-          Viewing <strong id="profileViewingLdap"></strong>'s profile
-        </span>
-        <button onclick="loadMyProfile()" class="text-sm font-medium text-amber-800 dark:text-amber-300 hover:underline flex items-center gap-1">
-          <span class="material-symbols-outlined text-[16px]">arrow_back</span> Back to my profile
-        </button>
-      </div>
-
-      <div id="profileCardContainer" class="space-y-6">
+      <div id="profileCardContainer" class="space-y-6 mt-4">
         <div class="text-center text-gray-400 py-12">Loading profile...</div>
       </div>
     </div>
@@ -2684,7 +2732,7 @@ function refreshAccess() {
     }
 
     document.addEventListener('click', function(ev) {
-      if (!ev.target.closest('#managerLdapSearch, #profileManagerBar')) closeAllAgentDropdowns();
+      if (!ev.target.closest('#managerLdapSearch, #profileManagerDropdown')) closeAllAgentDropdowns();
     });
 
     // --- GLOBAL ESCAPE KEY: close whichever modal is open ---
@@ -2705,6 +2753,16 @@ function refreshAccess() {
     // --- MY PROFILE LOGIC ---
     let currentCalendarDate = new Date();
     let profileHistoryData = null; // Caches daily heatmap data
+    let calendarDenseMode = true;
+
+    function toggleCalendarDensity() {
+      calendarDenseMode = !calendarDenseMode;
+      const icon = document.getElementById('calendarDensityIcon');
+      const text = document.getElementById('calendarDensityText');
+      if (icon) icon.textContent = calendarDenseMode ? 'grid_view' : 'calendar_view_week';
+      if (text) text.textContent = calendarDenseMode ? 'Expand' : 'Compact';
+      renderCalendarHeatmap();
+    }
 
     function changeCalendarMonth(offset) {
       currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
@@ -2738,6 +2796,13 @@ function refreshAccess() {
 
       let html = '';
       const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      if (calendarDenseMode) {
+        grid.className = "grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs";
+      } else {
+        grid.className = "grid grid-cols-7 gap-2 text-center text-xs";
+      }
+
       daysOfWeek.forEach(d => {
         html += `<div class="font-medium text-gray-400 uppercase tracking-wider mb-2">${d}</div>`;
       });
@@ -2784,11 +2849,11 @@ function refreshAccess() {
           // Zero cases AND tagged Absent for at least one interval — distinct
           // from an ordinary zero-case day (rest day, VL, etc.) which carries
           // no tag at all.
-          opacityClass = 'bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400';
+          opacityClass = 'bg-danger-bg text-danger-text';
         } else if (caseCount === 0) {
-          opacityClass = 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500';
+          opacityClass = 'bg-neutral-bg text-neutral-text';
         } else if (caseCount <= t1 || maxCountForMonth === 0) {
-          opacityClass = 'bg-theme-accent-muted text-theme-primary dark:bg-theme-accent-muted/40 dark:text-theme-primary';
+          opacityClass = 'bg-theme-accent-muted text-theme-primary';
         } else if (caseCount <= t2) {
           // Tailwind's `/70` opacity modifier can't apply to a CSS-variable
           // color like var(--color-primary), so it silently produced no
@@ -2797,13 +2862,13 @@ function refreshAccess() {
           opacityClass = 'text-white';
           pillStyle = 'background-color: color-mix(in srgb, var(--color-primary) 70%, white);';
         } else {
-          opacityClass = 'bg-theme-primary text-white dark:bg-theme-primary dark:text-white';
+          opacityClass = 'bg-theme-primary text-white';
         }
 
         const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
         const borderClass = isToday
           ? 'border-2 border-theme-primary'
-          : (hasAbsent && allCount === 0 ? 'border border-red-200 dark:border-red-800/50' : 'border border-gray-200 dark:border-gray-700');
+          : (hasAbsent && allCount === 0 ? 'border border-danger' : 'border border-theme-card-border');
 
         let tooltipText = '';
         if (allCount === 0 && hasAbsent) {
@@ -2817,20 +2882,56 @@ function refreshAccess() {
            tooltipText = 'No Cases';
         }
 
-        html += `
-          <div onclick="goToIntervalFromCalendar('${dStr}')" class="h-20 bg-theme-sidebar rounded-theme ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md hover:border-theme-primary cursor-pointer group" title="${tooltipText}">
-            <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
-            ${hasLate && allCount > 0 ? '<span class="material-symbols-outlined absolute top-1 right-1.5 text-[13px] text-amber-500" title="Started Late">schedule</span>' : ''}
-            <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm" style="${pillStyle}">
-               ${(allCount === 0 && hasAbsent) ? '\u00d7' : (caseCount > 0 ? caseCount : '-')}
-            </div>
+        if (calendarDenseMode) {
+          // GitHub style compact boxes
+          let compactBg = 'bg-gray-100 dark:bg-gray-800'; // empty
+          if (allCount === 0 && hasAbsent) compactBg = 'bg-danger-bg text-danger-text';
+          else if (caseCount > 0) {
+            if (caseCount <= t1 || maxCountForMonth === 0) compactBg = 'bg-theme-accent-muted';
+            else if (caseCount <= t2) compactBg = 'opacity-70';
+            else compactBg = 'bg-theme-primary';
+          }
 
-            <!-- Custom tooltip on hover -->
-            <div class="absolute bottom-full mb-2 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10">
-              ${tooltipText}
+          let styleAttr = '';
+          if (caseCount > 0 && caseCount <= t2 && maxCountForMonth > 0) {
+            styleAttr = `style="background-color: color-mix(in srgb, var(--color-primary) 70%, transparent);"`;
+            compactBg = ''; // clear class since we use style
+          } else if (caseCount > t2) {
+             compactBg = 'bg-theme-primary';
+          }
+
+          const compactBorderClass = isToday ? 'border-2 border-theme-primary' : 'border border-theme-card-border';
+
+          html += `
+            <div onclick="goToIntervalFromCalendar('${dStr}')" class="aspect-square rounded-sm ${compactBorderClass} ${compactBg} relative flex items-center justify-center transition hover:shadow-md cursor-pointer group" ${styleAttr} title="${tooltipText}">
+              ${(allCount === 0 && hasAbsent) ? '<span class="text-[8px] font-bold">\u00d7</span>' : ''}
+              ${hasLate && allCount > 0 ? '<span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-warning border border-theme-sidebar"></span>' : ''}
+
+              <!-- Custom tooltip on hover -->
+              <div class="absolute bottom-full mb-1 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10 pointer-events-none">
+                <div class="font-semibold">${monthNames[month]} ${day}</div>
+                <div>${tooltipText}</div>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+
+        } else {
+          // Full expanded card style
+          html += `
+            <div onclick="goToIntervalFromCalendar('${dStr}')" class="h-20 bg-theme-sidebar rounded-theme ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md hover:border-theme-primary cursor-pointer group" title="${tooltipText}">
+              <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
+              ${hasLate && allCount > 0 ? '<span class="material-symbols-outlined absolute top-1 right-1.5 text-[13px] text-warning" title="Started Late">schedule</span>' : ''}
+              <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm" style="${pillStyle}">
+                 ${(allCount === 0 && hasAbsent) ? '\u00d7' : (caseCount > 0 ? caseCount : '-')}
+              </div>
+
+              <!-- Custom tooltip on hover -->
+              <div class="absolute bottom-full mb-2 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-10">
+                ${tooltipText}
+              </div>
+            </div>
+          `;
+        }
       }
 
       grid.innerHTML = html;
@@ -2848,15 +2949,6 @@ function refreshAccess() {
 
     function loadMyProfile(targetLdap) {
       const container = document.getElementById('profileCardContainer');
-      const managerBar = document.getElementById('profileManagerBar');
-      if (managerBar) {
-        managerBar.classList.toggle('hidden', !currentUserIsManager);
-        managerBar.classList.toggle('flex', currentUserIsManager);
-      }
-
-      const banner = document.getElementById('profileViewingBanner');
-      banner.classList.add('hidden');
-      banner.classList.remove('flex');
 
       container.innerHTML = '<div class="text-center text-gray-400 py-12">Loading profile...</div>';
       google.script.run
@@ -2879,22 +2971,13 @@ function refreshAccess() {
       profileHistoryData = data.history || {};
       renderCalendarHeatmap();
 
-      const banner = document.getElementById('profileViewingBanner');
-      if (!data.isOwnProfile) {
-        document.getElementById('profileViewingLdap').textContent = data.ldap;
-        banner.classList.remove('hidden');
-        banner.classList.add('flex');
-      } else {
-        banner.classList.add('hidden');
-        banner.classList.remove('flex');
-      }
 
       const weekDelta = data.stats.lastWeek > 0
         ? Math.round(((data.stats.thisWeek - data.stats.lastWeek) / data.stats.lastWeek) * 100)
         : (data.stats.thisWeek > 0 ? 100 : 0);
       const weekDeltaHtml = (data.stats.lastWeek === 0 && data.stats.thisWeek === 0)
         ? ''
-        : `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${weekDelta >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400'}">${weekDelta >= 0 ? '+' : ''}${weekDelta}% vs last wk</span>`;
+        : `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${weekDelta >= 0 ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}">${weekDelta >= 0 ? '+' : ''}${weekDelta}% vs last wk</span>`;
 
       const auditClickable = currentUserIsManager;
       const auditCardOnClick = auditClickable ? `onclick="switchTab('dashboardView')"` : '';
@@ -2903,8 +2986,8 @@ function refreshAccess() {
       const container = document.getElementById('profileCardContainer');
       const avatarHTML = getMomaImgClass(data.ldap, 'w-16 h-16 rounded-full border border-gray-200 dark:border-gray-600 object-cover shrink-0', 128);
       const statusColor = (data.employeeStatus || '').toLowerCase() === 'active'
-        ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400'
-        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+        ? 'bg-success-bg text-success-text'
+        : 'bg-neutral-bg text-neutral-text';
 
       const reportsToHtml = data.reportsTo.length
         ? data.reportsTo.map(r => escAttr(r.name)).join(' &rarr; ')
@@ -2932,38 +3015,56 @@ function refreshAccess() {
           </div>`;
       }
 
+      const managerSearchHtml = currentUserIsManager ? `
+        <div class="relative inline-block ml-3">
+          <button onclick="document.getElementById('profileManagerDropdown').classList.toggle('hidden')" class="flex items-center gap-1 text-xs font-medium text-theme-primary hover:bg-theme-accent-muted px-2 py-1 rounded transition">
+            viewing: ${data.isOwnProfile ? 'me' : escAttr(data.ldap)} <span class="material-symbols-outlined text-[16px]">arrow_drop_down</span>
+          </button>
+          <div id="profileManagerDropdown" class="hidden absolute left-0 top-full mt-1 w-64 bg-theme-sidebar border border-theme-card-border rounded-theme-sm shadow-theme z-50 p-2">
+            <div class="relative">
+              <input type="text" id="profileTargetLdap" placeholder="Look up agent..." autocomplete="off" oninput="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onfocus="handleAgentAutocompleteInput(this, 'profileTargetLdapDropdown')" onkeydown="handleAgentAutocompleteKeydown(event, this, 'profileTargetLdapDropdown', viewAgentProfile)" class="w-full p-1.5 border border-gray-300 dark:border-gray-600 rounded text-xs focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+              <div id="profileTargetLdapDropdown" class="hidden absolute left-0 top-full mt-1 w-full max-h-40 overflow-y-auto bg-theme-sidebar border border-theme-card-border rounded-theme-sm shadow-theme z-[60]"></div>
+            </div>
+            ${!data.isOwnProfile ? `<button onclick="loadMyProfile()" class="w-full mt-2 text-left px-2 py-1.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-theme-canvas rounded transition flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">arrow_back</span> Back to my profile</button>` : ''}
+          </div>
+        </div>
+      ` : '';
+
       container.innerHTML = `
         <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
           <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-emerald-400 to-amber-400"></div>
-          <div class="p-6 pt-8 flex flex-col sm:flex-row gap-6">
-            <div class="flex items-center gap-4 sm:w-64 shrink-0">
+          <div class="p-6 pt-8 flex flex-col sm:flex-row gap-6 items-start">
+            <div class="flex items-center gap-4">
               <div class="relative">
                 ${avatarHTML}
-                ${(data.employeeStatus || '').toLowerCase() === 'active' ? '<span class="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center"><span class="w-2.5 h-2.5 bg-emerald-300 rounded-full animate-ping"></span></span>' : ''}
+                ${(data.employeeStatus || '').toLowerCase() === 'active' ? '<span class="absolute bottom-0 right-0 w-4 h-4 bg-success border-2 border-white dark:border-gray-800 rounded-full flex items-center justify-center"><span class="w-2.5 h-2.5 bg-success rounded-full animate-ping opacity-50"></span></span>' : ''}
               </div>
               <div class="min-w-0">
-                <div class="font-medium text-lg leading-tight truncate cell-strong">${escAttr(data.name)}</div>
-                <div class="text-sm cell-muted truncate">${escAttr(data.position || '\u2014')}</div>
+                <div class="flex items-center">
+                  <div class="font-medium text-lg leading-tight cell-strong">${escAttr(data.name)}</div>
+                  ${managerSearchHtml}
+                </div>
+                <div class="text-sm cell-muted">${escAttr(data.position || '\u2014')}</div>
                 ${data.employeeStatus ? `<span class="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor}">${escAttr(data.employeeStatus)}</span>` : ''}
               </div>
             </div>
             <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm items-start">
-              <div class="bg-theme-accent-muted dark:bg-theme-accent-muted/30 px-3 py-2 rounded-theme-sm border border-theme-primary/20">
-                <div class="text-[10px] uppercase tracking-wide text-theme-primary dark:text-theme-primary mb-0.5 font-semibold">Tenure</div>
+              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
+                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Tenure</div>
                 <div class="font-medium cell-strong">${escAttr(data.tenureText || '\u2014')}</div>
-                <div class="text-[10px] text-theme-primary/70 dark:text-theme-primary/70">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
+                <div class="text-[10px] text-neutral-text">${data.hireDateStr ? 'since ' + escAttr(data.hireDateStr) : ''}</div>
               </div>
-              <div class="bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-theme-sm border border-emerald-100 dark:border-emerald-800/30">
-                <div class="text-[10px] uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-0.5 font-semibold">Site</div>
+              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
+                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Site</div>
                 <div class="font-medium cell-strong">${escAttr(data.site || '\u2014')}</div>
               </div>
-              <div class="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-theme-sm border border-amber-100 dark:border-amber-800/30">
-                <div class="text-[10px] uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-0.5 font-semibold">Team</div>
+              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
+                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Team</div>
                 <div class="font-medium cell-strong">${escAttr(data.team || '\u2014')}</div>
-                <div class="text-[10px] text-amber-600/70 dark:text-amber-400/70 truncate">${escAttr(data.workflow || '')}</div>
+                <div class="text-[10px] text-neutral-text truncate">${escAttr(data.workflow || '')}</div>
               </div>
-              <div class="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-theme-sm border border-purple-100 dark:border-purple-800/30">
-                <div class="text-[10px] uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-0.5 font-semibold">Grade</div>
+              <div class="bg-neutral-bg px-3 py-2 rounded-theme-sm border border-neutral-bg">
+                <div class="text-[10px] uppercase tracking-wide text-neutral-text mb-0.5 font-semibold">Grade</div>
                 <div class="font-medium cell-strong">${escAttr(data.gradeLevel || '\u2014')}</div>
               </div>
               <div class="col-span-2 sm:col-span-4 pt-3 mt-1 flex items-center gap-2">
@@ -2976,51 +3077,36 @@ function refreshAccess() {
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-3">
-               <div class="w-10 h-10 rounded-theme bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary dark:text-theme-primary flex items-center justify-center">
-                 <span class="material-symbols-outlined">today</span>
-               </div>
+            <div class="flex items-center justify-between mb-2">
+               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400">Today</div>
                ${data.stats.today > 0 ? `<span class="bg-theme-accent-muted dark:bg-theme-accent-muted/50 text-theme-primary dark:text-theme-primary text-[10px] font-bold px-2 py-0.5 rounded-full">+${data.stats.today}</span>` : ''}
             </div>
-            <div>
-              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">Today</div>
-              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.today}</div>
-            </div>
+            <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.today}</div>
           </div>
           <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-3">
-               <div class="w-10 h-10 rounded-theme bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                 <span class="material-symbols-outlined">date_range</span>
-               </div>
+            <div class="flex items-center justify-between mb-2">
+               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400">This Week</div>
                ${weekDeltaHtml}
             </div>
-            <div>
-              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">This Week</div>
-              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisWeek}</div>
-            </div>
+            <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisWeek}</div>
           </div>
           <div class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-3">
-               <div class="w-10 h-10 rounded-theme bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                 <span class="material-symbols-outlined">calendar_month</span>
-               </div>
+            <div class="flex items-center justify-between mb-2">
+               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400">This Month</div>
             </div>
-            <div>
-              <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">This Month</div>
-              <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisMonth}</div>
-            </div>
+            <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">${data.stats.thisMonth}</div>
           </div>
-          <div ${auditCardOnClick} class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border ${data.stats.pendingAudits > 0 ? 'border-amber-200 dark:border-amber-800/50' : 'border-gray-200/50 dark:border-gray-700/50'} flex flex-col justify-between relative overflow-hidden ${auditCardCursor}">
-            ${data.stats.pendingAudits > 0 ? '<div class="absolute top-0 right-0 w-16 h-16 bg-amber-100 dark:bg-amber-900/20 rounded-bl-full -mr-8 -mt-8 animate-pulse"></div>' : ''}
+          <div ${auditCardOnClick} class="bg-theme-card backdrop-blur-md p-5 rounded-theme shadow-md border ${data.stats.pendingAudits > 0 ? 'border-warning' : 'border-theme-card-border'} flex flex-col justify-between relative overflow-hidden ${auditCardCursor}">
+            ${data.stats.pendingAudits > 0 ? '<div class="absolute top-0 right-0 w-16 h-16 bg-warning-bg rounded-bl-full -mr-8 -mt-8 animate-pulse"></div>' : ''}
             <div class="flex items-center justify-between mb-3 relative z-10">
-               <div class="w-10 h-10 rounded-theme bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+               <div class="w-10 h-10 rounded-theme bg-warning-bg text-warning-text flex items-center justify-center">
                  <span class="material-symbols-outlined">gavel</span>
                </div>
-               ${data.stats.pendingAudits > 0 ? `<span class="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Action</span>` : ''}
+               ${data.stats.pendingAudits > 0 ? `<span class="bg-warning-bg text-warning-text text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span> Action</span>` : ''}
             </div>
             <div class="relative z-10">
               <div class="text-[10px] uppercase font-semibold text-gray-500 dark:text-gray-400 mb-1">My Pending Audits</div>
-              <div class="text-3xl font-bold ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-800 dark:text-gray-100'}">${data.stats.pendingAudits}</div>
+              <div class="text-3xl font-bold ${data.stats.pendingAudits > 0 ? 'text-warning-text' : 'text-gray-800 dark:text-gray-100'}">${data.stats.pendingAudits}</div>
             </div>
           </div>
         </div>
@@ -3034,10 +3120,10 @@ function refreshAccess() {
             <div class="text-sm font-medium mb-3 cell-strong">This Month by Type</div>
             <div class="space-y-2">
               ${breakdownRow('Regular', data.breakdown.Regular, 'bg-theme-primary')}
-              ${breakdownRow('Reopened', data.breakdown.Reopened, 'bg-amber-400')}
-              ${breakdownRow('Manual', data.breakdown.Manual, 'bg-purple-400')}
-              ${data.breakdown.Telus > 0 ? breakdownRow('Telus', data.breakdown.Telus, 'bg-sky-400') : ''}
-              ${data.breakdown.Cimba > 0 ? breakdownRow('Cimba', data.breakdown.Cimba, 'bg-rose-400') : ''}
+              ${breakdownRow('Reopened', data.breakdown.Reopened, 'bg-warning')}
+              ${breakdownRow('Manual', data.breakdown.Manual, 'bg-info')}
+              ${data.breakdown.Telus > 0 ? breakdownRow('Telus', data.breakdown.Telus, 'bg-neutral') : ''}
+              ${data.breakdown.Cimba > 0 ? breakdownRow('Cimba', data.breakdown.Cimba, 'bg-danger') : ''}
             </div>
           </div>
         </div>
@@ -3064,7 +3150,10 @@ function refreshAccess() {
                 </button>
               </div>
             </div>
-            <div>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleCalendarDensity()" class="text-xs font-medium text-theme-primary hover:text-theme-primary-hover flex items-center gap-1 transition">
+                <span id="calendarDensityIcon" class="material-symbols-outlined text-[16px]">grid_view</span> <span id="calendarDensityText">Expand</span>
+              </button>
               <select id="calendarTypeFilter" onchange="renderCalendarHeatmap()" class="p-1.5 border border-gray-300 dark:border-gray-600 rounded-theme-sm text-xs focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm">
                 <option value="All">All Case Types</option>
                 <option value="Regular">Regular</option>
