@@ -293,7 +293,7 @@ function clearAccessCache() {
   const currentLdap = email ? email.split('@')[0] : 'unknown_agent';
   const nowStr = toDateStringFast(new Date());
   CacheService.getUserCache().remove('userProfile_' + currentLdap);
-  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList', 'agentDemographicsList', 'emailAgentsMap_v2', 'poc_schedule_' + nowStr]);
+  CacheService.getScriptCache().removeAll(['allAgentsList', 'emailAgentsList', 'agentDemographicsList', 'emailAgentsMap_v2', 'agentDirectory_v1', 'poc_schedule_' + nowStr]);
   return true;
 }
 
@@ -444,7 +444,21 @@ function submitCases(formObject) {
       convertAbsentToLate_(ldap, dateStr, timestamp.getHours());
     }
 
-    return { success: true, valid: validCount, flagged: flaggedCount, rejected: malformedIds.length, flaggedDetails: flaggedDetails.slice(0, 50) };
+    let intervalTotal = null, todayTotal = null;
+    try {
+      const tz = Session.getScriptTimeZone();
+      intervalTotal = 0; todayTotal = 0;
+      readSheetTail_(rawSheet, 16, 1, startOfDay_(timestamp)).values.forEach(function(r) {
+        if (String(r[RAW_COLS.AGENT]).trim().toLowerCase() !== String(ldap).toLowerCase()) return;
+        if (toDateStringFast(r[RAW_COLS.DATE]) !== dateStr) return;
+        const v = Number(r[RAW_COLS.VALID]) || 0;
+        todayTotal += v;
+        const iv = (r[RAW_COLS.INTERVAL] instanceof Date) ? Utilities.formatDate(r[RAW_COLS.INTERVAL], tz, 'h:00 a') : r[RAW_COLS.INTERVAL];
+        if (iv === intervalStr) intervalTotal += v;
+      });
+    } catch (se) { intervalTotal = null; todayTotal = null; }
+
+    return { success: true, valid: validCount, flagged: flaggedCount, rejected: malformedIds.length, flaggedDetails: flaggedDetails.slice(0, 50), interval: intervalStr, intervalTotal: intervalTotal, todayTotal: todayTotal };
     
   } catch (error) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
@@ -1253,9 +1267,10 @@ function sendEscalationEmail_(dateStr, intervalHourStr, scheduledPOC, escalatedA
 }
 
 // --- 10. Fetch Analytics Data ---
-function getAnalyticsData(startDateStr, endDateStr) {
+function getAnalyticsData(startDateStr, endDateStr, filters) {
   try {
     requireManagerOrThrow();
+    const dir = getAgentDirectory_();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const rawSheet = ss.getSheetByName('Raw_Cases');
     const auditSheet = ss.getSheetByName('Audit Queue');
@@ -1323,8 +1338,15 @@ function getAnalyticsData(startDateStr, endDateStr) {
 
     if (!rawSheet || rawSheet.getLastRow() <= 1) return data;
 
-    // Fetch up to Column 17 (OT Type is Col 16, Index 16. Valid is Col 11. Shift Type is Col 8), from the range's first day
-    const rawData = readSheetTail_(rawSheet, 17, 1, startOfDay_(start)).values;
+    // Trend comparison: same-length period immediately preceding the selected range
+    const rangeMs = end.getTime() - start.getTime();
+    const prevEnd = new Date(start.getTime() - 1);
+    const prevStart = new Date(start.getTime() - rangeMs - 1);
+    let previousValidTotal = 0;
+    let previousActiveAgents = new Set();
+
+    // Fetch up to Column 17 (OT Type is Col 16, Index 16. Valid is Col 11. Shift Type is Col 8), from the earlier of the two ranges
+    const rawData = readSheetTail_(rawSheet, 17, 1, startOfDay_(prevStart)).values;
 
     // Format helpers
     const currentHourStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "h:00 a");
@@ -1336,15 +1358,26 @@ function getAnalyticsData(startDateStr, endDateStr) {
     const heatmapDataMap = {}; // { '9/24/2026': { '9:00 AM': 10, ... } }
 
     rawData.forEach(r => {
+      if (!rowPassesFilters_(r, filters, dir)) return;
       const rowDateObj = (r[RAW_COLS.DATE] instanceof Date) ? r[RAW_COLS.DATE] : new Date(r[RAW_COLS.DATE]);
+      const validCasesForTrend = Number(r[RAW_COLS.VALID]) || 0;
 
-      // Only process data within the date range
+      // Previous-period rows only feed the trend comparison
+      if (rowDateObj >= prevStart && rowDateObj <= prevEnd) {
+        if (validCasesForTrend > 0) {
+          previousValidTotal += validCasesForTrend;
+          previousActiveAgents.add(r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : 'unknown');
+        }
+        return;
+      }
+
+      // Only process data within the selected date range
       if (rowDateObj < start || rowDateObj > end) return;
 
       const rowDateStr = toDateStringFast(rowDateObj);
       const rowInterval = (r[RAW_COLS.INTERVAL] instanceof Date) ? Utilities.formatDate(r[RAW_COLS.INTERVAL], Session.getScriptTimeZone(), "h:00 a") : r[RAW_COLS.INTERVAL];
       const agent = r[RAW_COLS.AGENT] ? r[RAW_COLS.AGENT].toString().trim().toLowerCase() : 'unknown';
-      const site = r[RAW_COLS.SITE] || 'Unknown';
+      const site = r[RAW_COLS.SITE] || '';
       const workflow = r[RAW_COLS.CASE_TYPE] || 'Unknown';
       const isOT = r[RAW_COLS.SHIFT_TYPE] === 'Overtime';
       const validCases = Number(r[RAW_COLS.VALID]) || 0;
@@ -1364,8 +1397,10 @@ function getAnalyticsData(startDateStr, endDateStr) {
       // Populate Donut (Workflows)
       data.workflows[workflow] = (data.workflows[workflow] || 0) + validCases;
 
-      // Populate Bar Chart (Sites)
-      data.sites[site] = (data.sites[site] || 0) + validCases;
+      // Populate Bar Chart (Sites) — blank/unknown site excluded, not a real site
+      if (site && site.trim().toLowerCase() !== 'unknown') {
+        data.sites[site] = (data.sites[site] || 0) + validCases;
+      }
 
       // Populate Leaderboards and OT
       if (validCases > 0) {
@@ -1391,6 +1426,8 @@ function getAnalyticsData(startDateStr, endDateStr) {
 
     data.kpis.activeStaffToday = activeAgentsToday.size;
     data.kpis.activeStaffThisHour = activeAgentsThisHour.size;
+    data.kpis.previousValidTotal = previousValidTotal;
+    data.kpis.previousActiveStaff = previousActiveAgents.size;
 
     // Transform Heatmap data for ApexCharts
     // Sort dates ascending
@@ -2289,7 +2326,7 @@ function computeTenureText(hireDate) {
 function getWeekStartMonday(date) {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = (day === 0 ? -6 : 1 - day);
+  const diff = -day; // week starts Sunday
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
   return d;
@@ -3017,4 +3054,337 @@ function pruneErrorLogs_(ss, keepDays) {
   count = Math.min(count, last - 2);
   if (count > 0) sheet.deleteRows(2, count);
   return count;
+}
+
+// =====================================================================
+// --- AGENT DIRECTORY + ANALYTICS FILTERS ---
+// =====================================================================
+
+// ldap -> { name, lob, workflow, channel, team, supervisor, site } from the Masterlist (cached 4h)
+function getAgentDirectory_() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('agentDirectory_v1');
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  const dir = {};
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Masterlist');
+  if (sheet && sheet.getLastRow() > 1) {
+    sheet.getRange(2, 1, sheet.getLastRow() - 1, 45).getValues().forEach(function(r) {
+      const ldap = r[0] ? String(r[0]).trim().toLowerCase() : '';
+      if (!ldap) return;
+      dir[ldap] = {
+        name: r[1] || ldap,
+        lob: String(r[21] || '').trim(),        // Col V
+        workflow: String(r[22] || '').trim(),   // Col W
+        channel: String(r[23] || '').trim().toLowerCase(), // Col X
+        team: String(r[26] || '').trim(),       // Col AA
+        supervisor: String(r[27] || '').trim(), // Col AB
+        site: String(r[44] || '').trim()        // Col AS
+      };
+    });
+  }
+  try { cache.put('agentDirectory_v1', JSON.stringify(dir), 14400); } catch (e) {} // >100KB just skips the cache
+  return dir;
+}
+
+function getFilterOptions() {
+  requireManagerOrThrow();
+  const dir = getAgentDirectory_();
+  const sets = { sites: {}, lobs: {}, workflows: {}, supervisors: {}, teams: {} };
+  Object.keys(dir).forEach(function(k) {
+    const p = dir[k];
+    if (p.site && p.site.toLowerCase() !== 'unknown') sets.sites[p.site] = 1;
+    if (p.lob) sets.lobs[p.lob] = 1;
+    if (p.workflow) sets.workflows[p.workflow] = 1;
+    if (p.supervisor && p.supervisor !== '-') sets.supervisors[p.supervisor] = 1;
+    if (p.team) sets.teams[p.team] = 1;
+  });
+  const list = function(o) { return Object.keys(o).sort(); };
+  return { sites: list(sets.sites), lobs: list(sets.lobs), workflows: list(sets.workflows), supervisors: list(sets.supervisors), teams: list(sets.teams) };
+}
+
+// Used by the Production analytics. Falls back to the values stored on the Raw_Cases row when an agent isn't in the Masterlist.
+function rowPassesFilters_(r, f, dir) {
+  if (!f) return true;
+  if (!(f.site || f.lob || f.workflow || f.supervisor || f.team || f.shiftType)) return true;
+  const ldap = r[RAW_COLS.AGENT] ? String(r[RAW_COLS.AGENT]).trim().toLowerCase() : '';
+  const p = dir[ldap] || {};
+  if (f.shiftType && r[RAW_COLS.SHIFT_TYPE] !== f.shiftType) return false;
+  if (f.site && (p.site || String(r[RAW_COLS.SITE] || '').trim()) !== f.site) return false;
+  if (f.lob && (p.lob || String(r[RAW_COLS.LOB] || '').trim()) !== f.lob) return false;
+  if (f.workflow && (p.workflow || String(r[RAW_COLS.WORKFLOW] || '').trim()) !== f.workflow) return false;
+  if (f.supervisor && p.supervisor !== f.supervisor) return false;
+  if (f.team && p.team !== f.team) return false;
+  return true;
+}
+
+// =====================================================================
+// --- ATTENDANCE ANALYTICS ---
+// One row per (scheduled email agent x day). Presence = any Raw_Cases row inside the shift.
+// Slot k=0 (SOS) and k=8 (EOS) are skipped by design: they count for presence, never for coverage/lateness.
+// Late = whole intervals missed at the start (k=1..first submission). Partial = present but with gaps after arriving.
+// =====================================================================
+const ATT_SHIFT_LEN = 9;
+const ATT_MAX_DAYS = 92;
+const ATT_EXCUSED_TAGS = ['VL/SL', 'on Live Channel'];
+const ATT_CONFLICT_TAGS = ['Absent', 'VL/SL', 'on Live Channel'];
+const FOLLOWUP_SHEET = 'Attendance_FollowUps';
+const FOLLOWUP_RESOLUTIONS = ['Followed up', 'Confirmed', 'Excused', 'Clear'];
+
+function ensureFollowUpSheet_(ss) {
+  let sheet = ss.getSheetByName(FOLLOWUP_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(FOLLOWUP_SHEET);
+    sheet.getRange(1, 1, 1, 6).setValues([['Date', 'LDAP', 'Resolution', 'Note', 'FollowedUpBy', 'Timestamp']]).setFontWeight('bold').setBackground('#f3f3f3');
+    sheet.setFrozenRows(1);
+    sheet.getRange('A:A').setNumberFormat('@');
+  }
+  return sheet;
+}
+
+// dates: ['yyyy-MM-dd', ...]; resolution: 'Followed up' | 'Confirmed' | 'Excused' | 'Clear'
+function saveAttendanceFollowUp(ldap, dates, resolution, note) {
+  const profile = requireManagerOrThrow();
+  if (!ldap || !dates || !dates.length || FOLLOWUP_RESOLUTIONS.indexOf(resolution) === -1) {
+    return { success: false, error: 'Invalid follow-up.' };
+  }
+  const target = String(ldap).trim().toLowerCase();
+  const cleanNote = String(note || '').trim().slice(0, 500);
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sheet = ensureFollowUpSheet_(SpreadsheetApp.getActiveSpreadsheet());
+    const now = new Date();
+    const data = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).getValues() : [];
+    const rowByKey = {};
+    data.forEach(function(r, i) {
+      const d = (r[0] instanceof Date) ? toISODateStringFast(r[0]) : String(r[0]).trim();
+      rowByKey[d + '|' + String(r[1]).trim().toLowerCase()] = i + 2;
+    });
+    const toDelete = [];
+    dates.forEach(function(d) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+      const row = rowByKey[d + '|' + target];
+      if (resolution === 'Clear') { if (row) toDelete.push(row); return; }
+      const vals = [[d, target, resolution, cleanNote, profile.ldap, now]];
+      if (row) sheet.getRange(row, 1, 1, 6).setValues(vals);
+      else sheet.getRange(sheet.getLastRow() + 1, 1, 1, 6).setValues(vals);
+    });
+    toDelete.sort(function(a, b) { return b - a; }).forEach(function(r) { sheet.deleteRow(r); });
+    return { success: true, by: profile.ldap };
+  } catch (e) {
+    logError('saveAttendanceFollowUp', e.toString(), profile.ldap);
+    return { success: false, error: 'Failed to save follow-up.' };
+  } finally {
+    try { lock.releaseLock(); } catch (x) {}
+  }
+}
+
+function getAttendanceData(startDateStr, endDateStr) {
+  try {
+    requireManagerOrThrow();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const now = new Date();
+    const nowMs = now.getTime();
+
+    let start = startOfDay_(now);
+    start.setDate(start.getDate() - 6);
+    let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    if (startDateStr) { const p = startDateStr.split('-'); if (p.length === 3) start = new Date(p[0], p[1] - 1, p[2], 0, 0, 0, 0); }
+    if (endDateStr) { const p = endDateStr.split('-'); if (p.length === 3) end = new Date(p[0], p[1] - 1, p[2], 23, 59, 59, 999); }
+    if (Math.round((end.getTime() - start.getTime()) / 86400000) + 1 > ATT_MAX_DAYS) {
+      return { error: 'Attendance supports up to ' + ATT_MAX_DAYS + ' days at a time. Please pick a shorter range.' };
+    }
+
+    const meta = { start: toISODateStringFast(start), end: toISODateStringFast(end), generatedAt: nowMs };
+    const dir = getAgentDirectory_();
+
+    const shiftSheet = ss.getSheetByName('Agent Shifts');
+    if (!shiftSheet || shiftSheet.getLastRow() <= 2) return { rows: [], agents: {}, meta: meta };
+    const shiftData = shiftSheet.getDataRange().getValues();
+    const headers = shiftData[1];
+    const dayCols = [];
+    for (let c = 8; c < headers.length; c++) {
+      const h = headers[c];
+      if (!h) continue;
+      const d = (h instanceof Date) ? h : new Date(h);
+      if (isNaN(d.getTime())) continue;
+      const day = startOfDay_(d);
+      if (day.getTime() < start.getTime() || day.getTime() > end.getTime()) continue;
+      dayCols.push({ col: c, day: day });
+    }
+    if (dayCols.length === 0) return { rows: [], agents: {}, meta: meta };
+
+    // Submissions: ldap|yyyy-MM-dd|hour -> row count (keyed by the real clock date/hour, so overnight shifts line up)
+    const loggedMap = {};
+    const rawSheet = ss.getSheetByName('Raw_Cases');
+    if (rawSheet && rawSheet.getLastRow() > 1) {
+      readSheetTail_(rawSheet, 17, 1, start).values.forEach(function(r) {
+        const ldap = r[RAW_COLS.AGENT] ? String(r[RAW_COLS.AGENT]).trim().toLowerCase() : '';
+        if (!ldap) return;
+        const d = (r[RAW_COLS.DATE] instanceof Date) ? r[RAW_COLS.DATE] : new Date(r[RAW_COLS.DATE]);
+        if (isNaN(d.getTime())) return;
+        const hr = parseHourToInt(r[RAW_COLS.INTERVAL]);
+        if (hr === null) return;
+        const k = ldap + '|' + toISODateStringFast(d) + '|' + hr;
+        loggedMap[k] = (loggedMap[k] || 0) + 1;
+      });
+    }
+
+    // POC tags (read live, so a later edit changes past days)
+    const tagMap = {};
+    const tagByMap = {};
+    const stSheet = ss.getSheetByName('Interval_Status');
+    if (stSheet && stSheet.getLastRow() > 1) {
+      stSheet.getDataRange().getValues().forEach(function(r, i) {
+        if (i === 0) return;
+        const d = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+        if (isNaN(d.getTime())) return;
+        const hr = parseHourToInt(r[1]);
+        const status = String(r[3] || '').trim();
+        if (hr === null || !status) return;
+        const tk = String(r[2]).trim().toLowerCase() + '|' + toISODateStringFast(d) + '|' + hr;
+        tagMap[tk] = status;
+        tagByMap[tk] = String(r[4] || '').trim();
+      });
+    }
+
+    // Check-ins where the POC acknowledged an agent as unresolved (with a note) -> "Confirmed" absence
+    const ackMap = {};
+    const ciMap = {};
+    const ciSheet = ss.getSheetByName('Interval_CheckIns');
+    if (ciSheet && ciSheet.getLastRow() > 1) {
+      ciSheet.getDataRange().getValues().forEach(function(r, i) {
+        if (i === 0) return;
+        const un = String(r[6] || '').trim();
+        const cd = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+        const ch = parseHourToInt(r[1]);
+        if (!isNaN(cd.getTime()) && ch !== null) ciMap[toISODateStringFast(cd) + '|' + ch] = { sp: String(r[2] || '').trim(), by: String(r[3] || '').trim() };
+        if (!un) return;
+        const d = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+        if (isNaN(d.getTime())) return;
+        const hr = parseHourToInt(r[1]);
+        if (hr === null) return;
+        un.split(',').forEach(function(l) {
+          const x = l.trim().toLowerCase();
+          if (x) ackMap[x + '|' + toISODateStringFast(d) + '|' + hr] = String(r[3] || '').trim() || 'POC';
+        });
+      });
+    }
+
+    const rows = [];
+    const agents = {};
+
+    const fuMap = {};
+    const fuSheet = ss.getSheetByName(FOLLOWUP_SHEET);
+    if (fuSheet && fuSheet.getLastRow() > 1) {
+      fuSheet.getRange(2, 1, fuSheet.getLastRow() - 1, 6).getValues().forEach(function(r) {
+        const d = (r[0] instanceof Date) ? toISODateStringFast(r[0]) : String(r[0]).trim();
+        const u = String(r[1]).trim().toLowerCase();
+        if (!d || !u) return;
+        fuMap[u + '|' + d] = { r: String(r[2]), n: String(r[3] || ''), b: String(r[4] || ''), t: (r[5] instanceof Date) ? r[5].getTime() : 0 };
+      });
+    }
+
+    dayCols.forEach(function(dc) {
+      const dateKey = toISODateStringFast(dc.day);
+      for (let r = 2; r < shiftData.length; r++) {
+        const ldap = shiftData[r][0] ? String(shiftData[r][0]).trim().toLowerCase() : '';
+        if (!ldap) continue;
+        const p = dir[ldap];
+        if (!p || p.channel !== 'email') continue; // same scope as Interval View
+
+        const shiftVal = shiftData[r][dc.col];
+        if (!shiftVal || shiftVal === 'OFF' || shiftVal === 'VL' || shiftVal === 'LOA' || shiftVal === 'AWOL') continue;
+        let startHour = -1;
+        if (shiftVal instanceof Date) startHour = shiftVal.getHours();
+        else if (typeof shiftVal === 'string' && shiftVal.indexOf(':') !== -1) startHour = parseInt(shiftVal.split(':')[0], 10);
+        else if (typeof shiftVal === 'number') startHour = Math.round(shiftVal * 24);
+        if (isNaN(startHour) || startHour < 0 || startHour > 23) continue;
+
+        // Classify every slot of the shift
+        const st = [];
+        let elapsed = 0, rev = 0, absentTags = 0, acked = false;
+        let confBy = '', ackBy = '', pocBy = '';
+        for (let k = 0; k < ATT_SHIFT_LEN; k++) {
+          const hourAbs = startHour + k;
+          const clock = new Date(dc.day.getFullYear(), dc.day.getMonth(), dc.day.getDate() + Math.floor(hourAbs / 24), hourAbs % 24, 0, 0, 0);
+          if (clock.getTime() + 3600000 > nowMs) { st.push('pending'); continue; } // interval hasn't ended yet
+          elapsed++;
+          const key = ldap + '|' + toISODateStringFast(clock) + '|' + (hourAbs % 24);
+          const n = loggedMap[key] || 0;
+          const tag = tagMap[key] || '';
+          const isSkip = (k === 0 || k === ATT_SHIFT_LEN - 1);
+          if (n > 0 && ATT_CONFLICT_TAGS.indexOf(tag) !== -1) rev++;
+          if (tag === 'Absent') absentTags++;
+          if (ackMap[key]) { acked = true; if (!ackBy) ackBy = ackMap[key]; }
+          if (tag && (tag === 'Absent' || ATT_EXCUSED_TAGS.indexOf(tag) !== -1) && tagByMap[key] && !confBy) confBy = tagByMap[key];
+          if (!pocBy && n === 0 && !isSkip) {
+            const ci = ciMap[toISODateStringFast(clock) + '|' + (hourAbs % 24)];
+            if (ci) pocBy = ci.by || ci.sp || '';
+          }
+
+          let s;
+          if (n > 0) s = 'logged';
+          else if (ATT_EXCUSED_TAGS.indexOf(tag) !== -1) s = 'excused';
+          else if (tag === 'Absent') s = 'absent';
+          else if (tag === 'Late') s = 'late';
+          else if (isSkip && (!tag || tag === 'SKIP SOS' || tag === 'SKIP - EOS')) s = 'skip';
+          else if (tag) s = 'accounted'; // Assigned-7, Break-3, Coaching, Closing Reopens, etc. set by a POC
+          else s = 'unaccounted';
+          st.push(s);
+        }
+
+        let presence = false, firstLogged = -1, excusedAll = 0;
+        st.forEach(function(s, k) {
+          if (s === 'logged') { presence = true; if (firstLogged < 0) firstLogged = k; }
+          if (s === 'excused') excusedAll++;
+        });
+        if (!presence && elapsed < 2) continue; // too early to judge (SOS hour + one more must pass)
+
+        // Interval coverage over the 7 non-skip slots
+        let sch = 0, exc = 0, cov = 0, gap = 0, lateSlots = 0, midGaps = 0;
+        const gh = [];
+        for (let k = 1; k <= ATT_SHIFT_LEN - 2; k++) {
+          const s = st[k];
+          if (s === 'pending') continue;
+          sch++;
+          if (s === 'logged' || s === 'accounted') cov++;
+          else if (s === 'excused') exc++;
+          else {
+            gap++;
+            gh.push((startHour + k) % 24);
+            if (presence && k < firstLogged) lateSlots++;
+            else if (presence) midGaps++;
+          }
+        }
+
+        let state, conf = 0;
+        if (!presence) {
+          if (excusedAll > 0 && absentTags === 0) {
+            state = 'Excused'; exc = sch; cov = 0; gap = 0; gh.length = 0;
+          } else {
+            state = 'Absent';
+            conf = (absentTags > 0 || acked) ? 1 : 0;
+          }
+        } else if (midGaps > 0) state = 'Partial';
+        else if (lateSlots > 0) state = 'Late';
+        else state = 'Present';
+
+        const fu = fuMap[ldap + '|' + dateKey] || null;
+        if (fu && state === 'Absent') {
+          if (fu.r === 'Excused') { state = 'Excused'; exc = sch; cov = 0; gap = 0; gh.length = 0; }
+          else if (fu.r === 'Confirmed') conf = 1;
+        }
+        const cbName = (fu && (fu.r === 'Confirmed' || fu.r === 'Excused')) ? fu.b : (confBy || ackBy || '');
+        rows.push({ d: dateKey, u: ldap, h: startHour, s: state, c: conf, l: lateSlots, m: midGaps, sc: sch, ex: exc, cv: cov, g: gap, gh: gh, rv: rev, cb: cbName, pc: pocBy, fu: fu });
+        if (!agents[ldap]) agents[ldap] = { s: p.site || String(shiftData[r][4] || ''), l: p.lob, w: p.workflow, sp: p.supervisor, t: p.team };
+      }
+    });
+
+    return { rows: rows, agents: agents, meta: meta };
+  } catch (e) {
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    logError('getAttendanceData', e.toString(), user);
+    throw new Error('Unable to load attendance data. Please try again.');
+  }
 }
