@@ -1,0 +1,3 @@
+## 2025-02-12 - Missing Accessibility on Icon-Only Buttons
+**Learning:** Tooltip `title` attributes on icon-only buttons (like help or close toggles) are often insufficient for screen readers and lack visual indicators for keyboard navigation. Users relying on keyboards can easily lose their place on the page without clear focus rings, and screen readers might skip unlabelled buttons entirely.
+**Action:** Always pair `title` with `aria-label` for icon-only `<button>` tags. Furthermore, use Tailwind `focus-visible:ring-2 focus-visible:outline-none` classes to provide accessible, theme-aware focus indicators exclusively when navigated via keyboard.
