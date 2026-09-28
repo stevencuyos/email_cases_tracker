@@ -466,7 +466,7 @@ function submitCases(formObject) {
     // --- PHASE 2: Badges Estimation ---
     let newBadges = [];
     try {
-       newBadges = evaluateBadges_(ldap);
+       newBadges = []; // badges are evaluated nightly
     } catch(e) { logError('evaluateBadges_submit', e.toString(), ldap); }
 
     // --- PHASE 1: Personal Bests Estimation ---
@@ -2418,7 +2418,8 @@ function getMyProfileData(targetLdap) {
        if (badgeSheet && badgeSheet.getLastRow() > 1) {
           badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 5).getValues().forEach(r => {
              if (String(r[0]).trim().toLowerCase() === ldap) {
-                badges.push({ id: r[1], tier: r[2], earnedAt: r[3], seen: r[4] });
+                const bm = badgeMeta_(r[1]);
+                badges.push({ id: r[1], tier: r[2], name: bm.name, icon: bm.icon, earnedAt: r[3], seen: r[4] });
              }
           });
        }
@@ -2477,6 +2478,16 @@ function getMyProfileData(targetLdap) {
             const now = new Date();
             const thisMonthStr = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
             streakInfo.freezeAvailable = (lastMonthFreezeStr !== thisMonthStr);
+       }
+       const stS = ss.getSheetByName('Agent_Streaks');
+       if (stS && stS.getLastRow() > 1) {
+          const thisMo = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+          stS.getRange(2, 1, stS.getLastRow() - 1, 4).getValues().forEach(r => {
+             if (String(r[0]).trim().toLowerCase() !== ldap) return;
+             streakInfo.current = Number(r[1]) || 0;
+             streakInfo.longest = Number(r[2]) || 0;
+             streakInfo.freezeAvailable = String(r[3]) !== thisMo;
+          });
        }
     } catch(e) { logError('getMyProfileData_badges', e.toString(), ldap); }
 
@@ -3619,13 +3630,14 @@ function dailyStatsSweep(e) {
   rebuildDailyStats_(toISODateStringFast(start), toISODateStringFast(now));
 }
 
-function rebuildDailyStats_(startDateStr, endDateStr) {
+function rebuildDailyStats_(startDateStr, endDateStr, skipExtras) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const dsSheet = ss.getSheetByName('Daily_Stats');
   if (!dsSheet) return; // DB not initialized yet
 
-  let start = new Date(startDateStr);
-  let end = new Date(endDateStr);
+  const sp = startDateStr.split('-'), ep = endDateStr.split('-');
+  let start = new Date(+sp[0], sp[1] - 1, +sp[2], 0, 0, 0, 0);
+  let end = new Date(+ep[0], ep[1] - 1, +ep[2], 23, 59, 59, 999);
 
   // 1. Get Attendance Data (this internally queries Raw_Cases & Agent Shifts to get status/coverage)
   const attData = getAttendanceData(startDateStr, endDateStr);
@@ -3750,7 +3762,10 @@ function rebuildDailyStats_(startDateStr, endDateStr) {
   const writes = []; // {rowIdx, values}
   const appends = [];
 
+  const siteDir = getAgentDirectory_();
   Object.values(combinedMap).forEach(obj => {
+    const p = siteDir[obj.ldap];
+    if (p && p.site && p.site.toLowerCase() !== 'unknown') obj.site = p.site;
     const rowVals = [
       obj.date, obj.ldap, obj.site, obj.valid, obj.flagged, obj.reg, obj.ot,
       obj.intervalsCovered, obj.scheduledIntervals, obj.scheduledHours, obj.status, nowMs
@@ -3773,10 +3788,10 @@ function rebuildDailyStats_(startDateStr, endDateStr) {
   // To handle streak freezes correctly: chronological pass over Daily_Stats for all agents whose stats we just updated.
   // We will re-evaluate freezes.
   const agentsUpdated = [...new Set(Object.values(combinedMap).map(o => o.ldap))];
-  if (agentsUpdated.length > 0) {
-     recomputeStreaksForAgents_(agentsUpdated);
+  if (agentsUpdated.length > 0 && !skipExtras) {
+     refreshStreaksAndBadges_(agentsUpdated);
      agentsUpdated.forEach(u => {
-        try { evaluateBadges_(u); } catch(e) { logError('evaluateBadges_nightly', e.toString(), u); }
+        // badges handled in refreshStreaksAndBadges_
      });
   }
 }
@@ -3869,7 +3884,7 @@ function backfillDailyStats(monthStr) {
   const start = new Date(y, m, 1);
   const end = new Date(y, m + 1, 0, 23, 59, 59, 999);
 
-  rebuildDailyStats_(toISODateStringFast(start), toISODateStringFast(end));
+  rebuildDailyStats_(toISODateStringFast(start), toISODateStringFast(end), true);
   return { success: true, message: 'Backfill complete for ' + monthStr };
 }
 
@@ -3928,7 +3943,7 @@ function setMyPrefs(prefs) {
 
 // --- GAMIFICATION / BADGES (PHASE 2) ---
 
-const BADGE_CATALOG = [
+const BADGE_CATALOG_OLD_ = [
   { id: 'volume', name: 'Volume Milestone', icon: 'military_tech', desc: 'Total valid cases logged', tiers: [ { t: 'Bronze', threshold: 100 }, { t: 'Silver', threshold: 500 }, { t: 'Gold', threshold: 1000 }, { t: 'Platinum', threshold: 5000 }, { t: 'Diamond', threshold: 10000 } ] },
   { id: 'streak', name: 'Hot Streak', icon: 'local_fire_department', desc: 'Consecutive scheduled days present', tiers: [ { t: 'Bronze', threshold: 7 }, { t: 'Silver', threshold: 14 }, { t: 'Gold', threshold: 30 } ] },
   { id: 'clean_sheet', name: 'Clean Sheet', icon: 'verified_user', desc: 'A scheduled week with zero flagged cases', tiers: [ { t: 'Bronze', threshold: 1 }, { t: 'Silver', threshold: 5 }, { t: 'Gold', threshold: 10 } ] },
@@ -3940,7 +3955,7 @@ const BADGE_CATALOG = [
 
 // Re-evaluates all badges for an agent based on Daily_Stats
 // Never revokes. Returns newly earned badges.
-function evaluateBadges_(ldap) {
+function evaluateBadgesOld_(ldap) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const dsSheet = ss.getSheetByName('Daily_Stats');
   const badgeSheet = ss.getSheetByName('Agent_Badges');
@@ -4092,6 +4107,194 @@ function evaluateBadges_(ldap) {
   return newlyEarned;
 }
 
+const TIER_RANK_ = { Bronze: 1, Silver: 2, Gold: 3, Platinum: 4, Diamond: 5 };
+
+const BADGE_CATALOG = [
+  { id: 'volume', name: 'Volume', icon: 'stacked_bar_chart', tiers: [ { t: 'Bronze', threshold: 100 }, { t: 'Silver', threshold: 500 }, { t: 'Gold', threshold: 1000 }, { t: 'Platinum', threshold: 5000 }, { t: 'Diamond', threshold: 10000 } ] },
+  { id: 'streak', name: 'Hot Streak', icon: 'local_fire_department', tiers: [ { t: 'Bronze', threshold: 7 }, { t: 'Silver', threshold: 14 }, { t: 'Gold', threshold: 30 }, { t: 'Platinum', threshold: 60 }, { t: 'Diamond', threshold: 100 } ] },
+  { id: 'power_day', name: 'Power Day', icon: 'bolt', tiers: [ { t: 'Bronze', threshold: 30 }, { t: 'Silver', threshold: 40 }, { t: 'Gold', threshold: 49 } ] },
+  { id: 'week_warrior', name: 'Week Warrior', icon: 'date_range', tiers: [ { t: 'Bronze', threshold: 150 }, { t: 'Silver', threshold: 200 }, { t: 'Gold', threshold: 240 } ] },
+  { id: 'full_cov', name: 'Full Coverage', icon: 'event_available', tiers: [ { t: 'Bronze', threshold: 10 }, { t: 'Silver', threshold: 50 }, { t: 'Gold', threshold: 100 } ] },
+  { id: 'perfect_cov', name: 'Perfect Week', icon: 'task_alt', tiers: [ { t: 'Bronze', threshold: 1 }, { t: 'Silver', threshold: 5 }, { t: 'Gold', threshold: 10 } ] },
+  { id: 'perfect_month', name: 'Perfect Month', icon: 'calendar_month', tiers: [ { t: 'Bronze', threshold: 1 }, { t: 'Silver', threshold: 3 }, { t: 'Gold', threshold: 6 } ] },
+  { id: 'clean_sheet', name: 'Clean Sheet', icon: 'verified_user', tiers: [ { t: 'Bronze', threshold: 1 }, { t: 'Silver', threshold: 5 }, { t: 'Gold', threshold: 10 } ] },
+  { id: 'spotless_month', name: 'Spotless Month', icon: 'workspace_premium', tiers: [ { t: 'Bronze', threshold: 1 }, { t: 'Silver', threshold: 3 }, { t: 'Gold', threshold: 6 } ] },
+  { id: 'first_week', name: 'First Week', icon: 'waving_hand', tiers: [ { t: 'Bronze', threshold: 1 } ] },
+  { id: 'reopen_closer', name: 'Reopen Closer', icon: 'build_circle', tiers: [ { t: 'Bronze', threshold: 100 }, { t: 'Silver', threshold: 500 }, { t: 'Gold', threshold: 1000 } ] },
+  { id: 'ot_warrior', name: 'OT Warrior', icon: 'rocket_launch', tiers: [ { t: 'Bronze', threshold: 100 }, { t: 'Silver', threshold: 500 }, { t: 'Gold', threshold: 1000 } ] }
+];
+
+function badgeMeta_(id) {
+  for (let i = 0; i < BADGE_CATALOG.length; i++) if (BADGE_CATALOG[i].id === id) return BADGE_CATALOG[i];
+  return { name: id, icon: 'military_tech' };
+}
+
+function dsDate_(v) {
+  if (v instanceof Date) return v;
+  const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(v);
+}
+
+// days: [{ month:'yyyy-MM', status }] in date order (Excused/blank already removed)
+// Present = +1. Absent = reset. Late/Partial = held once per month, second one in the same month resets.
+function computeStreak_(days) {
+  let cur = 0, longest = 0, month = null, lateUsed = 0, lateMonth = '';
+  days.forEach(function(d) {
+    if (d.month !== month) { month = d.month; lateUsed = 0; }
+    if (d.status === 'Present') {
+      cur++;
+      if (cur > longest) longest = cur;
+    } else if (d.status === 'Late' || d.status === 'Partial') {
+      lateUsed++;
+      lateMonth = month;
+      if (lateUsed > 1) cur = 0;
+    } else if (d.status === 'Absent') {
+      cur = 0;
+    }
+  });
+  return { current: cur, longest: longest, lateMonth: lateMonth };
+}
+
+function ensureRows_(sheet, needed) {
+  const missing = needed - sheet.getMaxRows();
+  if (missing > 0) sheet.insertRowsAfter(sheet.getMaxRows(), missing);
+}
+
+// One pass over Daily_Stats (+ one over Raw_Cases for reopens). only = array of ldaps, or null for everyone.
+function refreshStreaksAndBadges_(only) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ds = ss.getSheetByName('Daily_Stats');
+  const badgeSheet = ss.getSheetByName('Agent_Badges');
+  if (!ds || ds.getLastRow() <= 1 || !badgeSheet) return { agents: 0, badges: 0 };
+  let stSheet = ss.getSheetByName('Agent_Streaks');
+  if (!stSheet) {
+    stSheet = ss.insertSheet('Agent_Streaks');
+    stSheet.getRange(1, 1, 1, 5).setValues([['LDAP', 'Current', 'Longest', 'LateMonth', 'UpdatedAt']]).setFontWeight('bold').setBackground('#f3f3f3');
+    stSheet.setFrozenRows(1);
+  }
+  const want = only ? new Set(only.map(function(x) { return String(x).trim().toLowerCase(); })) : null;
+  const nowMs = new Date().getTime();
+
+  const byAgent = {};
+  ds.getRange(2, 1, ds.getLastRow() - 1, 11).getValues().forEach(function(r) {
+    const u = String(r[1] || '').trim().toLowerCase();
+    if (!u || (want && !want.has(u))) return;
+    (byAgent[u] = byAgent[u] || []).push(r);
+  });
+  const ldaps = Object.keys(byAgent);
+  if (ldaps.length === 0) return { agents: 0, badges: 0 };
+
+  const reopens = {};
+  const raw = ss.getSheetByName('Raw_Cases');
+  if (raw && raw.getLastRow() > 1) {
+    raw.getRange(2, 1, raw.getLastRow() - 1, 12).getValues().forEach(function(r) {
+      if (r[RAW_COLS.CASE_TYPE] !== 'Reopened Cases') return;
+      const u = String(r[RAW_COLS.AGENT] || '').trim().toLowerCase();
+      if (want && !want.has(u)) return;
+      reopens[u] = (reopens[u] || 0) + (Number(r[RAW_COLS.VALID]) || 0);
+    });
+  }
+
+  const earned = {};
+  if (badgeSheet.getLastRow() > 1) {
+    badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 3).getValues().forEach(function(r) {
+      earned[String(r[0]).trim().toLowerCase() + '|' + r[1] + '|' + r[2]] = true;
+    });
+  }
+
+  const badgeRows = [], streakRows = [];
+  ldaps.forEach(function(u) {
+    const rows = byAgent[u].map(function(r) { return { d: dsDate_(r[0]), r: r }; })
+      .filter(function(x) { return !isNaN(x.d.getTime()); })
+      .sort(function(a, b) { return a.d - b.d; });
+
+    let vol = 0, ot = 0, bestDay = 0, fullCov = 0;
+    const weeks = {}, months = {}, days = [];
+    rows.forEach(function(x) {
+      const r = x.r;
+      const valid = Number(r[3]) || 0, flagged = Number(r[4]) || 0;
+      const cv = Number(r[7]) || 0, sc = Number(r[8]) || 0;
+      const status = String(r[10] || '').trim();
+      vol += valid; ot += Number(r[6]) || 0;
+      if (valid > bestDay) bestDay = valid;
+      if (sc >= 5 && cv >= sc) fullCov++;
+
+      const ws = getWeekStartMonday(x.d);
+      const wk = toISODateStringFast(ws);
+      const mo = x.d.getFullYear() + '-' + ('0' + (x.d.getMonth() + 1)).slice(-2);
+      const w = weeks[wk] || (weeks[wk] = { valid: 0, sd: 0, pd: 0, flagged: 0, start: ws });
+      const m = months[mo] || (months[mo] = { sd: 0, pd: 0, flagged: 0, y: x.d.getFullYear(), mo: x.d.getMonth() });
+      w.valid += valid; w.flagged += flagged; m.flagged += flagged;
+      if (status && status !== 'Excused') {
+        w.sd++; m.sd++;
+        if (status === 'Present') { w.pd++; m.pd++; }
+        days.push({ month: mo, status: status });
+      }
+    });
+
+    let cleanWeeks = 0, perfWeeks = 0, firstWeek = 0, weekBest = 0;
+    Object.keys(weeks).forEach(function(k) {
+      const w = weeks[k];
+      if (w.valid > weekBest) weekBest = w.valid;
+      const end = new Date(w.start.getFullYear(), w.start.getMonth(), w.start.getDate() + 6, 23, 59, 59, 999);
+      if (nowMs <= end.getTime()) return;
+      if (w.sd > 0) firstWeek = 1;
+      if (w.sd >= 4) {
+        if (w.flagged === 0) cleanWeeks++;
+        if (w.pd === w.sd) perfWeeks++;
+      }
+    });
+
+    let perfMonths = 0, spotless = 0;
+    Object.keys(months).forEach(function(k) {
+      const m = months[k];
+      const end = new Date(m.y, m.mo + 1, 0, 23, 59, 59, 999);
+      if (nowMs <= end.getTime() || m.sd < 15) return;
+      if (m.pd === m.sd) perfMonths++;
+      if (m.flagged === 0) spotless++;
+    });
+
+    const st = computeStreak_(days);
+    const stats = {
+      volume: vol, streak: st.longest, power_day: bestDay, week_warrior: weekBest, full_cov: fullCov,
+      perfect_cov: perfWeeks, perfect_month: perfMonths, clean_sheet: cleanWeeks, spotless_month: spotless,
+      first_week: firstWeek, reopen_closer: reopens[u] || 0, ot_warrior: ot
+    };
+    BADGE_CATALOG.forEach(function(b) {
+      const v = stats[b.id] || 0;
+      b.tiers.forEach(function(t) {
+        if (v >= t.threshold && !earned[u + '|' + b.id + '|' + t.t]) badgeRows.push([u, b.id, t.t, nowMs, 0]);
+      });
+    });
+    streakRows.push([u, st.current, st.longest, st.lateMonth, nowMs]);
+  });
+
+  const merged = {};
+  if (stSheet.getLastRow() > 1) {
+    stSheet.getRange(2, 1, stSheet.getLastRow() - 1, 5).getValues().forEach(function(r) {
+      const k = String(r[0]).trim().toLowerCase();
+      if (k) merged[k] = r;
+    });
+  }
+  streakRows.forEach(function(r) { merged[r[0]] = r; });
+  const out = Object.keys(merged).map(function(k) { return merged[k]; });
+  if (stSheet.getLastRow() > 1) stSheet.getRange(2, 1, stSheet.getLastRow() - 1, 5).clearContent();
+  ensureRows_(stSheet, out.length + 1);
+  stSheet.getRange(2, 1, out.length, 5).setValues(out);
+
+  if (badgeRows.length > 0) {
+    ensureRows_(badgeSheet, badgeSheet.getLastRow() + badgeRows.length);
+    badgeSheet.getRange(badgeSheet.getLastRow() + 1, 1, badgeRows.length, 5).setValues(badgeRows);
+  }
+  return { agents: ldaps.length, badges: badgeRows.length };
+}
+
+// Run once from the editor after applying these edits
+function runRebuildAllBadges() {
+  requireManagerOrThrow();
+  Logger.log(JSON.stringify(refreshStreaksAndBadges_(null)));
+}
+
 function markBadgesSeen() {
   const ldap = getUserProfile().ldap;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -4139,6 +4342,7 @@ function getLeaderboard(period, board, filters) {
     startObj = new Date(now.getFullYear(), now.getMonth(), 1);
   }
 
+  if (board === 'Streak') startObj = null; // all-time
   const agentScores = {}; // ldap -> { vol:0, schHours:0, ot:0, currentStreak:0, pastVol:0, site:'' }
 
   // Need pref hidden agents
@@ -4201,6 +4405,11 @@ function getLeaderboard(period, board, filters) {
     }
   });
 
+  const streakMap = {};
+  const stS = ss.getSheetByName('Agent_Streaks');
+  if (stS && stS.getLastRow() > 1) {
+    stS.getRange(2, 1, stS.getLastRow() - 1, 2).getValues().forEach(r => { streakMap[String(r[0]).trim().toLowerCase()] = Number(r[1]) || 0; });
+  }
   const includeOt = filters && filters.includeOt;
   const siteFilter = filters && filters.site;
 
@@ -4237,7 +4446,7 @@ function getLeaderboard(period, board, filters) {
            if (val <= 0) return;
            val = parseFloat(val.toFixed(2));
         } else if (board === 'Streak') {
-           val = s.currentStreak;
+           val = streakMap[ldap] || 0;
            if (val < 3) return; // Only show meaningful streaks
         } else if (board === 'Most Improved') {
            if (s.pastVol < 50) return; // baseline min
@@ -4259,10 +4468,11 @@ function getLeaderboard(period, board, filters) {
   const badgeMap = {};
   const badgeSheet = ss.getSheetByName('Agent_Badges');
   if (badgeSheet && badgeSheet.getLastRow() > 1 && board !== 'Site vs Site') {
-     badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 3).getValues().forEach(r => {
+     badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 4).getValues().forEach(r => {
         const ldap = String(r[0]).trim().toLowerCase();
         if (!badgeMap[ldap]) badgeMap[ldap] = [];
-        badgeMap[ldap].push({ id: r[1], tier: r[2] });
+        const bm = badgeMeta_(r[1]);
+        badgeMap[ldap].push({ id: r[1], tier: r[2], name: bm.name, icon: bm.icon, at: Number(r[3]) || 0, rank: TIER_RANK_[r[2]] || 0 });
      });
   }
 
@@ -4275,7 +4485,7 @@ function getLeaderboard(period, board, filters) {
      const r = ranked[i];
      if (i > 0 && r.metric < ranked[i-1].metric) finalRank++;
      r.rank = finalRank;
-     r.badges = badgeMap[r.ldap] ? badgeMap[r.ldap].slice(-3).reverse() : [];
+     r.badges = (badgeMap[r.ldap] || []).slice().sort((a, b) => (a.at - b.at) || (a.rank - b.rank)).slice(-3).reverse();
 
      if (r.ldap === callerLdap) {
         userRow = JSON.parse(JSON.stringify(r));
@@ -4297,4 +4507,9 @@ function getLeaderboard(period, board, filters) {
   }
 
   return result;
+}
+function runBackfillNow() {
+  ['2026-09'].forEach(function(m) {
+    Logger.log(backfillDailyStats(m).message);
+  });
 }
