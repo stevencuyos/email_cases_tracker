@@ -197,7 +197,11 @@ function initializeDatabase() {
       'Interval_Status': ['Date', 'Interval', 'LDAP', 'Status', 'SetBy', 'Timestamp'],
       'Interval_CheckIns': ['Date', 'Interval', 'ScheduledPOC', 'CheckedInBy', 'Timestamp', 'Result', 'UnresolvedLDAPs', 'Notes', 'IsSubstitute'],
       'Escalation_Log': ['Date', 'Interval', 'EscalatedAt', 'ScheduledPOC', 'UnresolvedCount', 'TotalAgents'],
-      'Escalation_Config': ['Role', 'Name', 'Email']
+      'Escalation_Config': ['Role', 'Name', 'Email'],
+      'Daily_Stats': ['Date', 'LDAP', 'Site', 'Valid', 'Flagged', 'Regular', 'OT', 'IntervalsCovered', 'ScheduledIntervals', 'ScheduledHours', 'Status', 'UpdatedAt'],
+      'Agent_Badges': ['LDAP', 'BadgeId', 'Tier', 'EarnedAt', 'SeenFlag'],
+      'Agent_Prefs': ['LDAP', 'HideFromLeaderboards', 'CelebrationsOff', 'StreakFreezeUsedMonth', 'UpdatedAt'],
+      'Agent_Bests': ['LDAP', 'BestInterval', 'BestDay', 'BestWeek', 'BestWeekPeriod', 'BestMonth', 'BestMonthPeriod', 'UpdatedAt']
     };
 
     for (const [sheetName, headers] of Object.entries(sheetsConfig)) {
@@ -458,7 +462,125 @@ function submitCases(formObject) {
       });
     } catch (se) { intervalTotal = null; todayTotal = null; }
 
-    return { success: true, valid: validCount, flagged: flaggedCount, rejected: malformedIds.length, flaggedDetails: flaggedDetails.slice(0, 50), interval: intervalStr, intervalTotal: intervalTotal, todayTotal: todayTotal };
+
+    // --- PHASE 2: Badges Estimation ---
+    let newBadges = [];
+    try {
+       newBadges = evaluateBadges_(ldap);
+    } catch(e) { logError('evaluateBadges_submit', e.toString(), ldap); }
+
+    // --- PHASE 1: Personal Bests Estimation ---
+    let newBest = null;
+    let isInterval7 = false;
+
+    try {
+      const bestsSheet = ss.getSheetByName('Agent_Bests');
+      if (bestsSheet) {
+        let myBests = null;
+        let rowIdx = -1;
+        if (bestsSheet.getLastRow() > 1) {
+          const bData = bestsSheet.getRange(2, 1, bestsSheet.getLastRow() - 1, 7).getValues();
+          for (let i = 0; i < bData.length; i++) {
+            if (String(bData[i][0]).trim().toLowerCase() === ldap) {
+              rowIdx = i + 2;
+              myBests = {
+                interval: Number(bData[i][1]) || 0,
+                day: Number(bData[i][2]) || 0,
+                week: Number(bData[i][3]) || 0,
+                weekPeriod: String(bData[i][4] || ''),
+                month: Number(bData[i][5]) || 0,
+                monthPeriod: String(bData[i][6] || '')
+              };
+              break;
+            }
+          }
+        }
+
+        if (!myBests) {
+          myBests = { interval: 0, day: 0, week: 0, weekPeriod: '', month: 0, monthPeriod: '' };
+          bestsSheet.appendRow([ldap, 0, 0, 0, '', 0, '', timestamp.getTime()]);
+          rowIdx = bestsSheet.getLastRow();
+        }
+
+        const hasHistory = myBests.day > 0;
+        let updatedBests = false;
+
+        if (intervalTotal !== null && intervalTotal > myBests.interval) {
+           if (hasHistory) newBest = { category: 'interval', value: intervalTotal, previous: myBests.interval };
+           myBests.interval = intervalTotal;
+           updatedBests = true;
+        }
+        if (intervalTotal === 7 && validCount > 0 && (intervalTotal - validCount) < 7) {
+           isInterval7 = true;
+        }
+
+        if (todayTotal !== null && todayTotal > myBests.day) {
+           if (hasHistory && (!newBest || newBest.category === 'interval')) {
+              newBest = { category: 'day', value: todayTotal, previous: myBests.day };
+           }
+           myBests.day = todayTotal;
+           updatedBests = true;
+        }
+
+        const dsSheet = ss.getSheetByName('Daily_Stats');
+        if (dsSheet && dsSheet.getLastRow() > 1) {
+           const weekStart = getWeekStartMonday(timestamp);
+           const monthStart = new Date(timestamp.getFullYear(), timestamp.getMonth(), 1);
+
+           const tail = readSheetTail_(dsSheet, 12, 1, monthStart);
+           let weekTotal = 0;
+           let monthTotal = 0;
+           tail.values.forEach(r => {
+              if (String(r[1]).trim().toLowerCase() !== ldap) return;
+              const d = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+              if (isNaN(d.getTime())) return;
+              const valid = Number(r[3]) || 0;
+              if (d.getTime() >= monthStart.getTime()) monthTotal += valid;
+              if (d.getTime() >= weekStart.getTime()) weekTotal += valid;
+           });
+
+           weekTotal += todayTotal;
+           monthTotal += todayTotal;
+
+           const weekPeriodStr = toISODateStringFast(weekStart);
+           const monthPeriodStr = timestamp.getFullYear() + '-' + ('0' + (timestamp.getMonth() + 1)).slice(-2);
+
+           if (weekTotal > myBests.week && myBests.weekPeriod !== weekPeriodStr && myBests.week > 0) {
+              if (hasHistory && (!newBest || newBest.category === 'interval' || newBest.category === 'day')) {
+                  newBest = { category: 'week', value: weekTotal, previous: myBests.week };
+              }
+              myBests.week = weekTotal;
+              myBests.weekPeriod = weekPeriodStr;
+              updatedBests = true;
+           } else if (weekTotal > myBests.week) {
+              myBests.week = weekTotal;
+              myBests.weekPeriod = weekPeriodStr;
+              updatedBests = true;
+           }
+
+           if (monthTotal > myBests.month && myBests.monthPeriod !== monthPeriodStr && myBests.month > 0) {
+              if (hasHistory) {
+                  newBest = { category: 'month', value: monthTotal, previous: myBests.month };
+              }
+              myBests.month = monthTotal;
+              myBests.monthPeriod = monthPeriodStr;
+              updatedBests = true;
+           } else if (monthTotal > myBests.month) {
+              myBests.month = monthTotal;
+              myBests.monthPeriod = monthPeriodStr;
+              updatedBests = true;
+           }
+        }
+
+        if (updatedBests) {
+           bestsSheet.getRange(rowIdx, 2, 1, 7).setValues([[myBests.interval, myBests.day, myBests.week, myBests.weekPeriod, myBests.month, myBests.monthPeriod, timestamp.getTime()]]);
+        }
+      }
+    } catch (e) {
+      logError('submitCases_bests', e.toString(), ldap);
+    }
+
+    return { success: true, valid: validCount, flagged: flaggedCount, rejected: malformedIds.length, flaggedDetails: flaggedDetails.slice(0, 50), interval: intervalStr, intervalTotal: intervalTotal, todayTotal: todayTotal, newBest: newBest, isInterval7: isInterval7, newBadges: newBadges };
     
   } catch (error) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
@@ -2285,6 +2407,79 @@ function getMyProfileData(targetLdap) {
       });
     }
 
+    // --- PHASE 2: Fetch Badges, Streaks, Bests, Lifetime Stats ---
+    let badges = [];
+    let bests = { interval: 0, day: 0, week: 0, month: 0 };
+    let streakInfo = { current: 0, longest: 0, freezeAvailable: true };
+    let lifetimeVol = 0, lifetimeOt = 0, lifetimeReopens = 0;
+
+    try {
+       const badgeSheet = ss.getSheetByName('Agent_Badges');
+       if (badgeSheet && badgeSheet.getLastRow() > 1) {
+          badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 5).getValues().forEach(r => {
+             if (String(r[0]).trim().toLowerCase() === ldap) {
+                badges.push({ id: r[1], tier: r[2], earnedAt: r[3], seen: r[4] });
+             }
+          });
+       }
+
+       const bestsSheet = ss.getSheetByName('Agent_Bests');
+       if (bestsSheet && bestsSheet.getLastRow() > 1) {
+          bestsSheet.getRange(2, 1, bestsSheet.getLastRow() - 1, 6).getValues().forEach(r => {
+             if (String(r[0]).trim().toLowerCase() === ldap) {
+                bests.interval = Number(r[1]) || 0;
+                bests.day = Number(r[2]) || 0;
+                bests.week = Number(r[3]) || 0;
+                bests.month = Number(r[5]) || 0;
+             }
+          });
+       }
+
+       const dsSheet = ss.getSheetByName('Daily_Stats');
+       if (dsSheet && dsSheet.getLastRow() > 1) {
+          let cStreak = 0, lStreak = 0;
+          let currentMonth = null, breaksThisMonth = 0;
+          let lastMonthFreezeStr = '';
+
+          dsSheet.getRange(2, 1, dsSheet.getLastRow() - 1, 11).getValues()
+            .filter(r => String(r[1]).trim().toLowerCase() === ldap)
+            .sort((a,b) => {
+               const da = (a[0] instanceof Date) ? a[0].getTime() : new Date(a[0]).getTime();
+               const db = (b[0] instanceof Date) ? b[0].getTime() : new Date(b[0]).getTime();
+               return da - db;
+            })
+            .forEach(r => {
+               lifetimeVol += Number(r[3]) || 0;
+               lifetimeOt += Number(r[6]) || 0;
+
+               const status = String(r[10] || '').trim();
+               const dObj = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+
+               if (status && status !== 'Excused') {
+                  const monthStr = dObj.getFullYear() + '-' + ('0' + (dObj.getMonth() + 1)).slice(-2);
+                  if (monthStr !== currentMonth) {
+                     currentMonth = monthStr;
+                     breaksThisMonth = 0;
+                  }
+                  if (status === 'Late' || status === 'Partial' || status === 'Absent') {
+                     breaksThisMonth++;
+                     if (breaksThisMonth > 1) cStreak = 0;
+                     else lastMonthFreezeStr = monthStr; // used freeze
+                  } else if (status === 'Present') {
+                     cStreak++;
+                     if (cStreak > lStreak) lStreak = cStreak;
+                  }
+               }
+            });
+            streakInfo.current = cStreak;
+            streakInfo.longest = lStreak;
+
+            const now = new Date();
+            const thisMonthStr = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+            streakInfo.freezeAvailable = (lastMonthFreezeStr !== thisMonthStr);
+       }
+    } catch(e) { logError('getMyProfileData_badges', e.toString(), ldap); }
+
     return {
       ldap: ldap,
       isOwnProfile: isOwnProfile,
@@ -2302,7 +2497,11 @@ function getMyProfileData(targetLdap) {
       stats: stats,
       trend: trendMeta.map(function(t) { return { label: t.label, count: trendMap[t.key] }; }),
       breakdown: breakdown,
-      history: history
+      history: history,
+      badges: badges,
+      bests: bests,
+      streak: streakInfo,
+      lifetime: { vol: lifetimeVol, ot: lifetimeOt }
     };
   } catch (e) {
     const user = Session.getActiveUser().getEmail() || 'Unknown';
@@ -3179,6 +3378,88 @@ function saveAttendanceFollowUp(ldap, dates, resolution, note) {
   }
 }
 
+// Extracted attendance classification logic for reuse
+function classifyAgentDayAttendance_(ldap, dayDateObj, startHour, shiftDataColsMap, loggedMap, tagMap, tagByMap, ackMap, ciMap, fuMap, nowMs) {
+  const dateKey = toISODateStringFast(dayDateObj);
+  const st = [];
+  let elapsed = 0, rev = 0, absentTags = 0, acked = false;
+  let confBy = '', ackBy = '', pocBy = '';
+
+  for (let k = 0; k < ATT_SHIFT_LEN; k++) {
+    const hourAbs = startHour + k;
+    const clock = new Date(dayDateObj.getFullYear(), dayDateObj.getMonth(), dayDateObj.getDate() + Math.floor(hourAbs / 24), hourAbs % 24, 0, 0, 0);
+    if (clock.getTime() + 3600000 > nowMs) { st.push('pending'); continue; } // interval hasn't ended yet
+    elapsed++;
+    const key = ldap + '|' + toISODateStringFast(clock) + '|' + (hourAbs % 24);
+    const n = loggedMap[key] || 0;
+    const tag = tagMap[key] || '';
+    const isSkip = (k === 0 || k === ATT_SHIFT_LEN - 1);
+    if (n > 0 && ATT_CONFLICT_TAGS.indexOf(tag) !== -1) rev++;
+    if (tag === 'Absent') absentTags++;
+    if (ackMap[key]) { acked = true; if (!ackBy) ackBy = ackMap[key]; }
+    if (tag && (tag === 'Absent' || ATT_EXCUSED_TAGS.indexOf(tag) !== -1) && tagByMap[key] && !confBy) confBy = tagByMap[key];
+    if (!pocBy && n === 0 && !isSkip) {
+      const ci = ciMap[toISODateStringFast(clock) + '|' + (hourAbs % 24)];
+      if (ci) pocBy = ci.by || ci.sp || '';
+    }
+
+    let s;
+    if (n > 0) s = 'logged';
+    else if (ATT_EXCUSED_TAGS.indexOf(tag) !== -1) s = 'excused';
+    else if (tag === 'Absent') s = 'absent';
+    else if (tag === 'Late') s = 'late';
+    else if (isSkip && (!tag || tag === 'SKIP SOS' || tag === 'SKIP - EOS')) s = 'skip';
+    else if (tag) s = 'accounted'; // Assigned-7, Break-3, Coaching, Closing Reopens, etc. set by a POC
+    else s = 'unaccounted';
+    st.push(s);
+  }
+
+  let presence = false, firstLogged = -1, excusedAll = 0;
+  st.forEach(function(s, k) {
+    if (s === 'logged') { presence = true; if (firstLogged < 0) firstLogged = k; }
+    if (s === 'excused') excusedAll++;
+  });
+  if (!presence && elapsed < 2) return null; // too early to judge (SOS hour + one more must pass)
+
+  // Interval coverage over the 7 non-skip slots
+  let sch = 0, exc = 0, cov = 0, gap = 0, lateSlots = 0, midGaps = 0;
+  const gh = [];
+  for (let k = 1; k <= ATT_SHIFT_LEN - 2; k++) {
+    const s = st[k];
+    if (s === 'pending') continue;
+    sch++;
+    if (s === 'logged' || s === 'accounted') cov++;
+    else if (s === 'excused') exc++;
+    else {
+      gap++;
+      gh.push((startHour + k) % 24);
+      if (presence && k < firstLogged) lateSlots++;
+      else if (presence) midGaps++;
+    }
+  }
+
+  let state, conf = 0;
+  if (!presence) {
+    if (excusedAll > 0 && absentTags === 0) {
+      state = 'Excused'; exc = sch; cov = 0; gap = 0; gh.length = 0;
+    } else {
+      state = 'Absent';
+      conf = (absentTags > 0 || acked) ? 1 : 0;
+    }
+  } else if (midGaps > 0) state = 'Partial';
+  else if (lateSlots > 0) state = 'Late';
+  else state = 'Present';
+
+  const fu = fuMap[ldap + '|' + dateKey] || null;
+  if (fu && state === 'Absent') {
+    if (fu.r === 'Excused') { state = 'Excused'; exc = sch; cov = 0; gap = 0; gh.length = 0; }
+    else if (fu.r === 'Confirmed') conf = 1;
+  }
+  const cbName = (fu && (fu.r === 'Confirmed' || fu.r === 'Excused')) ? fu.b : (confBy || ackBy || '');
+
+  return { d: dateKey, u: ldap, h: startHour, s: state, c: conf, l: lateSlots, m: midGaps, sc: sch, ex: exc, cv: cov, g: gap, gh: gh, rv: rev, cb: cbName, pc: pocBy, fu: fu };
+}
+
 function getAttendanceData(startDateStr, endDateStr) {
   try {
     requireManagerOrThrow();
@@ -3301,82 +3582,10 @@ function getAttendanceData(startDateStr, endDateStr) {
         else if (typeof shiftVal === 'number') startHour = Math.round(shiftVal * 24);
         if (isNaN(startHour) || startHour < 0 || startHour > 23) continue;
 
-        // Classify every slot of the shift
-        const st = [];
-        let elapsed = 0, rev = 0, absentTags = 0, acked = false;
-        let confBy = '', ackBy = '', pocBy = '';
-        for (let k = 0; k < ATT_SHIFT_LEN; k++) {
-          const hourAbs = startHour + k;
-          const clock = new Date(dc.day.getFullYear(), dc.day.getMonth(), dc.day.getDate() + Math.floor(hourAbs / 24), hourAbs % 24, 0, 0, 0);
-          if (clock.getTime() + 3600000 > nowMs) { st.push('pending'); continue; } // interval hasn't ended yet
-          elapsed++;
-          const key = ldap + '|' + toISODateStringFast(clock) + '|' + (hourAbs % 24);
-          const n = loggedMap[key] || 0;
-          const tag = tagMap[key] || '';
-          const isSkip = (k === 0 || k === ATT_SHIFT_LEN - 1);
-          if (n > 0 && ATT_CONFLICT_TAGS.indexOf(tag) !== -1) rev++;
-          if (tag === 'Absent') absentTags++;
-          if (ackMap[key]) { acked = true; if (!ackBy) ackBy = ackMap[key]; }
-          if (tag && (tag === 'Absent' || ATT_EXCUSED_TAGS.indexOf(tag) !== -1) && tagByMap[key] && !confBy) confBy = tagByMap[key];
-          if (!pocBy && n === 0 && !isSkip) {
-            const ci = ciMap[toISODateStringFast(clock) + '|' + (hourAbs % 24)];
-            if (ci) pocBy = ci.by || ci.sp || '';
-          }
-
-          let s;
-          if (n > 0) s = 'logged';
-          else if (ATT_EXCUSED_TAGS.indexOf(tag) !== -1) s = 'excused';
-          else if (tag === 'Absent') s = 'absent';
-          else if (tag === 'Late') s = 'late';
-          else if (isSkip && (!tag || tag === 'SKIP SOS' || tag === 'SKIP - EOS')) s = 'skip';
-          else if (tag) s = 'accounted'; // Assigned-7, Break-3, Coaching, Closing Reopens, etc. set by a POC
-          else s = 'unaccounted';
-          st.push(s);
-        }
-
-        let presence = false, firstLogged = -1, excusedAll = 0;
-        st.forEach(function(s, k) {
-          if (s === 'logged') { presence = true; if (firstLogged < 0) firstLogged = k; }
-          if (s === 'excused') excusedAll++;
-        });
-        if (!presence && elapsed < 2) continue; // too early to judge (SOS hour + one more must pass)
-
-        // Interval coverage over the 7 non-skip slots
-        let sch = 0, exc = 0, cov = 0, gap = 0, lateSlots = 0, midGaps = 0;
-        const gh = [];
-        for (let k = 1; k <= ATT_SHIFT_LEN - 2; k++) {
-          const s = st[k];
-          if (s === 'pending') continue;
-          sch++;
-          if (s === 'logged' || s === 'accounted') cov++;
-          else if (s === 'excused') exc++;
-          else {
-            gap++;
-            gh.push((startHour + k) % 24);
-            if (presence && k < firstLogged) lateSlots++;
-            else if (presence) midGaps++;
-          }
-        }
-
-        let state, conf = 0;
-        if (!presence) {
-          if (excusedAll > 0 && absentTags === 0) {
-            state = 'Excused'; exc = sch; cov = 0; gap = 0; gh.length = 0;
-          } else {
-            state = 'Absent';
-            conf = (absentTags > 0 || acked) ? 1 : 0;
-          }
-        } else if (midGaps > 0) state = 'Partial';
-        else if (lateSlots > 0) state = 'Late';
-        else state = 'Present';
-
-        const fu = fuMap[ldap + '|' + dateKey] || null;
-        if (fu && state === 'Absent') {
-          if (fu.r === 'Excused') { state = 'Excused'; exc = sch; cov = 0; gap = 0; gh.length = 0; }
-          else if (fu.r === 'Confirmed') conf = 1;
-        }
-        const cbName = (fu && (fu.r === 'Confirmed' || fu.r === 'Excused')) ? fu.b : (confBy || ackBy || '');
-        rows.push({ d: dateKey, u: ldap, h: startHour, s: state, c: conf, l: lateSlots, m: midGaps, sc: sch, ex: exc, cv: cov, g: gap, gh: gh, rv: rev, cb: cbName, pc: pocBy, fu: fu });
+                // Classify every slot of the shift
+        const classResult = classifyAgentDayAttendance_(ldap, dc.day, startHour, shiftData, loggedMap, tagMap, tagByMap, ackMap, ciMap, fuMap, nowMs);
+        if (!classResult) continue; // too early to judge
+        rows.push(classResult);
         if (!agents[ldap]) agents[ldap] = { s: p.site || String(shiftData[r][4] || ''), l: p.lob, w: p.workflow, sp: p.supervisor, t: p.team };
       }
     });
@@ -3387,4 +3596,705 @@ function getAttendanceData(startDateStr, endDateStr) {
     logError('getAttendanceData', e.toString(), user);
     throw new Error('Unable to load attendance data. Please try again.');
   }
+}
+
+// --- GAMIFICATION / STATS (PHASE 1) ---
+
+function setupDailyStatsTrigger() {
+  requireManagerOrThrow();
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'dailyStatsSweep') ScriptApp.deleteTrigger(t);
+  });
+  // Run early morning, e.g. 2 AM
+  ScriptApp.newTrigger('dailyStatsSweep').timeBased().everyDays(1).atHour(2).create();
+}
+
+function dailyStatsSweep(e) {
+  if (!(e && e.triggerUid)) requireManagerOrThrow();
+
+  const now = new Date();
+  let start = new Date(now);
+  start.setDate(now.getDate() - 3); // last 3 days
+
+  rebuildDailyStats_(toISODateStringFast(start), toISODateStringFast(now));
+}
+
+function rebuildDailyStats_(startDateStr, endDateStr) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const dsSheet = ss.getSheetByName('Daily_Stats');
+  if (!dsSheet) return; // DB not initialized yet
+
+  let start = new Date(startDateStr);
+  let end = new Date(endDateStr);
+
+  // 1. Get Attendance Data (this internally queries Raw_Cases & Agent Shifts to get status/coverage)
+  const attData = getAttendanceData(startDateStr, endDateStr);
+  if (attData.error) throw new Error(attData.error);
+
+  // 2. Fetch all valid and flagged cases directly for exact volume
+  // Get raw cases since start date (need to handle archive if range is old)
+  let rawData = [];
+  const rawSheet = ss.getSheetByName('Raw_Cases');
+  if (rawSheet && rawSheet.getLastRow() > 1) {
+     const tail = readSheetTail_(rawSheet, 17, 1, start);
+     rawData = tail.values;
+  }
+
+  // Also check archive if start is older than what's in Raw_Cases (readSheetTail returns min date seen)
+  // (Assuming we might implement checking archive later if backfilling)
+
+  // Map to group by Date|LDAP
+  const agentDayMap = {}; // key -> { valid, flagged, reg, ot }
+
+  rawData.forEach(function(r) {
+    const d = (r[RAW_COLS.DATE] instanceof Date) ? r[RAW_COLS.DATE] : new Date(r[RAW_COLS.DATE]);
+    if (isNaN(d.getTime())) return;
+    if (d.getTime() < start.getTime() || d.getTime() > end.getTime()) return;
+
+    const ldap = String(r[RAW_COLS.AGENT] || '').trim().toLowerCase();
+    if (!ldap) return;
+
+    const dateKey = toISODateStringFast(d);
+    const key = dateKey + '|' + ldap;
+
+    if (!agentDayMap[key]) {
+      agentDayMap[key] = { valid: 0, flagged: 0, reg: 0, ot: 0, site: String(r[RAW_COLS.SITE] || '') };
+    }
+
+    // NOTE: Flagged should NOT be taken directly from raw case col M, because it's zeroed out on approval/rejection.
+    // Spec says: Daily_Stats.Flagged = count of Audit Queue entries for that agent/day that are PENDING or REJECTED.
+    // For valid cases, use col L.
+    const valid = Number(r[RAW_COLS.VALID]) || 0;
+    agentDayMap[key].valid += valid;
+
+    if (r[RAW_COLS.SHIFT_TYPE] === 'Regular Shift') agentDayMap[key].reg += valid;
+    if (r[RAW_COLS.SHIFT_TYPE] === 'Overtime') agentDayMap[key].ot += valid;
+  });
+
+  // Calculate exact flagged from Audit Queue
+  const auditSheet = ss.getSheetByName('Audit Queue');
+  if (auditSheet && auditSheet.getLastRow() > 1) {
+    auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 9).getValues().forEach(function(r) {
+      const status = String(r[0]).trim(); // e.g. "🔴 PENDING", "✅ APPROVED", "❌ REJECTED"
+      if (status.indexOf('APPROVED') !== -1) return; // Approved doesn't count against agent
+
+      const ts = r[1];
+      if (!ts) return;
+      const d = (ts instanceof Date) ? ts : new Date(ts);
+      if (isNaN(d.getTime())) return;
+      if (d.getTime() < start.getTime() || d.getTime() > end.getTime()) return;
+
+      const ldap = String(r[2] || '').trim().toLowerCase();
+      if (!ldap) return;
+
+      const key = toISODateStringFast(d) + '|' + ldap;
+      if (agentDayMap[key]) {
+        // Count each row in Audit Queue as 1 flagged incident. Or we could use Total Logged (r[5]) but usually it's 1 row per submission flagged.
+        // Spec says: "Daily_Stats.Flagged as the count of Audit Queue entries for that agent/day that are PENDING or REJECTED"
+        agentDayMap[key].flagged += 1;
+      }
+    });
+  }
+
+  // 3. Combine with attendance rows
+  // attendance rows have: d (date), u (ldap), s (status: Present/Late/Partial/Excused/Absent), sc (scheduled slots), cv (covered slots)
+  const combinedMap = {};
+  attData.rows.forEach(function(r) {
+    const key = r.d + '|' + r.u;
+    if (!combinedMap[key]) {
+      combinedMap[key] = { date: r.d, ldap: r.u, site: '', valid: 0, flagged: 0, reg: 0, ot: 0, intervalsCovered: 0, scheduledIntervals: 0, scheduledHours: 0, status: '' };
+    }
+    combinedMap[key].status = r.s;
+    combinedMap[key].intervalsCovered += r.cv;
+    combinedMap[key].scheduledIntervals += r.sc;
+    // scheduledHours = scheduledIntervals (slots are roughly hourly). We can just use sc.
+    combinedMap[key].scheduledHours += r.sc;
+  });
+
+  // Merge raw cases stats in
+  Object.keys(agentDayMap).forEach(function(k) {
+    if (!combinedMap[k]) {
+      const parts = k.split('|');
+      combinedMap[k] = { date: parts[0], ldap: parts[1], site: agentDayMap[k].site, valid: 0, flagged: 0, reg: 0, ot: 0, intervalsCovered: 0, scheduledIntervals: 0, scheduledHours: 0, status: '' };
+    }
+    combinedMap[k].site = combinedMap[k].site || agentDayMap[k].site; // if attendance didn't provide site
+    combinedMap[k].valid = agentDayMap[k].valid;
+    combinedMap[k].flagged = agentDayMap[k].flagged;
+    combinedMap[k].reg = agentDayMap[k].reg;
+    combinedMap[k].ot = agentDayMap[k].ot;
+  });
+
+  // Fetch agent preferences for streak freezes
+  const prefs = {};
+  const prefSheet = ss.getSheetByName('Agent_Prefs');
+  if (prefSheet && prefSheet.getLastRow() > 1) {
+    prefSheet.getRange(2, 1, prefSheet.getLastRow() - 1, 4).getValues().forEach(r => {
+      const ldap = String(r[0] || '').trim().toLowerCase();
+      if (ldap) prefs[ldap] = { hide: !!r[1], noCeleb: !!r[2], freezeMonth: String(r[3] || '') };
+    });
+  }
+
+  // Now, calculate the exact chronological streaks (since we might be modifying the freeze month)
+  // Actually, rebuildDailyStats is meant to *upsert* into Daily_Stats. The streak computation itself
+  // can be a separate pass over Daily_Stats or done here. Since Daily_Stats is permanent, we just write the day rows first.
+
+  const dsData = dsSheet.getLastRow() > 1 ? dsSheet.getRange(2, 1, dsSheet.getLastRow() - 1, dsSheet.getLastColumn()).getValues() : [];
+  const dsRowMap = {};
+  dsData.forEach((r, i) => {
+    const dStr = (r[0] instanceof Date) ? toISODateStringFast(r[0]) : String(r[0]);
+    const uStr = String(r[1] || '').trim().toLowerCase();
+    dsRowMap[dStr + '|' + uStr] = i + 2;
+  });
+
+  const nowMs = new Date().getTime();
+  const writes = []; // {rowIdx, values}
+  const appends = [];
+
+  Object.values(combinedMap).forEach(obj => {
+    const rowVals = [
+      obj.date, obj.ldap, obj.site, obj.valid, obj.flagged, obj.reg, obj.ot,
+      obj.intervalsCovered, obj.scheduledIntervals, obj.scheduledHours, obj.status, nowMs
+    ];
+    const key = obj.date + '|' + obj.ldap;
+    if (dsRowMap[key]) {
+      writes.push({ row: dsRowMap[key], vals: rowVals });
+    } else {
+      appends.push(rowVals);
+    }
+  });
+
+  if (appends.length > 0) {
+    dsSheet.getRange(dsSheet.getLastRow() + 1, 1, appends.length, appends[0].length).setValues(appends);
+  }
+  writes.forEach(w => {
+    dsSheet.getRange(w.row, 1, 1, w.vals.length).setValues([w.vals]);
+  });
+
+  // To handle streak freezes correctly: chronological pass over Daily_Stats for all agents whose stats we just updated.
+  // We will re-evaluate freezes.
+  const agentsUpdated = [...new Set(Object.values(combinedMap).map(o => o.ldap))];
+  if (agentsUpdated.length > 0) {
+     recomputeStreaksForAgents_(agentsUpdated);
+     agentsUpdated.forEach(u => {
+        try { evaluateBadges_(u); } catch(e) { logError('evaluateBadges_nightly', e.toString(), u); }
+     });
+  }
+}
+
+function recomputeStreaksForAgents_(agentLdaps) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const dsSheet = ss.getSheetByName('Daily_Stats');
+  if (!dsSheet || dsSheet.getLastRow() <= 1) return;
+
+  const dsData = dsSheet.getRange(2, 1, dsSheet.getLastRow() - 1, dsSheet.getLastColumn()).getValues();
+  // Sort chronically: Date is col A
+  dsData.sort((a, b) => {
+    const da = (a[0] instanceof Date) ? a[0].getTime() : new Date(a[0]).getTime();
+    const db = (b[0] instanceof Date) ? b[0].getTime() : new Date(b[0]).getTime();
+    return da - db;
+  });
+
+  const prefSheet = ss.getSheetByName('Agent_Prefs');
+  let prefsData = [];
+  const prefRowMap = {};
+  if (prefSheet && prefSheet.getLastRow() > 1) {
+    prefsData = prefSheet.getRange(2, 1, prefSheet.getLastRow() - 1, 5).getValues();
+    prefsData.forEach((r, i) => {
+       prefRowMap[String(r[0]).trim().toLowerCase()] = i + 2;
+    });
+  }
+
+  const setFreezeMap = {}; // ldap -> "yyyy-MM"
+
+  agentLdaps.forEach(ldap => {
+    let currentFreezeMonth = null;
+    let breaksThisMonth = 0;
+    let currentMonth = null;
+
+    dsData.forEach(r => {
+      const rowLdap = String(r[1]).trim().toLowerCase();
+      if (rowLdap !== ldap) return;
+
+      const d = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+      const monthStr = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+      const status = String(r[10] || '').trim(); // Status
+
+      if (status && status !== 'Excused') { // if scheduled and not excused
+         if (monthStr !== currentMonth) {
+           currentMonth = monthStr;
+           breaksThisMonth = 0;
+         }
+         if (status === 'Late' || status === 'Partial' || status === 'Absent') {
+           breaksThisMonth++;
+           if (breaksThisMonth === 1) {
+             currentFreezeMonth = monthStr; // Forgive it!
+           }
+         }
+      }
+    });
+
+    setFreezeMap[ldap] = currentFreezeMonth || '';
+  });
+
+  // Update Agent_Prefs with new freeze months
+  const nowMs = new Date().getTime();
+  const appends = [];
+
+  Object.keys(setFreezeMap).forEach(ldap => {
+    const fm = setFreezeMap[ldap];
+    if (prefRowMap[ldap]) {
+      prefSheet.getRange(prefRowMap[ldap], 4, 1, 2).setValues([[fm, nowMs]]);
+    } else {
+      appends.push([ldap, false, false, fm, nowMs]);
+    }
+  });
+
+  if (appends.length > 0) {
+    if(!prefSheet) {
+        // Just in case it's missing somehow
+    } else {
+        prefSheet.getRange(prefSheet.getLastRow() + 1, 1, appends.length, 5).setValues(appends);
+    }
+  }
+}
+
+function backfillDailyStats(monthStr) {
+  requireManagerOrThrow();
+  // Expects format like '2023-01'
+  if (!monthStr || !/^\d{4}-\d{2}$/.test(monthStr)) throw new Error("Please provide monthStr in format YYYY-MM");
+
+  const parts = monthStr.split('-');
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const start = new Date(y, m, 1);
+  const end = new Date(y, m + 1, 0, 23, 59, 59, 999);
+
+  rebuildDailyStats_(toISODateStringFast(start), toISODateStringFast(end));
+  return { success: true, message: 'Backfill complete for ' + monthStr };
+}
+
+function getMyPrefs() {
+  const ldap = getUserProfile().ldap;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const prefSheet = ss.getSheetByName('Agent_Prefs');
+  if (prefSheet && prefSheet.getLastRow() > 1) {
+    const data = prefSheet.getRange(2, 1, prefSheet.getLastRow() - 1, 4).getValues();
+    for (let i = 0; i < data.length; i++) {
+      if (String(data[i][0]).trim().toLowerCase() === ldap) {
+        return { hide: !!data[i][1], noCeleb: !!data[i][2], freezeMonth: String(data[i][3] || '') };
+      }
+    }
+  }
+  return { hide: false, noCeleb: false, freezeMonth: '' };
+}
+
+function setMyPrefs(prefs) {
+  const ldap = getUserProfile().ldap;
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const prefSheet = ss.getSheetByName('Agent_Prefs');
+    if (!prefSheet) return { success: false, error: 'Database not initialized' };
+
+    let rowIdx = -1;
+    let existingFreeze = '';
+    if (prefSheet.getLastRow() > 1) {
+      const data = prefSheet.getRange(2, 1, prefSheet.getLastRow() - 1, 4).getValues();
+      for (let i = 0; i < data.length; i++) {
+        if (String(data[i][0]).trim().toLowerCase() === ldap) {
+          rowIdx = i + 2;
+          existingFreeze = String(data[i][3] || '');
+          break;
+        }
+      }
+    }
+
+    const nowMs = new Date().getTime();
+    if (rowIdx > -1) {
+      prefSheet.getRange(rowIdx, 2, 1, 4).setValues([[!!prefs.hide, !!prefs.noCeleb, existingFreeze, nowMs]]);
+    } else {
+      prefSheet.appendRow([ldap, !!prefs.hide, !!prefs.noCeleb, '', nowMs]);
+    }
+    return { success: true };
+  } catch (e) {
+    logError('setMyPrefs', e.toString(), ldap);
+    return { success: false, error: e.toString() };
+  } finally {
+    try { lock.releaseLock(); } catch(e){}
+  }
+}
+
+
+// --- GAMIFICATION / BADGES (PHASE 2) ---
+
+const BADGE_CATALOG = [
+  { id: 'volume', name: 'Volume Milestone', icon: 'military_tech', desc: 'Total valid cases logged', tiers: [ { t: 'Bronze', threshold: 100 }, { t: 'Silver', threshold: 500 }, { t: 'Gold', threshold: 1000 }, { t: 'Platinum', threshold: 5000 }, { t: 'Diamond', threshold: 10000 } ] },
+  { id: 'streak', name: 'Hot Streak', icon: 'local_fire_department', desc: 'Consecutive scheduled days present', tiers: [ { t: 'Bronze', threshold: 7 }, { t: 'Silver', threshold: 14 }, { t: 'Gold', threshold: 30 } ] },
+  { id: 'clean_sheet', name: 'Clean Sheet', icon: 'verified_user', desc: 'A scheduled week with zero flagged cases', tiers: [ { t: 'Bronze', threshold: 1 }, { t: 'Silver', threshold: 5 }, { t: 'Gold', threshold: 10 } ] },
+  { id: 'perfect_cov', name: 'Perfect Coverage', icon: 'event_available', desc: 'Present for every slot of a scheduled week', tiers: [ { t: 'Bronze', threshold: 1 }, { t: 'Silver', threshold: 5 }, { t: 'Gold', threshold: 10 } ] },
+  { id: 'first_week', name: 'First Week', icon: 'waving_hand', desc: 'First scheduled week completed', tiers: [ { t: 'Bronze', threshold: 1 } ] },
+  { id: 'reopen_closer', name: 'Reopen Closer', icon: 'build_circle', desc: 'Reopened cases closed', tiers: [ { t: 'Bronze', threshold: 100 } ] },
+  { id: 'ot_warrior', name: 'OT Warrior', icon: 'rocket_launch', desc: 'Valid OT cases logged', tiers: [ { t: 'Bronze', threshold: 100 }, { t: 'Silver', threshold: 500 } ] }
+];
+
+// Re-evaluates all badges for an agent based on Daily_Stats
+// Never revokes. Returns newly earned badges.
+function evaluateBadges_(ldap) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const dsSheet = ss.getSheetByName('Daily_Stats');
+  const badgeSheet = ss.getSheetByName('Agent_Badges');
+  if (!dsSheet || !badgeSheet) return [];
+
+  // 1. Read existing badges
+  const earned = {}; // id|tier -> true
+  if (badgeSheet.getLastRow() > 1) {
+    const bData = badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 3).getValues();
+    bData.forEach(r => {
+      if (String(r[0]).trim().toLowerCase() === ldap) {
+        earned[String(r[1]) + '|' + String(r[2])] = true;
+      }
+    });
+  }
+
+  // 2. Compute lifetime stats from Daily_Stats
+  let vol = 0, streak = 0, maxStreak = 0, cleanWeeks = 0, perfWeeks = 0, reopens = 0, ot = 0;
+
+  let dsData = [];
+  if (dsSheet.getLastRow() > 1) {
+    dsData = dsSheet.getRange(2, 1, dsSheet.getLastRow() - 1, 11).getValues()
+      .filter(r => String(r[1]).trim().toLowerCase() === ldap)
+      .sort((a, b) => {
+         const da = (a[0] instanceof Date) ? a[0].getTime() : new Date(a[0]).getTime();
+         const db = (b[0] instanceof Date) ? b[0].getTime() : new Date(b[0]).getTime();
+         return da - db;
+      });
+  }
+
+  // To compute week-level stats (clean sheet, perfect coverage, first week)
+  const weeks = {};
+
+  // Reopens requires a bit of raw cases look up if we want exact lifetime, but
+  // Daily_Stats doesn't break down Reopened cases explicitly unless we added a column.
+  // Wait, the spec says "Reopen Closer counts CASE_TYPE = 'Reopened Cases'".
+  // We can do a quick tail query for Reopens on Raw_Cases or we should have tracked it in Daily_Stats.
+  // We will do a full read of Reopens from Raw_Cases for this agent, which is slightly heavy but okay for an async evaluation.
+  // Actually, we'll just check Raw_Cases directly for this specific agent's Reopens since it's append only.
+
+  const rawSheet = ss.getSheetByName('Raw_Cases');
+  if (rawSheet && rawSheet.getLastRow() > 1) {
+    // Note: evaluateBadges_ runs async or after submit, so a full filter might be slow.
+    // Instead we can use a query or just tail the last N days. But lifetime Reopens needs full history.
+    // Let's assume we can scan it quickly for one agent.
+    const rData = rawSheet.getDataRange().getValues();
+    for (let i = 1; i < rData.length; i++) {
+      if (String(rData[i][RAW_COLS.AGENT]).trim().toLowerCase() === ldap) {
+        if (rData[i][RAW_COLS.CASE_TYPE] === 'Reopened Cases') {
+           reopens += (Number(rData[i][RAW_COLS.VALID]) || 0);
+        }
+      }
+    }
+  }
+
+  let currentMonth = null;
+  let breaksThisMonth = 0;
+
+  dsData.forEach(r => {
+    const valid = Number(r[3]) || 0;
+    const flagged = Number(r[4]) || 0;
+    const otCases = Number(r[6]) || 0;
+    const sc = Number(r[8]) || 0;
+    const cv = Number(r[7]) || 0;
+    const status = String(r[10] || '').trim();
+    const dObj = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+
+    vol += valid;
+    ot += otCases;
+
+    // Week grouping
+    const wStart = toISODateStringFast(getWeekStartMonday(dObj));
+    if (!weeks[wStart]) weeks[wStart] = { scheduledDays: 0, presentDays: 0, flagged: 0, isPast: false };
+
+    // If we are past the end of that week
+    const endOfWeek = new Date(wStart);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    if (new Date().getTime() > endOfWeek.getTime()) {
+       weeks[wStart].isPast = true;
+    }
+
+    if (status && status !== 'Excused') {
+      weeks[wStart].scheduledDays++;
+      if (status === 'Present') weeks[wStart].presentDays++;
+      weeks[wStart].flagged += flagged;
+
+      const monthStr = dObj.getFullYear() + '-' + ('0' + (dObj.getMonth() + 1)).slice(-2);
+      if (monthStr !== currentMonth) {
+         currentMonth = monthStr;
+         breaksThisMonth = 0;
+      }
+
+      if (status === 'Late' || status === 'Partial' || status === 'Absent') {
+         breaksThisMonth++;
+         if (breaksThisMonth > 1) { // 2nd break breaks the streak
+            streak = 0;
+         }
+      } else if (status === 'Present') {
+         streak++;
+         if (streak > maxStreak) maxStreak = streak;
+      }
+    }
+  });
+
+  Object.keys(weeks).forEach(wk => {
+    const w = weeks[wk];
+    if (w.isPast && w.scheduledDays >= 4) {
+      if (w.flagged === 0) cleanWeeks++;
+      if (w.presentDays === w.scheduledDays) perfWeeks++;
+    }
+  });
+
+  const stats = {
+    volume: vol,
+    streak: streak,  // Note: we can use current streak or max streak. Let's use max streak to be safe they don't lose the badge if streak drops.
+    // Actually, streak badges are usually based on current/longest hit. We'll use maxStreak.
+    max_streak: maxStreak,
+    clean_sheet: cleanWeeks,
+    perfect_cov: perfWeeks,
+    first_week: (cleanWeeks > 0 || perfWeeks > 0 || Object.values(weeks).some(w => w.isPast && w.scheduledDays > 0)) ? 1 : 0,
+    reopen_closer: reopens,
+    ot_warrior: ot
+  };
+
+  const newlyEarned = [];
+  const appends = [];
+  const nowMs = new Date().getTime();
+
+  BADGE_CATALOG.forEach(badge => {
+    let statVal = stats[badge.id] || 0;
+    if (badge.id === 'streak') statVal = maxStreak;
+
+    badge.tiers.forEach(tier => {
+      if (statVal >= tier.threshold) {
+        const key = badge.id + '|' + tier.t;
+        if (!earned[key]) {
+           appends.push([ldap, badge.id, tier.t, nowMs, 0]);
+           newlyEarned.push({ id: badge.id, name: badge.name, tier: tier.t, icon: badge.icon });
+        }
+      }
+    });
+  });
+
+  if (appends.length > 0) {
+    badgeSheet.getRange(badgeSheet.getLastRow() + 1, 1, appends.length, 5).setValues(appends);
+  }
+
+  return newlyEarned;
+}
+
+function markBadgesSeen() {
+  const ldap = getUserProfile().ldap;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const badgeSheet = ss.getSheetByName('Agent_Badges');
+  if (!badgeSheet || badgeSheet.getLastRow() <= 1) return;
+
+  const bData = badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 5).getValues();
+  const updates = [];
+  bData.forEach((r, i) => {
+    if (String(r[0]).trim().toLowerCase() === ldap && Number(r[4]) === 0) {
+      updates.push({ row: i + 2 });
+    }
+  });
+
+  updates.forEach(u => {
+    badgeSheet.getRange(u.row, 5).setValue(1);
+  });
+  return true;
+}
+
+// --- GAMIFICATION / LEADERBOARD (PHASE 3) ---
+
+function getLeaderboard(period, board, filters) {
+  const cacheKey = `leaderboard_${period}_${board}_${JSON.stringify(filters)}`;
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(cacheKey);
+  if (hit) {
+    try { return JSON.parse(hit); } catch (e) {}
+  }
+
+  // Fallback to real compute
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const dsSheet = ss.getSheetByName('Daily_Stats');
+  if (!dsSheet || dsSheet.getLastRow() <= 1) return { rows: [], userRow: null };
+
+  const now = new Date();
+  let startObj = null;
+  let endObj = new Date();
+
+  if (period === 'Today') {
+    startObj = startOfDay_(now);
+  } else if (period === 'This Week') {
+    startObj = getWeekStartMonday(now); // Note: convention returns Sunday
+  } else if (period === 'This Month') {
+    startObj = new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  const agentScores = {}; // ldap -> { vol:0, schHours:0, ot:0, currentStreak:0, pastVol:0, site:'' }
+
+  // Need pref hidden agents
+  const hiddenLdaps = new Set();
+  const prefSheet = ss.getSheetByName('Agent_Prefs');
+  if (prefSheet && prefSheet.getLastRow() > 1) {
+    prefSheet.getRange(2, 1, prefSheet.getLastRow() - 1, 2).getValues().forEach(r => {
+      if (r[1]) hiddenLdaps.add(String(r[0]).trim().toLowerCase());
+    });
+  }
+
+  // Need past volume if Most Improved
+  let pastStartObj = null;
+  let pastEndObj = null;
+  if (board === 'Most Improved' && startObj) {
+    const span = endObj.getTime() - startObj.getTime();
+    pastEndObj = new Date(startObj.getTime() - 1);
+    pastStartObj = new Date(pastEndObj.getTime() - span);
+  }
+
+  const dsData = dsSheet.getRange(2, 1, dsSheet.getLastRow() - 1, 11).getValues();
+  dsData.forEach(r => {
+    const dObj = (r[0] instanceof Date) ? r[0] : new Date(r[0]);
+    if (isNaN(dObj.getTime())) return;
+
+    const isCurrent = (!startObj || dObj.getTime() >= startObj.getTime());
+    const isPast = (pastStartObj && dObj.getTime() >= pastStartObj.getTime() && dObj.getTime() <= pastEndObj.getTime());
+
+    if (!isCurrent && !isPast) return;
+
+    const ldap = String(r[1]).trim().toLowerCase();
+    if (!agentScores[ldap]) {
+      agentScores[ldap] = { vol: 0, schHours: 0, ot: 0, currentStreak: 0, pastVol: 0, site: String(r[2] || '').trim(), days: 0 };
+    }
+
+    const valid = Number(r[3]) || 0;
+    const ot = Number(r[6]) || 0;
+    const sch = Number(r[9]) || 0;
+    const status = String(r[10]).trim();
+
+    if (isCurrent) {
+       // By default Volume board uses Regular valid cases, unless includeOT is set in filters
+       // Wait, spec: "Volume (default Regular Shift only, with an 'Include OT' toggle)"
+       // Actually, let's just expose raw `reg` and `ot` from r[5] and r[6]
+       const reg = Number(r[5]) || 0;
+
+       agentScores[ldap].vol += reg;
+       agentScores[ldap].ot += ot;
+       agentScores[ldap].schHours += sch;
+
+       if (status && status !== 'Excused') {
+         agentScores[ldap].days++;
+         if (status === 'Present') agentScores[ldap].currentStreak++;
+         else agentScores[ldap].currentStreak = 0;
+       }
+    }
+    if (isPast) {
+       const reg = Number(r[5]) || 0;
+       agentScores[ldap].pastVol += reg + ot; // Or just reg. Spec says baseline volume.
+    }
+  });
+
+  const includeOt = filters && filters.includeOt;
+  const siteFilter = filters && filters.site;
+
+  let ranked = [];
+
+  if (board === 'Site vs Site') {
+     const siteScores = {};
+     Object.keys(agentScores).forEach(ldap => {
+        const s = agentScores[ldap];
+        if (!siteScores[s.site]) siteScores[s.site] = { vol: 0, days: 0 };
+        siteScores[s.site].vol += s.vol; // default excludes OT for site vs site per spec
+        siteScores[s.site].days += s.days;
+     });
+
+     Object.keys(siteScores).forEach(s => {
+        if (!s || s === 'Unknown' || siteScores[s].days < 5) return;
+        ranked.push({ ldap: '', name: s, site: s, metric: parseFloat((siteScores[s].vol / siteScores[s].days).toFixed(2)) });
+     });
+     ranked.sort((a,b) => b.metric - a.metric);
+
+  } else {
+     const dir = getAgentDirectory_();
+     Object.keys(agentScores).forEach(ldap => {
+        const s = agentScores[ldap];
+        if (siteFilter && s.site.toLowerCase() !== siteFilter.toLowerCase()) return;
+
+        let val = 0;
+        if (board === 'Volume') {
+           val = s.vol + (includeOt ? s.ot : 0);
+           if (val <= 0) return;
+        } else if (board === 'Cases per hour') {
+           if (s.schHours < 8) return;
+           val = (s.vol + (includeOt ? s.ot : 0)) / s.schHours;
+           if (val <= 0) return;
+           val = parseFloat(val.toFixed(2));
+        } else if (board === 'Streak') {
+           val = s.currentStreak;
+           if (val < 3) return; // Only show meaningful streaks
+        } else if (board === 'Most Improved') {
+           if (s.pastVol < 50) return; // baseline min
+           const cur = s.vol + s.ot;
+           if (cur <= 0) return;
+           val = ((cur - s.pastVol) / s.pastVol) * 100;
+           val = parseFloat(val.toFixed(1));
+           if (val <= 0) return;
+        }
+
+        const p = dir[ldap] || { name: ldap };
+        ranked.push({ ldap: ldap, name: p.name, site: s.site, metric: val });
+     });
+
+     ranked.sort((a,b) => b.metric - a.metric);
+  }
+
+  // Need top 3 badges for the ranked agents.
+  const badgeMap = {};
+  const badgeSheet = ss.getSheetByName('Agent_Badges');
+  if (badgeSheet && badgeSheet.getLastRow() > 1 && board !== 'Site vs Site') {
+     badgeSheet.getRange(2, 1, badgeSheet.getLastRow() - 1, 3).getValues().forEach(r => {
+        const ldap = String(r[0]).trim().toLowerCase();
+        if (!badgeMap[ldap]) badgeMap[ldap] = [];
+        badgeMap[ldap].push({ id: r[1], tier: r[2] });
+     });
+  }
+
+  let finalRank = 1;
+  const outRows = [];
+  const callerLdap = getUserProfile().ldap;
+  let userRow = null;
+
+  for (let i = 0; i < ranked.length; i++) {
+     const r = ranked[i];
+     if (i > 0 && r.metric < ranked[i-1].metric) finalRank++;
+     r.rank = finalRank;
+     r.badges = badgeMap[r.ldap] ? badgeMap[r.ldap].slice(-3).reverse() : [];
+
+     if (r.ldap === callerLdap) {
+        userRow = JSON.parse(JSON.stringify(r));
+        if (hiddenLdaps.has(r.ldap)) userRow.isHidden = true;
+     }
+
+     if (hiddenLdaps.has(r.ldap) && r.ldap !== callerLdap) continue; // skip others if they hide
+
+     if (outRows.length < 10) {
+        outRows.push(r);
+     }
+  }
+
+  const result = { rows: outRows, userRow: userRow };
+
+  // Cache the response
+  if (JSON.stringify(result).length < 100000) {
+     cache.put(cacheKey, JSON.stringify(result), 600); // 10 minutes
+  }
+
+  return result;
 }

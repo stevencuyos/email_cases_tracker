@@ -588,6 +588,11 @@
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Case Submission Log</span>
         </button>
 
+        <button onclick="switchTab('leaderboardView')" id="tab-leaderboardView" title="Leaderboard" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
+          <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">leaderboard</span>
+          <span class="ml-4 text-sm whitespace-nowrap nav-text">Leaderboards</span>
+        </button>
+
         <div id="managerOnlyTabs" class="hidden flex flex-col space-y-1 mt-6">
           <div class="px-6 mb-2 mt-4 nav-text">
             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Management</span>
@@ -1759,6 +1764,82 @@
       <div id="profileCardContainer" class="space-y-6">
         <div class="text-center text-gray-400 py-12">Loading profile...</div>
       </div>
+
+      <div id="profileGamificationSection" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <!-- Streak Card -->
+        <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2"><span class="material-symbols-outlined text-orange-500">local_fire_department</span> Hot Streak</h3>
+              <span id="profFreezeIndicator" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">🧊 Freeze Available</span>
+            </div>
+            <div class="flex items-end gap-3">
+              <span id="profCurrentStreak" class="text-4xl font-bold text-gray-800 dark:text-gray-100">--</span>
+              <span class="text-sm cell-muted mb-1">days</span>
+            </div>
+          </div>
+          <div class="mt-4 text-xs cell-muted">Longest streak: <span id="profLongestStreak" class="font-medium text-gray-700 dark:text-gray-300">--</span> days</div>
+        </div>
+
+        <!-- Personal Bests Card -->
+        <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border">
+           <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-yellow-500">workspace_premium</span> Personal Bests</h3>
+           <div class="grid grid-cols-2 gap-y-4 gap-x-2">
+             <div>
+               <div class="text-[10px] uppercase cell-muted">Best Interval</div>
+               <div id="profBestInterval" class="text-xl font-medium text-gray-800 dark:text-gray-100">--</div>
+             </div>
+             <div>
+               <div class="text-[10px] uppercase cell-muted">Best Day</div>
+               <div id="profBestDay" class="text-xl font-medium text-gray-800 dark:text-gray-100">--</div>
+             </div>
+             <div>
+               <div class="text-[10px] uppercase cell-muted">Best Week</div>
+               <div id="profBestWeek" class="text-xl font-medium text-gray-800 dark:text-gray-100">--</div>
+             </div>
+             <div>
+               <div class="text-[10px] uppercase cell-muted">Best Month</div>
+               <div id="profBestMonth" class="text-xl font-medium text-gray-800 dark:text-gray-100">--</div>
+             </div>
+           </div>
+        </div>
+
+        <!-- Badges Card -->
+        <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border md:col-span-2">
+           <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-purple-500">military_tech</span> Badges Earned</h3>
+           <div id="profBadgesContainer" class="flex flex-wrap gap-3">
+              <div class="text-xs cell-faint">Loading badges...</div>
+           </div>
+        </div>
+      </div>
+
+      <div id="profilePrefsSection" class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border mt-6">
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-4">My Preferences</h3>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium cell-strong">Hide from Leaderboards</div>
+              <div class="text-xs cell-muted">You will not appear on public leaderboards, but your data still counts for site averages.</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="prefHideLeaderboard" class="sr-only peer" onchange="saveMyPrefs()">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-theme-primary"></div>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium cell-strong">Disable Celebrations</div>
+              <div class="text-xs cell-muted">Turn off confetti animations and celebration toasts when you reach milestones.</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="prefNoCeleb" class="sr-only peer" onchange="saveMyPrefs()">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-theme-primary"></div>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- VIEW: POC Planner (Embedded) -->
@@ -2566,7 +2647,7 @@ function refreshAccess() {
 
     // 3. Tab Switching Logic
     function switchTab(viewId) {
-      ['submissionView', 'mySubmissionsView', 'caseLogView', 'dashboardView', 'intervalView', 'expiringView', 'analyticsView', 'profileView', 'pocPlannerView'].forEach(id => {
+      ['submissionView', 'mySubmissionsView', 'caseLogView', 'leaderboardView', 'dashboardView', 'intervalView', 'expiringView', 'analyticsView', 'profileView', 'pocPlannerView'].forEach(id => {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
         if (el) el.classList.add('hidden');
@@ -2586,6 +2667,7 @@ function refreshAccess() {
       if(viewId === 'dashboardView') loadDashboard();
       if(viewId === 'mySubmissionsView') loadMySubmissions();
       if(viewId === 'caseLogView') loadCaseLog();
+      if(viewId === 'leaderboardView') loadLeaderboard();
       if(viewId === 'intervalView') loadIntervalData();
       if(viewId === 'analyticsView') loadAnalytics();
       if(viewId === 'profileView') loadMyProfile();
@@ -2771,13 +2853,38 @@ function refreshAccess() {
           resetButton(btn, spinner);
           
           if (response.success) {
+            let celebOff = false;
+            try { celebOff = localStorage.getItem('celebOff') === 'true'; } catch(e){}
+
             if (response.rejected > 0) {
               showToast(`${response.rejected} invalid ID(s) skipped. ${response.valid} valid cases logged${response.flagged > 0 ? `, ${response.flagged} flagged` : ''}.`, 'warning');
             } else if (response.flagged > 0) {
               showToast(`Warning: ${response.flagged} duplicate(s) flagged. ${response.valid} valid cases logged.`, 'warning');
+            } else if (!celebOff) {
+
+              if (response.newBadges && response.newBadges.length > 0) {
+                 response.newBadges.forEach((b, i) => {
+                    setTimeout(() => {
+                       showToast(`🏆 Badge Earned: ${b.name} (${b.tier})!`, 'success');
+                       fireConfetti({ count: 200 });
+                       google.script.run.markBadgesSeen();
+                    }, i * 2000);
+                 });
+              }
+
+              if (response.newBest) {
+                const catNames = { interval: 'interval', day: 'day', week: 'week', month: 'month' };
+                showToast(`New personal best: ${response.newBest.value} cases this ${catNames[response.newBest.category]}!`, 'success');
+                fireConfetti({ count: 150 });
+              } else if (response.isInterval7) {
+                showToast(`Success! ${response.valid} cases securely logged.`, 'success');
+                fireConfetti({ count: 60 });
+              } else {
+                showToast(`Success! ${response.valid} cases securely logged.`, 'success');
+                fireConfetti({ count: Math.min(220, 40 + response.valid * 5) });
+              }
             } else {
               showToast(`Success! ${response.valid} cases securely logged.`, 'success');
-              fireConfetti({ count: Math.min(220, 60 + response.valid * 8) });
             }
             document.getElementById('caseIds').value = '';
             updateCaseIdHints();
@@ -3280,7 +3387,97 @@ function refreshAccess() {
       loadMyProfile(val);
     }
 
+    function saveMyPrefs() {
+      const hide = document.getElementById('prefHideLeaderboard').checked;
+      const noCeleb = document.getElementById('prefNoCeleb').checked;
+      localStorage.setItem('celebOff', noCeleb ? 'true' : 'false');
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if(!res.success) showToast(res.error || 'Failed to save preferences', 'error');
+        })
+        .setMyPrefs({ hide: hide, noCeleb: noCeleb });
+    }
+
+    function loadMyPrefs(isOwnProfile) {
+      const prefsSection = document.getElementById('profilePrefsSection');
+      if (!isOwnProfile) {
+        if(prefsSection) prefsSection.classList.add('hidden');
+        return;
+      }
+      if(prefsSection) prefsSection.classList.remove('hidden');
+
+      google.script.run
+        .withSuccessHandler(prefs => {
+          document.getElementById('prefHideLeaderboard').checked = prefs.hide;
+          document.getElementById('prefNoCeleb').checked = prefs.noCeleb;
+          localStorage.setItem('celebOff', prefs.noCeleb ? 'true' : 'false');
+        })
+        .getMyPrefs();
+    }
+
     function renderMyProfile(data) {
+      loadMyPrefs(data.isOwnProfile);
+
+      if(data.streak) {
+         document.getElementById('profCurrentStreak').textContent = data.streak.current || '0';
+         document.getElementById('profLongestStreak').textContent = data.streak.longest || '0';
+         const freezeEl = document.getElementById('profFreezeIndicator');
+         if (data.streak.freezeAvailable) {
+            freezeEl.textContent = '🧊 Freeze Available';
+            freezeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
+         } else {
+            freezeEl.textContent = '❄️ Freeze Used';
+            freezeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400';
+         }
+      }
+      if(data.bests) {
+         document.getElementById('profBestInterval').textContent = data.bests.interval || '0';
+         document.getElementById('profBestDay').textContent = data.bests.day || '0';
+         document.getElementById('profBestWeek').textContent = data.bests.week || '0';
+         document.getElementById('profBestMonth').textContent = data.bests.month || '0';
+      }
+
+      const bCont = document.getElementById('profBadgesContainer');
+      if (bCont && data.badges && data.badges.length > 0) {
+         let html = '';
+         const bColors = { 'Bronze': 'bg-amber-700/20 text-amber-700 dark:text-amber-500', 'Silver': 'bg-slate-300/40 text-slate-700 dark:text-slate-300', 'Gold': 'bg-yellow-400/30 text-yellow-600 dark:text-yellow-400', 'Platinum': 'bg-cyan-400/30 text-cyan-600 dark:text-cyan-400', 'Diamond': 'bg-fuchsia-400/30 text-fuchsia-600 dark:text-fuchsia-400' };
+         data.badges.forEach(b => {
+            const col = bColors[b.tier] || 'bg-gray-200 text-gray-600';
+            let unseen = (!data.isOwnProfile || b.seen) ? '' : '<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-theme-card"></span>';
+            html += `<div class="relative px-3 py-2 rounded-lg border border-theme-card-border flex items-center gap-2 shadow-sm ${col}">
+                        ${unseen}
+                        <div class="font-bold text-sm leading-none flex flex-col">
+                           <span>${escAttr(b.tier)}</span>
+                           <span class="text-[10px] uppercase opacity-80">${escAttr(b.id)}</span>
+                        </div>
+                     </div>`;
+         });
+         bCont.innerHTML = html;
+
+         if (data.isOwnProfile) {
+            let hasUnseen = false;
+            data.badges.forEach(b => {
+               if (!b.seen) {
+                  hasUnseen = true;
+                  setTimeout(() => {
+                     let celebOff = false;
+                     try { celebOff = localStorage.getItem('celebOff') === 'true'; } catch(e){}
+                     if(!celebOff) {
+                       showToast(`🏆 You earned a new badge: ${b.id} (${b.tier})!`, 'success');
+                       fireConfetti({ count: 100 });
+                     }
+                  }, 1000);
+               }
+            });
+            if (hasUnseen) google.script.run.markBadgesSeen();
+         }
+      } else if (bCont) {
+         bCont.innerHTML = '<div class="text-sm cell-faint">No badges earned yet. Keep logging cases!</div>';
+      }
+
+      loadMyPrefs(data.isOwnProfile);
+
       // Store history data for calendar usage
       profileHistoryData = data.history || {};
       renderCalendarHeatmap();
@@ -3906,6 +4103,122 @@ function refreshAccess() {
     // --- DASHBOARD LOGIC ---
 
     // Load data when tab is clicked
+
+    function loadLeaderboard() {
+      const period = document.getElementById('lbPeriodSelect').value;
+      const board = document.getElementById('lbBoardSelect').value;
+      const site = document.getElementById('lbSiteFilter').value;
+      const includeOt = document.getElementById('lbIncludeOt').checked;
+
+      const wrap = document.getElementById('lbIncludeOtWrap');
+      if (board === 'Site vs Site' || board === 'Streak' || board === 'Most Improved') wrap.style.display = 'none';
+      else wrap.style.display = 'flex';
+
+      document.getElementById('lbSiteFilter').style.display = board === 'Site vs Site' ? 'none' : 'block';
+
+      const loading = document.getElementById('leaderboardLoading');
+      const contentEl = document.getElementById('leaderboardContent');
+
+      loading.classList.remove('hidden');
+      document.getElementById('lbPodium').classList.add('hidden');
+      document.getElementById('lbTableContainer').classList.add('hidden');
+      document.getElementById('lbEmptyState').classList.add('hidden');
+
+      google.script.run
+        .withSuccessHandler(renderLeaderboard)
+        .withFailureHandler(err => {
+           loading.classList.add('hidden');
+           showToast(err && err.message ? err.message : "Failed to load leaderboard", "error");
+        })
+        .getLeaderboard(period, board, { site: site, includeOt: includeOt });
+    }
+
+    function renderLeaderboard(res) {
+      document.getElementById('leaderboardLoading').classList.add('hidden');
+
+      if (!res.rows || res.rows.length === 0) {
+         document.getElementById('lbEmptyState').classList.remove('hidden');
+         return;
+      }
+
+      const board = document.getElementById('lbBoardSelect').value;
+      document.getElementById('lbMetricHeader').textContent = board === 'Cases per hour' ? 'Cases/Hr' : (board === 'Most Improved' ? '% Improved' : (board === 'Streak' ? 'Days' : 'Score'));
+
+      let metricSuffix = board === 'Most Improved' ? '%' : '';
+
+      // Render Podium (Top 3)
+      const podium = document.getElementById('lbPodium');
+      if (board !== 'Site vs Site' && res.rows.length >= 3) {
+         podium.classList.remove('hidden');
+         let pHTML = '';
+         const pOrder = [1, 0, 2]; // Silver, Gold, Bronze
+         pOrder.forEach(idx => {
+            if (!res.rows[idx]) return;
+            const r = res.rows[idx];
+            const h = idx === 0 ? 'h-40' : (idx === 1 ? 'h-32' : 'h-24');
+            const col = idx === 0 ? 'bg-yellow-400 dark:bg-yellow-600' : (idx === 1 ? 'bg-gray-300 dark:bg-gray-500' : 'bg-amber-600 dark:bg-amber-700');
+            const crown = idx === 0 ? '<span class="material-symbols-outlined text-yellow-500 absolute -top-8 text-[32px]">crown</span>' : '';
+
+            pHTML += `<div class="flex flex-col items-center flex-1 max-w-[140px] relative">
+               ${crown}
+               <div class="mb-3 text-center">
+                 <div class="font-bold text-sm cell-strong truncate w-full px-2" title="${escAttr(r.name)}">${escAttr(r.name.split(' ')[0])}</div>
+                 <div class="text-xs font-medium text-theme-primary">${r.metric}${metricSuffix}</div>
+               </div>
+               <div class="w-full ${h} ${col} rounded-t-lg shadow-inner flex items-start justify-center pt-2">
+                 <span class="text-white font-bold text-2xl">${r.rank}</span>
+               </div>
+            </div>`;
+         });
+         podium.innerHTML = pHTML;
+      }
+
+      // Render Table
+      const tBody = document.getElementById('lbTableBody');
+      tBody.innerHTML = '';
+
+      const startIndex = (board !== 'Site vs Site' && res.rows.length >= 3) ? 3 : 0;
+
+      res.rows.slice(startIndex).forEach(r => {
+         const tr = document.createElement('tr');
+         tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition';
+
+         const badgeHtml = (r.badges && r.badges.length > 0) ? `<div class="flex gap-1 mt-1">` + r.badges.map(b => `<span class="material-symbols-outlined text-[14px] text-purple-500" title="${escAttr(b.tier + ' ' + b.id)}">military_tech</span>`).join('') + `</div>` : '';
+
+         tr.innerHTML = `
+           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">#${r.rank}</td>
+           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium cell-strong">
+              <div class="flex flex-col">
+                 <span>${escAttr(r.name)} <span class="text-xs font-normal cell-muted ml-2">${escAttr(r.site)}</span></span>
+                 ${badgeHtml}
+              </div>
+           </td>
+           <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-theme-primary text-right">${r.metric}${metricSuffix}</td>
+         `;
+         tBody.appendChild(tr);
+      });
+
+      // Add Pinned User Row if they exist and aren't already in the table
+      if (res.userRow) {
+         let inTable = res.rows.some(r => r.ldap === res.userRow.ldap);
+         if (!inTable) {
+            const tr = document.createElement('tr');
+            tr.className = 'bg-theme-accent-muted/20 border-t-2 border-theme-primary';
+            const r = res.userRow;
+            let n = escAttr(r.name);
+            if (r.isHidden) n += ' <span class="text-[10px] bg-gray-200 text-gray-600 px-1 py-0.5 rounded ml-1">Hidden</span>';
+            tr.innerHTML = `
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">#${r.rank}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium cell-strong">${n}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-theme-primary text-right">${r.metric}${metricSuffix}</td>
+            `;
+            tBody.appendChild(tr);
+         }
+      }
+
+      document.getElementById('lbTableContainer').classList.remove('hidden');
+    }
+
     function loadDashboard() {
       document.getElementById('auditTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
       document.getElementById('metricsTableBody').innerHTML = '<tr><td colspan="3" class="p-8 text-center text-gray-400">Loading data...</td></tr>';
@@ -3917,6 +4230,22 @@ function refreshAccess() {
     }
 
     // Render the tables
+
+    function animateValue(obj, start, end, duration) {
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start);
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        } else {
+          obj.innerHTML = end; // Ensure exact final value
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
     function renderDashboard(data) {
       const auditTbody = document.getElementById('auditTableBody');
       const metricsTbody = document.getElementById('metricsTableBody');
@@ -5221,6 +5550,13 @@ function refreshAccess() {
       const auditsCard = document.getElementById('kpi-audits-card');
       const auditsAlert = document.getElementById('kpi-audits-alert');
       const auditsCount = document.getElementById('kpi-pending-audits');
+      if (data.kpis.pendingAudits === 0 && document.getElementById('dashboardView').classList.contains('view-enter')) {
+        setTimeout(() => {
+           let celebOff = false;
+           try { celebOff = localStorage.getItem('celebOff') === 'true'; } catch(e){}
+           if (!celebOff) fireConfetti({ count: 80, y: 150 });
+        }, 500);
+      }
       if (data.kpis.pendingAudits > 0) {
         auditsCard.classList.add('border-amber-300', 'dark:border-amber-700');
         auditsCount.classList.add('text-amber-600', 'dark:text-amber-400');
