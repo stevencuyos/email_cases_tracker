@@ -441,6 +441,112 @@
       background-color: #334155;
     }
 
+    /* ===== Leaderboards: prestige theme (scoped to this tab) ===== */
+    .lb-prestige > div { background: radial-gradient(120% 90% at 50% 0%, #1b2140 0%, #0d1120 55%, #070912 100%) !important; border: 1px solid rgba(212,175,55,.35) !important; box-shadow: 0 25px 60px -15px rgba(0,0,0,.65), 0 0 60px -20px rgba(212,175,55,.25) !important; }
+    .lb-prestige > div > div:first-child { height: 3px !important; background: linear-gradient(90deg, transparent, #b8860b, #f5d76e, #b8860b, transparent) !important; }
+    .lb-prestige > div > div:nth-child(2) { background: transparent !important; border-color: rgba(212,175,55,.18) !important; }
+    .lb-prestige h2 { font-family: Georgia, 'Times New Roman', serif; color: #f5e6b3 !important; letter-spacing: .14em; text-transform: uppercase; font-size: 1.25rem; }
+    .lb-prestige h2 .material-symbols-outlined { color: #d4af37 !important; }
+    .lb-prestige p { color: #8f96b3 !important; }
+    .lb-prestige select, .lb-prestige input[type="text"] { background: rgba(255,255,255,.05) !important; color: #f1e7c6 !important; border: 1px solid rgba(212,175,55,.3) !important; border-radius: 8px !important; }
+    .lb-prestige input::placeholder { color: #7c84a3 !important; }
+    .lb-prestige select option { background: #12172b; color: #f1e7c6; }
+    .lb-prestige #lbIncludeOtWrap { color: #b9bfd8 !important; }
+    .lb-prestige button[title="Refresh"] { background: rgba(212,175,55,.1) !important; border-color: rgba(212,175,55,.4) !important; color: #f5d76e !important; }
+    .lb-prestige #leaderboardLoading, .lb-prestige #lbEmptyState { color: #8f96b3 !important; }
+    .lb-prestige #lbPodium { gap: 18px; padding-top: 52px; }
+    .lb-pod { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 170px; position: relative; }
+    .lb-crown { position: absolute; top: -36px; font-size: 32px !important; color: #f5d76e; filter: drop-shadow(0 0 10px rgba(245,215,110,.7)); }
+    .lb-av { display: block; border-radius: 50%; overflow: hidden; background: #0d1120; flex-shrink: 0; }
+    .lb-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lb-av-fallback { display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #1b2140; color: #f5d76e; font-weight: 700; width: 36px; height: 36px; flex-shrink: 0; }
+    .lb-pod-av { border-radius: 50%; padding: 3px; margin-bottom: 10px; }
+    .lb-pod-1 .lb-pod-av { background: linear-gradient(135deg, #fff3b0, #d4af37, #8a6d1a); box-shadow: 0 0 30px rgba(245,215,110,.45); }
+    .lb-pod-2 .lb-pod-av { background: linear-gradient(135deg, #f4f6fa, #a9b0bd, #6b7280); }
+    .lb-pod-3 .lb-pod-av { background: linear-gradient(135deg, #f0c89a, #cd7f32, #7a4a1c); }
+    .lb-pod-name { color: #f5e6b3; font-weight: 600; font-size: .9rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lb-pod-score { color: #f5d76e; font-family: Georgia, serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+    .lb-pod-block { width: 100%; border-radius: 10px 10px 0 0; display: flex; justify-content: center; padding-top: 10px; font-family: Georgia, serif; font-size: 2rem; font-weight: 700; color: rgba(0,0,0,.55); }
+    .lb-pod-1 .lb-pod-block { height: 120px; background: linear-gradient(180deg, #f5d76e, #b8860b); }
+    .lb-pod-2 .lb-pod-block { height: 90px; background: linear-gradient(180deg, #e5e7eb, #8b93a1); }
+    .lb-pod-3 .lb-pod-block { height: 70px; background: linear-gradient(180deg, #e0a06a, #8a4f1f); }
+    .lb-prestige table th { color: #b8a25a !important; border-color: rgba(212,175,55,.25) !important; letter-spacing: .14em; }
+    .lb-prestige tbody tr { border-color: rgba(255,255,255,.05) !important; }
+    .lb-row td { padding: 12px 24px; }
+    .lb-row:hover { background: rgba(212,175,55,.06); }
+    .lb-rank { color: #8f96b3; font-family: Georgia, serif; }
+    .lb-agent { display: flex; align-items: center; gap: 12px; }
+    .lb-agent-name { color: #f1e7c6; font-weight: 500; }
+    .lb-site { color: #7c84a3; font-size: 10px; margin-left: 8px; text-transform: uppercase; letter-spacing: .08em; }
+    .lb-score { text-align: right; color: #f5d76e; font-weight: 700; font-family: Georgia, serif; font-size: 1.05rem; }
+    .lb-me { background: linear-gradient(90deg, rgba(212,175,55,.16), transparent); }
+    .lb-pinned td { border-top: 1px solid rgba(212,175,55,.5); }
+    .lb-tag { font-size: 10px; background: rgba(255,255,255,.1); color: #b9bfd8; padding: 1px 6px; border-radius: 6px; margin-left: 6px; }
+    /* ===== Leaderboards v2: Material-style surfaces, gold palette ===== */
+    .lb-prestige { font-family: 'Google Sans','Google Sans Text',Roboto,sans-serif; }
+    .lb-prestige > div { border-radius: 28px !important; background: linear-gradient(180deg,#151b33 0%,#0a0e1c 100%) !important; border: 1px solid rgba(232,196,104,.22) !important; box-shadow: 0 1px 2px rgba(0,0,0,.6), 0 16px 40px -10px rgba(0,0,0,.6) !important; }
+    .lb-prestige h2 { font-family: inherit; text-transform: none; letter-spacing: 0; font-size: 1.5rem; font-weight: 500; color: #f3e9c6 !important; display: flex; align-items: center; gap: 14px; }
+    .lb-prestige h2 .material-symbols-outlined { width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(232,196,104,.14); font-size: 24px !important; color: #f0cf72 !important; }
+    .lb-prestige p { font-size: 13px; }
+    .lb-seg { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+    .lb-chip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px 0 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: transparent; color: #c5cae0; font: 500 13px 'Google Sans',Roboto,sans-serif; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+    .lb-chip .material-symbols-outlined { font-size: 18px; }
+    .lb-chip:hover { background: rgba(255,255,255,.07); }
+    .lb-chip.on { background: rgba(232,196,104,.18); border-color: transparent; color: #f6dc8a; }
+    .lb-prestige select, .lb-prestige input[type="text"] { height: 36px; border-radius: 12px !important; font-size: 13px; padding: 0 12px !important; }
+    .lb-prestige input[type="checkbox"] { accent-color: #e8c468; }
+
+    /* podium stage with gold dust */
+    #lbPodium { position: relative; overflow: hidden; border-radius: 20px; margin-bottom: 8px;
+      background: radial-gradient(70% 90% at 50% 100%, rgba(245,215,110,.24), transparent 70%), linear-gradient(180deg, rgba(232,196,104,.07), transparent 60%); }
+    #lbPodium::before, #lbPodium::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 25%, #000 85%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 25%, #000 85%, transparent 100%); }
+    #lbPodium::before { background-size: 260px 260px; animation: lbDust 11s linear infinite; filter: drop-shadow(0 0 3px rgba(245,215,110,.85));
+      background-image:
+        radial-gradient(2px 2px at 8% 12%, #fff3b0 60%, transparent 62%), radial-gradient(1.5px 1.5px at 22% 55%, #f5d76e 60%, transparent 62%),
+        radial-gradient(2.5px 2.5px at 37% 30%, #ffe89a 60%, transparent 62%), radial-gradient(1.5px 1.5px at 51% 78%, #fff3b0 60%, transparent 62%),
+        radial-gradient(2px 2px at 64% 18%, #f5d76e 60%, transparent 62%), radial-gradient(1.5px 1.5px at 78% 62%, #ffe89a 60%, transparent 62%),
+        radial-gradient(2.5px 2.5px at 90% 40%, #fff3b0 60%, transparent 62%), radial-gradient(1.5px 1.5px at 96% 88%, #f5d76e 60%, transparent 62%); }
+    #lbPodium::after { background-size: 180px 180px; animation: lbDust2 7s linear infinite, lbTwinkle 2.4s ease-in-out infinite alternate; filter: drop-shadow(0 0 2px rgba(255,236,160,.9));
+      background-image:
+        radial-gradient(1.5px 1.5px at 15% 25%, #fff8d0 60%, transparent 62%), radial-gradient(1px 1px at 30% 70%, #f5d76e 60%, transparent 62%),
+        radial-gradient(1.5px 1.5px at 48% 10%, #ffe89a 60%, transparent 62%), radial-gradient(1px 1px at 60% 50%, #fff8d0 60%, transparent 62%),
+        radial-gradient(1.5px 1.5px at 74% 82%, #f5d76e 60%, transparent 62%), radial-gradient(1px 1px at 88% 30%, #fff8d0 60%, transparent 62%),
+        radial-gradient(1.5px 1.5px at 95% 60%, #ffe89a 60%, transparent 62%); }
+    #lbPodium > * { position: relative; z-index: 1; }
+    @keyframes lbDust { to { background-position: 0 260px; } }
+    @keyframes lbDust2 { to { background-position: 0 180px; } }
+    @keyframes lbTwinkle { from { opacity: .35; } to { opacity: 1; } }
+    @keyframes lbSheen { 0%, 55% { left: -80%; } 100% { left: 130%; } }
+    @media (prefers-reduced-motion: reduce) { #lbPodium::before, #lbPodium::after { animation: none; } .lb-pod-1 .lb-pod-block::after { animation: none; } }
+    .lb-pod-name { font-family: inherit; color: #e8eaf6; font-size: 14px; font-weight: 500; }
+    .lb-pod-score { font-family: inherit; font-weight: 500; font-size: 1.6rem; color: #f6dc8a; font-variant-numeric: tabular-nums; }
+    .lb-pod-block { position: relative; overflow: hidden; border-radius: 20px 20px 0 0; font-family: inherit; font-weight: 500; box-shadow: inset 0 1px 0 rgba(255,255,255,.45); }
+    .lb-pod-1 .lb-pod-block::after { content: ""; position: absolute; top: 0; bottom: 0; width: 60%; left: -80%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform: skewX(-18deg); animation: lbSheen 4s ease-in-out infinite; }
+    .lb-pod-block span { position: relative; z-index: 1; }
+
+    /* list */
+    .lb-prestige table { border-collapse: separate !important; border-spacing: 0 4px; }
+    .lb-prestige table th { text-transform: none; letter-spacing: .04em; font-size: 12px; font-weight: 500; color: #8f96b3 !important; border: 0 !important; }
+    .lb-prestige tbody tr { border: 0 !important; }
+    .lb-row td { padding: 10px 16px; background: rgba(255,255,255,.035); transition: background .2s; }
+    .lb-row td:first-child { border-radius: 16px 0 0 16px; }
+    .lb-row td:last-child { border-radius: 0 16px 16px 0; }
+    .lb-row:hover { background: transparent; }
+    .lb-row:hover td { background: rgba(255,255,255,.075); }
+    .lb-me { background: transparent; }
+    .lb-me td { background: rgba(232,196,104,.15); }
+    .lb-pinned td { border-top: 0; }
+    .lb-rank { width: 64px; font-family: inherit; }
+    .lb-rank-chip { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,.08); color: #c5cae0; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .lb-agent-name { font-weight: 500; }
+    .lb-site { margin-left: 8px; padding: 1px 8px; border-radius: 8px; background: rgba(255,255,255,.07); font-size: 11px; letter-spacing: .04em; }
+    .lb-score { font-family: inherit; font-weight: 500; font-size: 1rem; font-variant-numeric: tabular-nums; }
+    .lb-bar { height: 4px; width: 120px; margin: 6px 0 0 auto; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .lb-bar > i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #b8860b, #f5d76e); }
+    .lb-badges { display: flex; gap: 2px; margin-top: 2px; }
+    .lb-pod .lb-badges { justify-content: center; margin: 0 0 6px; }
+    .lb-badges .material-symbols-outlined { font-size: 16px; }
     html { height: 100%; overflow: hidden; }
     body { font-family: 'Roboto', sans-serif; background-color: var(--color-canvas); height: 100vh; overflow: hidden; }
     .backdrop-blur-theme, .backdrop-blur-md, .backdrop-blur-sm {
@@ -587,7 +693,7 @@
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">fact_check</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Case Submission Log</span>
         </button>
-
+        
         <button onclick="switchTab('leaderboardView')" id="tab-leaderboardView" title="Leaderboard" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
           <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">leaderboard</span>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Leaderboards</span>
@@ -1004,7 +1110,69 @@
         </div>
       </div>
     </div>
-    <div id="dashboardView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
+    <!-- VIEW: Leaderboards -->
+<div id="leaderboardView" class="lb-prestige hidden w-full max-w-4xl space-y-6 transition-all duration-300 pb-12 w-full">
+  <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
+    <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
+    <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 bg-theme-canvas/50 dark:bg-gray-800/50 space-y-4">
+      <div>
+        <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
+          <span class="material-symbols-outlined text-theme-primary">leaderboard</span> Leaderboards
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Rankings are built from Daily_Stats, which refreshes nightly.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="lb-seg">
+          <button type="button" class="lb-chip on" onclick="lbSetBoard(this,'Volume')"><span class="material-symbols-outlined">stacked_bar_chart</span>Volume</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Cases per hour')"><span class="material-symbols-outlined">speed</span>Cases per hour</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Streak')"><span class="material-symbols-outlined">local_fire_department</span>Streak</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Most Improved')"><span class="material-symbols-outlined">trending_up</span>Most improved</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Site vs Site')"><span class="material-symbols-outlined">domain</span>Site vs site</button>
+        </div>
+        <select id="lbBoardSelect" class="hidden">
+          <option value="Volume">Volume</option>
+          <option value="Cases per hour">Cases per hour</option>
+          <option value="Streak">Streak</option>
+          <option value="Most Improved">Most Improved</option>
+          <option value="Site vs Site">Site vs Site</option>
+        </select>
+        <select id="lbPeriodSelect" onchange="loadLeaderboard()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+          <option value="Today">Today</option>
+          <option value="This Week" selected>This Week</option>
+          <option value="This Month">This Month</option>
+          <option value="All Time">All Time</option>
+        </select>
+        <input type="text" id="lbSiteFilter" onchange="loadLeaderboard()" placeholder="Site (blank = all)" autocomplete="off" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm w-40 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400">
+        <label id="lbIncludeOtWrap" class="flex items-center gap-2 text-sm cell-muted cursor-pointer select-none">
+          <input type="checkbox" id="lbIncludeOt" onchange="loadLeaderboard()" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"> Include OT
+        </label>
+        <button onclick="loadLeaderboard()" title="Refresh" class="ml-auto p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center">
+          <span class="material-symbols-outlined text-[18px]">refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="leaderboardContent" class="p-6">
+      <div id="leaderboardLoading" class="hidden text-center text-gray-400 py-12">Loading leaderboard...</div>
+      <div id="lbEmptyState" class="hidden text-center text-gray-400 py-12">No data for this selection yet.</div>
+      <div id="lbPodium" class="hidden flex items-end justify-center gap-4 pt-10 pb-6"></div>
+      <div id="lbTableContainer" class="hidden overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+              <th class="px-6 py-3 font-medium border-b border-gray-200 dark:border-gray-700">Rank</th>
+              <th class="px-6 py-3 font-medium border-b border-gray-200 dark:border-gray-700">Agent</th>
+              <th id="lbMetricHeader" class="px-6 py-3 font-medium border-b border-gray-200 dark:border-gray-700 text-right">Score</th>
+            </tr>
+          </thead>
+          <tbody id="lbTableBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dashboardView" class="hidden w-full max-w-6xl space-y-6 transition-all duration-300 pb-12 w-full">
       
       <!-- Section 1: Audit Queue -->
       <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden relative">
@@ -1764,14 +1932,14 @@
       <div id="profileCardContainer" class="space-y-6">
         <div class="text-center text-gray-400 py-12">Loading profile...</div>
       </div>
-
+      
       <div id="profileGamificationSection" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         <!-- Streak Card -->
         <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start mb-4">
               <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2"><span class="material-symbols-outlined text-orange-500">local_fire_department</span> Hot Streak</h3>
-              <span id="profFreezeIndicator" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">🧊 Freeze Available</span>
+              <span id="profFreezeIndicator" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"><span class="material-symbols-outlined text-[12px] align-middle">schedule</span> Late pass available</span>
             </div>
             <div class="flex items-end gap-3">
               <span id="profCurrentStreak" class="text-4xl font-bold text-gray-800 dark:text-gray-100">--</span>
@@ -1780,7 +1948,7 @@
           </div>
           <div class="mt-4 text-xs cell-muted">Longest streak: <span id="profLongestStreak" class="font-medium text-gray-700 dark:text-gray-300">--</span> days</div>
         </div>
-
+        
         <!-- Personal Bests Card -->
         <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border">
            <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-yellow-500">workspace_premium</span> Personal Bests</h3>
@@ -1803,7 +1971,7 @@
              </div>
            </div>
         </div>
-
+        
         <!-- Badges Card -->
         <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border md:col-span-2">
            <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-purple-500">military_tech</span> Badges Earned</h3>
@@ -1812,10 +1980,10 @@
            </div>
         </div>
       </div>
-
+      
       <div id="profilePrefsSection" class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border mt-6">
         <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-4">My Preferences</h3>
-
+        
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <div>
@@ -1827,7 +1995,7 @@
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-theme-primary"></div>
             </label>
           </div>
-
+          
           <div class="flex items-center justify-between">
             <div>
               <div class="text-sm font-medium cell-strong">Disable Celebrations</div>
@@ -2855,13 +3023,13 @@ function refreshAccess() {
           if (response.success) {
             let celebOff = false;
             try { celebOff = localStorage.getItem('celebOff') === 'true'; } catch(e){}
-
+            
             if (response.rejected > 0) {
               showToast(`${response.rejected} invalid ID(s) skipped. ${response.valid} valid cases logged${response.flagged > 0 ? `, ${response.flagged} flagged` : ''}.`, 'warning');
             } else if (response.flagged > 0) {
               showToast(`Warning: ${response.flagged} duplicate(s) flagged. ${response.valid} valid cases logged.`, 'warning');
             } else if (!celebOff) {
-
+              
               if (response.newBadges && response.newBadges.length > 0) {
                  response.newBadges.forEach((b, i) => {
                     setTimeout(() => {
@@ -2871,7 +3039,7 @@ function refreshAccess() {
                     }, i * 2000);
                  });
               }
-
+              
               if (response.newBest) {
                 const catNames = { interval: 'interval', day: 'day', week: 'week', month: 'month' };
                 showToast(`New personal best: ${response.newBest.value} cases this ${catNames[response.newBest.category]}!`, 'success');
@@ -3391,14 +3559,14 @@ function refreshAccess() {
       const hide = document.getElementById('prefHideLeaderboard').checked;
       const noCeleb = document.getElementById('prefNoCeleb').checked;
       localStorage.setItem('celebOff', noCeleb ? 'true' : 'false');
-
+      
       google.script.run
         .withSuccessHandler(res => {
           if(!res.success) showToast(res.error || 'Failed to save preferences', 'error');
         })
         .setMyPrefs({ hide: hide, noCeleb: noCeleb });
     }
-
+    
     function loadMyPrefs(isOwnProfile) {
       const prefsSection = document.getElementById('profilePrefsSection');
       if (!isOwnProfile) {
@@ -3406,7 +3574,7 @@ function refreshAccess() {
         return;
       }
       if(prefsSection) prefsSection.classList.remove('hidden');
-
+      
       google.script.run
         .withSuccessHandler(prefs => {
           document.getElementById('prefHideLeaderboard').checked = prefs.hide;
@@ -3418,16 +3586,16 @@ function refreshAccess() {
 
     function renderMyProfile(data) {
       loadMyPrefs(data.isOwnProfile);
-
+      
       if(data.streak) {
          document.getElementById('profCurrentStreak').textContent = data.streak.current || '0';
          document.getElementById('profLongestStreak').textContent = data.streak.longest || '0';
          const freezeEl = document.getElementById('profFreezeIndicator');
          if (data.streak.freezeAvailable) {
-            freezeEl.textContent = '🧊 Freeze Available';
+            freezeEl.innerHTML = '<span class="material-symbols-outlined text-[12px] align-middle">schedule</span> Late pass available';
             freezeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
          } else {
-            freezeEl.textContent = '❄️ Freeze Used';
+            freezeEl.innerHTML = '<span class="material-symbols-outlined text-[12px] align-middle">history_toggle_off</span> Late pass used';
             freezeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400';
          }
       }
@@ -3437,7 +3605,7 @@ function refreshAccess() {
          document.getElementById('profBestWeek').textContent = data.bests.week || '0';
          document.getElementById('profBestMonth').textContent = data.bests.month || '0';
       }
-
+      
       const bCont = document.getElementById('profBadgesContainer');
       if (bCont && data.badges && data.badges.length > 0) {
          let html = '';
@@ -3447,14 +3615,15 @@ function refreshAccess() {
             let unseen = (!data.isOwnProfile || b.seen) ? '' : '<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-theme-card"></span>';
             html += `<div class="relative px-3 py-2 rounded-lg border border-theme-card-border flex items-center gap-2 shadow-sm ${col}">
                         ${unseen}
+                        <span class="material-symbols-outlined text-[22px]">${escAttr(b.icon || 'military_tech')}</span>
                         <div class="font-bold text-sm leading-none flex flex-col">
                            <span>${escAttr(b.tier)}</span>
-                           <span class="text-[10px] uppercase opacity-80">${escAttr(b.id)}</span>
+                           <span class="text-[10px] uppercase opacity-80">${escAttr(b.name || b.id)}</span>
                         </div>
                      </div>`;
          });
          bCont.innerHTML = html;
-
+         
          if (data.isOwnProfile) {
             let hasUnseen = false;
             data.badges.forEach(b => {
@@ -3464,7 +3633,7 @@ function refreshAccess() {
                      let celebOff = false;
                      try { celebOff = localStorage.getItem('celebOff') === 'true'; } catch(e){}
                      if(!celebOff) {
-                       showToast(`🏆 You earned a new badge: ${b.id} (${b.tier})!`, 'success');
+                       showToast(`New badge earned: ${b.name || b.id} (${b.tier})`, 'success');
                        fireConfetti({ count: 100 });
                      }
                   }, 1000);
@@ -3477,7 +3646,7 @@ function refreshAccess() {
       }
 
       loadMyPrefs(data.isOwnProfile);
-
+      
       // Store history data for calendar usage
       profileHistoryData = data.history || {};
       renderCalendarHeatmap();
@@ -4103,27 +4272,28 @@ function refreshAccess() {
     // --- DASHBOARD LOGIC ---
 
     // Load data when tab is clicked
-
+    
     function loadLeaderboard() {
       const period = document.getElementById('lbPeriodSelect').value;
       const board = document.getElementById('lbBoardSelect').value;
       const site = document.getElementById('lbSiteFilter').value;
       const includeOt = document.getElementById('lbIncludeOt').checked;
-
+      
       const wrap = document.getElementById('lbIncludeOtWrap');
       if (board === 'Site vs Site' || board === 'Streak' || board === 'Most Improved') wrap.style.display = 'none';
       else wrap.style.display = 'flex';
-
+      
       document.getElementById('lbSiteFilter').style.display = board === 'Site vs Site' ? 'none' : 'block';
-
+      document.getElementById('lbPeriodSelect').style.display = board === 'Streak' ? 'none' : '';
+      
       const loading = document.getElementById('leaderboardLoading');
       const contentEl = document.getElementById('leaderboardContent');
-
+      
       loading.classList.remove('hidden');
       document.getElementById('lbPodium').classList.add('hidden');
       document.getElementById('lbTableContainer').classList.add('hidden');
       document.getElementById('lbEmptyState').classList.add('hidden');
-
+      
       google.script.run
         .withSuccessHandler(renderLeaderboard)
         .withFailureHandler(err => {
@@ -4132,20 +4302,20 @@ function refreshAccess() {
         })
         .getLeaderboard(period, board, { site: site, includeOt: includeOt });
     }
-
+    
     function renderLeaderboard(res) {
       document.getElementById('leaderboardLoading').classList.add('hidden');
-
+      
       if (!res.rows || res.rows.length === 0) {
          document.getElementById('lbEmptyState').classList.remove('hidden');
          return;
       }
-
+      
       const board = document.getElementById('lbBoardSelect').value;
       document.getElementById('lbMetricHeader').textContent = board === 'Cases per hour' ? 'Cases/Hr' : (board === 'Most Improved' ? '% Improved' : (board === 'Streak' ? 'Days' : 'Score'));
-
+      
       let metricSuffix = board === 'Most Improved' ? '%' : '';
-
+      
       // Render Podium (Top 3)
       const podium = document.getElementById('lbPodium');
       if (board !== 'Site vs Site' && res.rows.length >= 3) {
@@ -4158,7 +4328,7 @@ function refreshAccess() {
             const h = idx === 0 ? 'h-40' : (idx === 1 ? 'h-32' : 'h-24');
             const col = idx === 0 ? 'bg-yellow-400 dark:bg-yellow-600' : (idx === 1 ? 'bg-gray-300 dark:bg-gray-500' : 'bg-amber-600 dark:bg-amber-700');
             const crown = idx === 0 ? '<span class="material-symbols-outlined text-yellow-500 absolute -top-8 text-[32px]">crown</span>' : '';
-
+            
             pHTML += `<div class="flex flex-col items-center flex-1 max-w-[140px] relative">
                ${crown}
                <div class="mb-3 text-center">
@@ -4170,21 +4340,31 @@ function refreshAccess() {
                </div>
             </div>`;
          });
-         podium.innerHTML = pHTML;
+         podium.innerHTML = [1, 0, 2].map(function(idx) {
+           var r = res.rows[idx];
+           if (!r) return '';
+           return '<div class="lb-pod lb-pod-' + (idx + 1) + '">' +
+             (idx === 0 ? '<span class="material-symbols-outlined lb-crown">crown</span>' : '') +
+             '<div class="lb-pod-av">' + lbAvatar(r.ldap, r.name, idx === 0 ? 84 : 68) + '</div>' +
+             '<div class="lb-pod-name" title="' + escAttr(r.name) + '">' + escAttr(r.ldap || r.name) + '</div>' +
+             lbBadgeIcons(r.badges) +
+             '<div class="lb-pod-score">' + r.metric + metricSuffix + '</div>' +
+             '<div class="lb-pod-block"><span>' + r.rank + '</span></div></div>';
+         }).join('');
       }
-
+      
       // Render Table
       const tBody = document.getElementById('lbTableBody');
       tBody.innerHTML = '';
-
+      
       const startIndex = (board !== 'Site vs Site' && res.rows.length >= 3) ? 3 : 0;
-
+      
       res.rows.slice(startIndex).forEach(r => {
          const tr = document.createElement('tr');
          tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition';
-
+         
          const badgeHtml = (r.badges && r.badges.length > 0) ? `<div class="flex gap-1 mt-1">` + r.badges.map(b => `<span class="material-symbols-outlined text-[14px] text-purple-500" title="${escAttr(b.tier + ' ' + b.id)}">military_tech</span>`).join('') + `</div>` : '';
-
+         
          tr.innerHTML = `
            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">#${r.rank}</td>
            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium cell-strong">
@@ -4197,7 +4377,7 @@ function refreshAccess() {
          `;
          tBody.appendChild(tr);
       });
-
+      
       // Add Pinned User Row if they exist and aren't already in the table
       if (res.userRow) {
          let inTable = res.rows.some(r => r.ldap === res.userRow.ldap);
@@ -4215,8 +4395,77 @@ function refreshAccess() {
             tBody.appendChild(tr);
          }
       }
-
+      
+      paintLeaderboardTable(res, board, metricSuffix);
       document.getElementById('lbTableContainer').classList.remove('hidden');
+    }
+
+    function lbFirstName(n) {
+      const p = String(n || '').split(',');
+      return (p[1] || p[0]).trim().split(' ')[0];
+    }
+
+    function lbAvatar(ldap, name, size) {
+      if (!ldap) return '<span class="lb-av-fallback" style="width:' + size + 'px;height:' + size + 'px">' + escAttr(String(name || '?').charAt(0)) + '</span>';
+      return '<span class="lb-av" style="width:' + size + 'px;height:' + size + 'px">' + getMomaImgClass(ldap, '', size * 2) + '</span>';
+    }
+
+    const LB_TIER_COLOR = { Bronze: '#cd7f32', Silver: '#c9ced8', Gold: '#f5d76e', Platinum: '#7fe3ee', Diamond: '#c4a3ff' };
+    function lbBadgeIcons(list) {
+      if (!list || !list.length) return '';
+      return '<div class="lb-badges">' + list.map(b =>
+        '<span class="material-symbols-outlined" style="color:' + (LB_TIER_COLOR[b.tier] || '#e8c468') + '" title="' + escAttr((b.name || b.id) + ' · ' + b.tier) + '">' + escAttr(b.icon || 'military_tech') + '</span>'
+      ).join('') + '</div>';
+    }
+
+    function lbSetBoard(btn, v) {
+      document.getElementById('lbBoardSelect').value = v;
+      document.querySelectorAll('.lb-chip').forEach(c => c.classList.toggle('on', c === btn));
+      loadLeaderboard();
+    }
+
+    function paintLeaderboardTable(res, board, metricSuffix) {
+      const tBody = document.getElementById('lbTableBody');
+      const start = (board !== 'Site vs Site' && res.rows.length >= 3) ? 3 : 0;
+      const me = res.userRow ? res.userRow.ldap : null;
+      const top = Math.max(1, Number(res.rows[0] && res.rows[0].metric) || 1);
+
+      function rowHtml(r, pinned) {
+        const badges = (r.badges && r.badges.length)
+          ? lbBadgeIcons(r.badges)
+          : '';
+        const pct = Math.max(4, Math.min(100, Math.round((Number(r.metric) || 0) / top * 100)));
+        return '<tr class="lb-row' + ((r.ldap && r.ldap === me) ? ' lb-me' : '') + (pinned ? ' lb-pinned' : '') + '">' +
+          '<td class="lb-rank"><span class="lb-rank-chip">' + r.rank + '</span></td>' +
+          '<td><div class="lb-agent">' + lbAvatar(r.ldap, r.name, 36) +
+            '<div><div class="lb-agent-name" title="' + escAttr(r.name) + '">' + escAttr(r.ldap || r.name) + (r.site ? '<span class="lb-site">' + escAttr(r.site) + '</span>' : '') + (r.isHidden ? '<span class="lb-tag">Hidden</span>' : '') + '</div>' + badges + '</div></div></td>' +
+          '<td class="lb-score"><div>' + r.metric + metricSuffix + '</div><div class="lb-bar"><i style="width:' + pct + '%"></i></div></td></tr>';
+      }
+
+      let html = res.rows.slice(start).map(r => rowHtml(r, false)).join('');
+      if (res.userRow && !res.rows.some(r => r.ldap === res.userRow.ldap)) html += rowHtml(res.userRow, true);
+      tBody.innerHTML = html;
+    }
+
+    function paintLeaderboardTableOld_(res, board, metricSuffix) {
+      const tBody = document.getElementById('lbTableBody');
+      const start = (board !== 'Site vs Site' && res.rows.length >= 3) ? 3 : 0;
+      const me = res.userRow ? res.userRow.ldap : null;
+
+      function rowHtml(r, pinned) {
+        const badges = (r.badges && r.badges.length)
+          ? '<div class="flex gap-1 mt-0.5">' + r.badges.map(b => '<span class="material-symbols-outlined text-[14px]" style="color:#d4af37" title="' + escAttr(b.tier + ' ' + b.id) + '">military_tech</span>').join('') + '</div>'
+          : '';
+        return '<tr class="lb-row' + ((r.ldap && r.ldap === me) ? ' lb-me' : '') + (pinned ? ' lb-pinned' : '') + '">' +
+          '<td class="lb-rank">#' + r.rank + '</td>' +
+          '<td><div class="lb-agent">' + lbAvatar(r.ldap, r.name, 36) +
+            '<div><div class="lb-agent-name" title="' + escAttr(r.name) + '">' + escAttr(r.ldap || r.name) + (r.site ? '<span class="lb-site">' + escAttr(r.site) + '</span>' : '') + (r.isHidden ? '<span class="lb-tag">Hidden</span>' : '') + '</div>' + badges + '</div></div></td>' +
+          '<td class="lb-score">' + r.metric + metricSuffix + '</td></tr>';
+      }
+
+      let html = res.rows.slice(start).map(r => rowHtml(r, false)).join('');
+      if (res.userRow && !res.rows.some(r => r.ldap === res.userRow.ldap)) html += rowHtml(res.userRow, true);
+      tBody.innerHTML = html;
     }
 
     function loadDashboard() {
@@ -4230,7 +4479,7 @@ function refreshAccess() {
     }
 
     // Render the tables
-
+    
     function animateValue(obj, start, end, duration) {
       let startTimestamp = null;
       const step = (timestamp) => {
