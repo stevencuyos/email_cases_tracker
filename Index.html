@@ -704,7 +704,10 @@
       <div class="p-8 pt-10 pb-6 border-b border-gray-100 dark:border-gray-700">
         <h2 class="text-2xl font-normal mb-1 text-gray-800 dark:text-gray-100">Log Your Interval</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">Paste your Case IDs separated by commas or new lines. Duplicates will be automatically audited.</p>
-        <p id="lastSubmittedNote" class="text-xs cell-muted mt-2"></p>
+        <div class="flex flex-wrap items-center gap-2 mt-3">
+          <span id="intervalChip" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary transition-colors"></span>
+          <span id="lastSubmittedNote" class="text-xs cell-muted"></span>
+        </div>
       </div>
 
       <form id="trackerForm" onsubmit="handleFormSubmit(event)" class="p-8 pt-6 space-y-8">
@@ -1409,6 +1412,135 @@
         <div id="analyticsModeBar" class="flex items-center gap-2">
           <button type="button" id="analyticsModeProd" onclick="setAnalyticsMode('production')" class="px-4 py-1.5 rounded-full text-sm font-medium border transition bg-theme-primary text-white border-theme-primary">Production</button>
           <button type="button" id="analyticsModeExp" onclick="setAnalyticsMode('expiring')" class="px-4 py-1.5 rounded-full text-sm font-medium border transition bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Expired/Expiring Cases</button>
+          <button type="button" id="analyticsModeAtt" onclick="setAnalyticsMode('attendance')" class="px-4 py-1.5 rounded-full text-sm font-medium border transition bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Attendance</button>
+        </div>
+
+        <!-- Analytics filters (Production + Attendance) -->
+        <div id="analyticsFilterBar" class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-4 flex flex-wrap items-center gap-3">
+          <span class="text-xs font-semibold uppercase tracking-wide cell-muted flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">filter_alt</span> Filters</span>
+          <select id="afSite" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[120px]"><option value="">All Sites</option></select>
+          <select id="afLob" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[120px]"><option value="">All LOBs</option></select>
+          <select id="afWorkflow" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[130px]"><option value="">All Workflows</option></select>
+          <select id="afSupervisor" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[140px]"><option value="">All Supervisors</option></select>
+          <select id="afTeam" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[120px]"><option value="">All Teams</option></select>
+          <select id="afShiftType" data-mode="production" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[130px]">
+            <option value="">All Shift Types</option>
+            <option value="Regular Shift">Regular Shift</option>
+            <option value="Overtime">Overtime</option>
+          </select>
+          <select id="afStatus" data-mode="attendance" onchange="attTablePage = 0; renderAttendance()" class="hidden p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[150px]">
+            <option value="">All Statuses</option>
+            <option value="Present">Present</option>
+            <option value="Late">Late</option>
+            <option value="Partial">Partial</option>
+            <option value="Excused">Excused</option>
+            <option value="Absent">Absent (all)</option>
+            <option value="AbsentConfirmed">Absent &ndash; Confirmed</option>
+            <option value="AbsentUnverified">Absent &ndash; Unverified</option>
+            <option value="Review">Needs review</option>
+          </select>
+          <div data-mode="attendance" class="hidden relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none">search</span>
+            <input type="text" id="afSearch" oninput="onAnalyticsFilterChange()" placeholder="Search agent LDAP" autocomplete="off" class="pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm w-48 focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
+          </div>
+          <button type="button" onclick="resetAnalyticsFilters()" class="ml-auto text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-1.5 rounded transition">Reset</button>
+        </div>
+
+        <!-- Attendance analytics -->
+        <div id="attAnalyticsSection" class="hidden space-y-6">
+          <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="flex items-center gap-2">
+                <button type="button" id="attViewDaily" onclick="setAttView('daily')" class="px-4 py-1.5 rounded-full text-sm font-medium border transition bg-theme-primary text-white border-theme-primary">Daily</button>
+                <button type="button" id="attViewInterval" onclick="setAttView('interval')" class="px-4 py-1.5 rounded-full text-sm font-medium border transition bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">Interval</button>
+              </div>
+              <span id="attViewHint" class="text-xs cell-muted"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="copyAttendanceSummary()" class="flex items-center gap-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition">
+                <span class="material-symbols-outlined text-[18px]">content_copy</span> Copy summary
+              </button>
+              <button type="button" onclick="exportAttendanceCsv()" class="flex items-center gap-1.5 bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition">
+                <span class="material-symbols-outlined text-[18px]">download</span> Export CSV
+              </button>
+            </div>
+          </div>
+
+          <div id="attKpis" class="grid grid-cols-1 md:grid-cols-4 gap-6"></div>
+          <div id="attChips" class="flex flex-wrap items-center gap-2 text-xs"></div>
+          <p class="text-[11px] cell-faint -mt-3">Attendance is inferred from case submissions during the scheduled shift. VL/SL and Live Channel tags from POCs count as excused and are left out of the rate. An absence is Confirmed when a POC tagged it Absent or acknowledged it in a check-in note; otherwise it is Unverified. SOS/EOS hours are excluded from coverage and lateness.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 id="attTrendTitle" class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Attendance by Day</h3>
+              <div id="attTrendChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+            </div>
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 id="attSiteTitle" class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Attendance Rate by Site</h3>
+              <div id="attSiteChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 id="attDowTitle" class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Attendance Rate by Day of Week</h3>
+              <div id="attDowChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+            </div>
+            <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+              <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-1">Gap Intervals by Hour</h3>
+              <p class="text-xs cell-muted mb-4">Clock hours where a scheduled agent had no submission and no explanation (includes late starts and Absent tags).</p>
+              <div id="attHourChart" class="w-full min-h-[280px] flex items-center justify-center text-gray-400">Loading chart...</div>
+            </div>
+          </div>
+
+          <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+            <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-1 flex items-center gap-2">
+              <span class="material-symbols-outlined text-red-500">flag</span> Needs Follow-up
+            </h3>
+            <p class="text-xs cell-muted mb-4">Agents with the most absences, partial days and late starts in this range.</p>
+            <div id="attFollowUp" class="space-y-4 max-h-[360px] overflow-y-auto pr-2"><div class="text-center text-gray-400 py-8">Loading...</div></div>
+          </div>
+
+          <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border overflow-hidden">
+            <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="text-base font-medium text-gray-700 dark:text-gray-200">Attendance Detail</h3>
+                <p class="text-xs cell-muted mt-1">One row per scheduled agent per day. The Status filter above applies to this list only.</p>
+              </div>
+              <select id="attSort" onchange="attTablePage = 0; renderAttTable()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+                <option value="severity">Sort: Most severe</option>
+                <option value="newest">Sort: Newest</option>
+                <option value="agent">Sort: Agent A&ndash;Z</option>
+                <option value="gaps">Sort: Most gap intervals</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Date</th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Agent</th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Site</th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Shift Start</th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Status</th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center">Late</th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center">Intervals</th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700">Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="attTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
+                  <tr><td colspan="8" class="p-8 text-center text-gray-400">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="attPagination" class="hidden flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+              <span id="attPageInfo" class="text-xs cell-muted"></span>
+              <div class="flex items-center gap-2">
+                <button onclick="attPrevPage()" id="attPrevBtn" class="text-xs font-medium px-3 py-1.5 rounded border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition">Prev</button>
+                <button onclick="attNextPage()" id="attNextBtn" class="text-xs font-medium px-3 py-1.5 rounded border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition">Next</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Expired/Expiring analytics -->
@@ -1515,49 +1647,67 @@
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px] text-google-green">done_all</span> Total Valid (<span id="kpi-range-label">Today</span>)
           </span>
-          <span id="kpi-valid-today" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+          <div class="flex items-end gap-2">
+            <span id="kpi-valid-today" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+            <span id="kpi-valid-trend" class="hidden text-[11px] font-bold px-1.5 py-0.5 rounded-full mb-1.5"></span>
+          </div>
+          <span id="kpi-valid-trend-sub" class="text-[11px] cell-faint mt-1"></span>
         </div>
-        <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
+        <div id="kpi-audits-card" onclick="switchTab('dashboardView')" class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition-all">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px] text-google-yellow">pending_actions</span> Pending Audits
+            <span class="material-symbols-outlined text-[16px] text-amber-500">pending_actions</span> Pending Audits
           </span>
-          <span id="kpi-pending-audits" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+          <div class="flex items-center justify-between">
+            <span id="kpi-pending-audits" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
+            <span id="kpi-audits-alert" class="hidden material-symbols-outlined text-amber-500 text-[26px]">gavel</span>
+          </div>
+          <span class="text-[11px] cell-faint mt-1">Click to open the audit queue</span>
         </div>
         <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
             <span class="material-symbols-outlined text-[16px] text-theme-primary dark:text-theme-primary">group</span> Active Staff (<span id="kpi-range-label-2">Today</span> / Now)
           </span>
-          <span class="text-4xl font-normal text-gray-800 dark:text-gray-100">
-            <span id="kpi-staff-today">--</span> <span class="text-xl text-gray-400">/ <span id="kpi-staff-hour">--</span></span>
-          </span>
+          <div class="flex items-end gap-2">
+            <span class="text-4xl font-normal text-gray-800 dark:text-gray-100">
+              <span id="kpi-staff-today">--</span> <span class="text-xl text-gray-400">/ <span id="kpi-staff-hour">--</span></span>
+            </span>
+            <span id="kpi-staff-trend" class="hidden text-[11px] font-bold px-1.5 py-0.5 rounded-full mb-1.5"></span>
+          </div>
         </div>
       </div>
 
-      <!-- Row 2: Heatmap -->
-      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
-        <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Hourly Productivity Heatmap</h3>
-        <div id="heatmapChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
-      </div>
-
-      <!-- Row 3: Donut & Bar Charts -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
-          <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Workflow Distribution</h3>
-          <div id="donutChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
-        </div>
-        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
-          <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4">Site Throughput</h3>
-          <div id="barChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
-        </div>
-      </div>
-
-      <!-- Row 4: Agent Leaderboard -->
+      <!-- Row 2: Agent Leaderboard -->
       <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
         <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2">
           <span class="material-symbols-outlined text-[#fbbc04]">social_leaderboard</span> Top Performers
+          <button type="button" onclick="toggleTopPerformers()" title="Minimize / maximize" class="ml-auto p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center"><span id="topPerformersChevron" class="material-symbols-outlined text-[20px]">expand_less</span></button>
         </h3>
         <div id="leaderboardContainer" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
           <div class="text-center text-gray-400 py-8">Loading leaderboard...</div>
+        </div>
+      </div>
+
+      <!-- Row 3: Heatmap -->
+      <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+        <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">grid_view</span> Hourly Productivity Heatmap
+        </h3>
+        <div id="heatmapChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+      </div>
+
+      <!-- Row 4: Donut & Bar Charts -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+          <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-500">donut_small</span> Workflow Distribution
+          </h3>
+          <div id="donutChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
+        </div>
+        <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
+          <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-google-green">bar_chart</span> Site Throughput
+          </h3>
+          <div id="barChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
         </div>
       </div>
 
@@ -1753,6 +1903,45 @@
       <div class="p-4 bg-gray-50 dark:bg-gray-800 border-t border-theme dark:border-gray-700 flex justify-end gap-3">
         <button onclick="closeCheckInModal()" class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition">Cancel</button>
         <button onclick="submitCheckInModal()" class="px-4 py-2 text-sm font-medium bg-theme-primary hover:bg-theme-primary-hover text-white rounded transition shadow-sm">Proceed with Check-In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance Follow-up Modal -->
+  <div id="attFollowUpModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" onclick="closeAttFollowUp()"></div>
+    <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
+          <span class="material-symbols-outlined text-red-500">flag</span>
+          Follow-up: <span id="attFuName" class="font-bold"></span>
+        </h2>
+        <button onclick="closeAttFollowUp()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Days</label>
+          <div id="attFuDays" class="mt-2 space-y-2 max-h-40 overflow-y-auto"></div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Outcome</label>
+          <select id="attFuResolution" class="mt-1 w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+            <option value="Followed up">Followed up (no status change)</option>
+            <option value="Confirmed">Confirmed absent</option>
+            <option value="Excused">Excused (approved leave / valid reason)</option>
+            <option value="Clear">Clear follow-up</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Note</label>
+          <textarea id="attFuNote" rows="2" placeholder="Optional short note..." class="mt-1 w-full text-sm p-3 border border-gray-200 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 resize-none"></textarea>
+        </div>
+      </div>
+      <div class="p-4 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-700">
+        <button onclick="closeAttFollowUp()" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-theme transition">Cancel</button>
+        <button onclick="submitAttFollowUp()" class="px-4 py-2 text-sm font-medium text-white bg-theme-primary hover:bg-theme-primary-hover rounded-theme transition">Save</button>
       </div>
     </div>
   </div>
@@ -1980,6 +2169,7 @@ function refreshAccess() {
       if (barChartInstance) barChartInstance.updateOptions({ theme: { mode: newTheme } });
       if (otTimelineChartInstance) otTimelineChartInstance.updateOptions({ theme: { mode: newTheme } });
       if (analyticsMode === 'expiring' && expAnalyticsData) renderExpiringAnalytics(expAnalyticsData, !!window.ApexCharts);
+      if (analyticsMode === 'attendance' && attData) renderAttendance();
     }
 
     function initTheme() {
@@ -2475,7 +2665,7 @@ function refreshAccess() {
       const parts = ['<span class="font-medium cell-strong">' + (p.unique.length - p.invalid.length) + '</span> valid ID(s)'];
       if (p.dupes.length) parts.push('<span class="text-amber-600">' + p.dupes.length + ' repeated in this paste</span>');
       if (p.invalid.length) parts.push('<span class="text-red-600">' + p.invalid.length + ' invalid format</span>');
-      el.innerHTML = parts.join(' &middot; ');
+      el.innerHTML = parts.join(' &middot; ') + renderCaseIdChips(p);
     }
 
     function formatRelativeTime(ts) {
@@ -2484,7 +2674,9 @@ function refreshAccess() {
       const diffMin = Math.round(diffSec / 60);
       if (diffMin < 60) return diffMin + ' min ago';
       const diffHr = Math.round(diffMin / 60);
-      return diffHr + ' hr ago';
+      if (diffHr < 24) return diffHr + ' hr ago';
+      const diffDay = Math.round(diffHr / 24);
+      return diffDay + (diffDay === 1 ? ' day ago' : ' days ago');
     }
 
     function currentIntervalLabel() {
@@ -2496,6 +2688,7 @@ function refreshAccess() {
     }
 
     function updateLastSubmittedNote() {
+      updateIntervalChip();
       const note = document.getElementById('lastSubmittedNote');
       if (!note) return;
       const raw = localStorage.getItem('lastSubmitInfo');
@@ -2584,6 +2777,7 @@ function refreshAccess() {
               showToast(`Warning: ${response.flagged} duplicate(s) flagged. ${response.valid} valid cases logged.`, 'warning');
             } else {
               showToast(`Success! ${response.valid} cases securely logged.`, 'success');
+              fireConfetti({ count: Math.min(220, 60 + response.valid * 8) });
             }
             document.getElementById('caseIds').value = '';
             updateCaseIdHints();
@@ -2611,9 +2805,16 @@ function refreshAccess() {
       const el = document.getElementById('submitResultPanel');
       if (!el) return;
       const flagged = (res && res.flaggedDetails) || [];
-      if (flagged.length === 0) { hideSubmitResult(); return; }
+      const hasTotals = res && res.intervalTotal !== null && res.intervalTotal !== undefined;
+      const summaryHtml = `
+        <div class="border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/20 rounded-theme-sm p-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div class="text-sm font-medium text-emerald-800 dark:text-emerald-300 flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check_circle</span>${res.valid} logged</div>
+          ${hasTotals ? `<div class="text-xs cell-muted"><span class="font-semibold cell-strong">${res.intervalTotal}</span> this interval (${escAttr(res.interval)})</div><div class="text-xs cell-muted"><span class="font-semibold cell-strong">${res.todayTotal}</span> today</div>` : ''}
+        </div>`;
+      if (flagged.length === 0) { el.innerHTML = summaryHtml; el.classList.remove('hidden'); return; }
       el.innerHTML = `
-        <div class="border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 rounded-theme-sm p-4">
+        ${summaryHtml}
+        <div class="mt-3 border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 rounded-theme-sm p-4">
           <div class="text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center gap-2 mb-2">
             <span class="material-symbols-outlined text-[18px]">warning</span>
             ${flagged.length} ID(s) flagged for manager review
@@ -2673,6 +2874,93 @@ function refreshAccess() {
           processToastQueue();
         }, 300);
       }, holdMs);
+    }
+
+    // --- INTERVAL CHIP ---
+    function updateIntervalChip() {
+      const chip = document.getElementById('intervalChip');
+      if (!chip) return;
+      const minsLeft = 60 - new Date().getMinutes();
+      const soon = minsLeft <= 5;
+      chip.className = 'inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full transition-colors ' +
+        (soon ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400' : 'bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary');
+      chip.innerHTML = '<span class="material-symbols-outlined text-[14px]">schedule</span>Logging for ' + currentIntervalLabel() + ' interval' +
+        (soon ? ' &middot; next hour starts in ' + minsLeft + ' min' : '');
+    }
+
+    // --- CASE ID CHIPS ---
+    function renderCaseIdChips(p) {
+      if (p.unique.length === 0) return '';
+      const MAX = 60;
+      const chips = p.unique.slice(0, MAX).map(function(id) {
+        const bad = p.invalid.indexOf(id) !== -1;
+        const dup = p.dupes.indexOf(id) !== -1;
+        const cls = bad ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50'
+          : dup ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/50'
+          : 'bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary border-transparent';
+        return '<span class="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-full border ' + cls + '" title="' + (bad ? 'Invalid format' : (dup ? 'Repeated in this paste' : 'Valid')) + '">' +
+          escAttr(id) + '<button type="button" data-id="' + escAttr(id) + '" onclick="removeCaseId(this.dataset.id)" class="leading-none opacity-60 hover:opacity-100">&times;</button></span>';
+      }).join('');
+      const more = p.unique.length > MAX ? '<span class="text-[11px] cell-faint">+' + (p.unique.length - MAX) + ' more</span>' : '';
+      const clean = (p.dupes.length || p.invalid.length)
+        ? '<button type="button" onclick="cleanCaseIds()" class="text-[11px] font-medium text-theme-primary hover:underline">Remove duplicates &amp; invalid</button>' : '';
+      return '<div class="flex flex-wrap items-center gap-1.5 mt-2">' + chips + more + clean + '</div>';
+    }
+
+    function removeCaseId(id) {
+      const el = document.getElementById('caseIds');
+      el.value = parseCaseIds(el.value).raw.filter(function(x) { return x !== id; }).join('\n');
+      updateCaseIdHints(); hideSubmitResult(); saveCaseIdsDraft();
+    }
+
+    function cleanCaseIds() {
+      const el = document.getElementById('caseIds');
+      el.value = parseCaseIds(el.value).unique.filter(function(x) { return CASE_ID_RE.test(x); }).join('\n');
+      updateCaseIdHints(); hideSubmitResult(); saveCaseIdsDraft();
+    }
+
+    // --- CONFETTI (canvas, no external library) ---
+    function fireConfetti(opts) {
+      opts = opts || {};
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const canvas = document.createElement('canvas');
+      canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100';
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      document.body.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+      const colors = ['#1a73e8', '#ea4335', '#fbbc04', '#34a853', '#a142f4'];
+      const ox = opts.x !== undefined ? opts.x : canvas.width / 2;
+      const oy = opts.y !== undefined ? opts.y : canvas.height - 40;
+      const parts = [];
+      for (let i = 0; i < (opts.count || 90); i++) {
+        const angle = (-90 + (Math.random() - 0.5) * 110) * Math.PI / 180;
+        const speed = 8 + Math.random() * 11;
+        parts.push({
+          x: ox, y: oy, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+          w: 6 + Math.random() * 6, h: 4 + Math.random() * 4,
+          rot: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.4,
+          color: colors[i % colors.length], life: 0
+        });
+      }
+      (function tick() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        parts.forEach(function(p) {
+          p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
+          if (p.life < 140 && p.y < canvas.height + 20) {
+            alive = true;
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, 1 - p.life / 140);
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+          }
+        });
+        if (alive) requestAnimationFrame(tick); else canvas.remove();
+      })();
     }
 
     // --- AGENT AUTOCOMPLETE ---
@@ -4848,7 +5136,7 @@ function refreshAccess() {
         end = new Date(start);
       } else if (preset === 'this_week') {
         const day = today.getDay();
-        const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+        const diff = today.getDate() - day; // week starts Sunday
         start = new Date(today.setDate(diff));
       } else if (preset === 'this_month') {
         start = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -4875,7 +5163,9 @@ function refreshAccess() {
       document.getElementById('kpi-range-label').innerText = rangeText;
       document.getElementById('kpi-range-label-2').innerText = rangeText;
 
+      ensureFilterOptions();
       if (analyticsMode === 'expiring') { loadExpiringAnalytics(startDateStr, endDateStr); return; }
+      if (analyticsMode === 'attendance') { loadAttendance(startDateStr, endDateStr); return; }
 
       // Visual loading state
       document.getElementById('kpi-valid-today').innerText = '...';
@@ -4886,7 +5176,32 @@ function refreshAccess() {
       google.script.run
         .withSuccessHandler(renderAnalyticsSafe)
         .withFailureHandler(err => showToast("Error loading analytics.", "error"))
-        .getAnalyticsData(startDateStr, endDateStr);
+        .getAnalyticsData(startDateStr, endDateStr, getAnalyticsFilters());
+    }
+
+    function computeHeatmapRanges(series) {
+      let max = 0;
+      series.forEach(function(s) { s.data.forEach(function(p) { if (p.y > max) max = p.y; }); });
+      if (max <= 0) max = 1;
+      const q1 = Math.max(1, Math.round(max * 0.25));
+      const q2 = Math.max(q1 + 1, Math.round(max * 0.5));
+      const q3 = Math.max(q2 + 1, Math.round(max * 0.75));
+      return [
+        { from: 0, to: 0, color: '#f1f3f4', name: '0' },
+        { from: 1, to: q1, color: '#a8c7fa', name: '1\u2013' + q1 },
+        { from: q1 + 1, to: q2, color: '#6ea3f4', name: (q1 + 1) + '\u2013' + q2 },
+        { from: q2 + 1, to: q3, color: '#1a73e8', name: (q2 + 1) + '\u2013' + q3 },
+        { from: q3 + 1, to: 999999, color: '#0b57d0', name: (q3 + 1) + '+' }
+      ];
+    }
+
+    function renderKpiTrend(elId, current, previous) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      if (!previous || previous <= 0) { el.classList.add('hidden'); return; }
+      const delta = Math.round(((current - previous) / previous) * 100);
+      el.textContent = (delta >= 0 ? '+' : '') + delta + '%';
+      el.className = 'text-[11px] font-bold px-1.5 py-0.5 rounded-full mb-1.5 ' + (delta >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400');
     }
 
     function renderAnalytics(data) {
@@ -4899,9 +5214,26 @@ function refreshAccess() {
       document.getElementById('kpi-pending-audits').innerText = data.kpis.pendingAudits;
       document.getElementById('kpi-staff-today').innerText = data.kpis.activeStaffToday;
       document.getElementById('kpi-staff-hour').innerText = data.kpis.activeStaffThisHour;
+      renderKpiTrend('kpi-valid-trend', data.kpis.totalValidToday, data.kpis.previousValidTotal);
+      renderKpiTrend('kpi-staff-trend', data.kpis.activeStaffToday, data.kpis.previousActiveStaff);
+      document.getElementById('kpi-valid-trend-sub').innerText = data.kpis.previousValidTotal > 0 ? 'vs ' + data.kpis.previousValidTotal + ' prior period' : '';
+
+      const auditsCard = document.getElementById('kpi-audits-card');
+      const auditsAlert = document.getElementById('kpi-audits-alert');
+      const auditsCount = document.getElementById('kpi-pending-audits');
+      if (data.kpis.pendingAudits > 0) {
+        auditsCard.classList.add('border-amber-300', 'dark:border-amber-700');
+        auditsCount.classList.add('text-amber-600', 'dark:text-amber-400');
+        auditsAlert.classList.remove('hidden');
+      } else {
+        auditsCard.classList.remove('border-amber-300', 'dark:border-amber-700');
+        auditsCount.classList.remove('text-amber-600', 'dark:text-amber-400');
+        auditsAlert.classList.add('hidden');
+      }
 
       // 2. Render Heatmap
       const heatmapHeight = Math.max(160, 44 * (data.heatmap.length || 1) + 80);
+      const heatmapRanges = computeHeatmapRanges(data.heatmap);
       const heatmapOptions = {
         series: data.heatmap,
         theme: { mode: chartThemeMode },
@@ -4917,15 +5249,7 @@ function refreshAccess() {
           heatmap: {
             radius: 2,
             enableShades: false,
-            colorScale: {
-              ranges: [
-                { from: 0,  to: 0,    color: '#f1f3f4', name: '0' },
-                { from: 1,  to: 3,    color: '#a8c7fa', name: '1-3' },
-                { from: 4,  to: 6,    color: '#6ea3f4', name: '4-6' },
-                { from: 7,  to: 9,    color: '#1a73e8', name: '7-9 (target)' },
-                { from: 10, to: 9999, color: '#0b57d0', name: '10+' }
-              ]
-            }
+            colorScale: { ranges: heatmapRanges }
           }
         },
         legend: { position: 'bottom' },
@@ -4947,7 +5271,7 @@ function refreshAccess() {
       };
 
       if (heatmapChartInstance) {
-        heatmapChartInstance.updateOptions({ theme: { mode: chartThemeMode }, chart: { height: heatmapHeight }, dataLabels: { enabled: data.heatmap.length <= 10 } });
+        heatmapChartInstance.updateOptions({ theme: { mode: chartThemeMode }, chart: { height: heatmapHeight }, dataLabels: { enabled: data.heatmap.length <= 10 }, plotOptions: { heatmap: { colorScale: { ranges: heatmapRanges } } } });
         heatmapChartInstance.updateSeries(data.heatmap);
       } else {
         document.getElementById('heatmapChart').innerHTML = ''; // Clear loading text
@@ -4955,9 +5279,10 @@ function refreshAccess() {
         heatmapChartInstance.render();
       }
 
-      // 3. Render Donut (Workflows)
-      const workflowLabels = Object.keys(data.workflows);
-      const workflowSeries = Object.values(data.workflows);
+      // 3. Render Donut (Workflows) — drop zero-count entries so the legend matches the chart
+      const workflowEntries = Object.entries(data.workflows).filter(function(e) { return e[1] > 0; });
+      const workflowLabels = workflowEntries.map(function(e) { return e[0]; });
+      const workflowSeries = workflowEntries.map(function(e) { return e[1]; });
       const donutOptions = {
         series: workflowSeries,
         labels: workflowLabels,
@@ -4978,21 +5303,25 @@ function refreshAccess() {
         donutChartInstance.render();
       }
 
-      // 4. Render Bar Chart (Sites)
-      const siteLabels = Object.keys(data.sites);
-      const siteSeries = [{ name: 'Valid Cases', data: Object.values(data.sites) }];
+      // 4. Render Bar Chart (Sites) — sorted descending, top site gets the accent color
+      const siteEntries = Object.entries(data.sites).sort(function(a, b) { return b[1] - a[1]; });
+      const siteLabels = siteEntries.map(function(e) { return e[0]; });
+      const siteValues = siteEntries.map(function(e) { return e[1]; });
+      const siteSeries = [{ name: 'Valid Cases', data: siteValues }];
+      const siteColors = siteValues.map(function(v, i) { return i === 0 ? '#1a73e8' : '#81c995'; });
       const barOptions = {
         series: siteSeries,
         theme: { mode: chartThemeMode },
         chart: { type: 'bar', height: 300, toolbar: { show: false }, background: chartBg },
-        plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '45%' } },
+        plotOptions: { bar: { borderRadius: 4, horizontal: false, columnWidth: '45%', distributed: true } },
         dataLabels: { enabled: false },
+        legend: { show: false },
         xaxis: { categories: siteLabels },
-        colors: ['#34a853']
+        colors: siteColors
       };
 
       if (barChartInstance) {
-        barChartInstance.updateOptions({ theme: { mode: chartThemeMode }, xaxis: { categories: siteLabels } });
+        barChartInstance.updateOptions({ theme: { mode: chartThemeMode }, xaxis: { categories: siteLabels }, colors: siteColors });
         barChartInstance.updateSeries(siteSeries);
       } else {
         document.getElementById('barChart').innerHTML = '';
@@ -5446,11 +5775,15 @@ function refreshAccess() {
       const view = document.getElementById('analyticsView');
       Array.from(view.children).forEach(el => {
         if (el === view.firstElementChild || el.id === 'analyticsModeBar') return;
-        if (el.id === 'expAnalyticsSection') el.classList.toggle('hidden', mode !== 'expiring');
-        else el.classList.toggle('hidden', mode === 'expiring');
+        if (el.id === 'analyticsFilterBar') el.classList.toggle('hidden', mode === 'expiring');
+        else if (el.id === 'attAnalyticsSection') el.classList.toggle('hidden', mode !== 'attendance');
+        else if (el.id === 'expAnalyticsSection') el.classList.toggle('hidden', mode !== 'expiring');
+        else el.classList.toggle('hidden', mode !== 'production');
       });
       document.getElementById('analyticsModeProd').className = analyticsModeBtnClass(mode === 'production');
       document.getElementById('analyticsModeExp').className = analyticsModeBtnClass(mode === 'expiring');
+      document.getElementById('analyticsModeAtt').className = analyticsModeBtnClass(mode === 'attendance');
+      updateFilterBarForMode();
       loadAnalytics();
     }
 
@@ -5599,7 +5932,536 @@ function refreshAccess() {
         .catch(() => showToast('Failed to copy. Please copy manually.', 'error'));
     }
 
-    // --- COPY REPORT LOGIC ---
+    // ===== TOP PERFORMERS MINIMIZE / MAXIMIZE =====
+function applyTopPerformersState(collapsed) {
+  const box = document.getElementById('leaderboardContainer');
+  if (!box) return;
+  if (collapsed === undefined) { try { collapsed = localStorage.getItem('topPerformersCollapsed') === '1'; } catch (e) { collapsed = false; } }
+  box.classList.toggle('hidden', collapsed);
+  const head = box.previousElementSibling;
+  if (head) head.classList.toggle('mb-6', !collapsed);
+  const chev = document.getElementById('topPerformersChevron');
+  if (chev) chev.textContent = collapsed ? 'expand_more' : 'expand_less';
+}
+function toggleTopPerformers() {
+  const box = document.getElementById('leaderboardContainer');
+  const collapse = !box.classList.contains('hidden');
+  applyTopPerformersState(collapse);
+  try { localStorage.setItem('topPerformersCollapsed', collapse ? '1' : '0'); } catch (e) {}
+}
+applyTopPerformersState();
+
+// ===== SHARED ANALYTICS FILTERS =====
+let attFiltersReady = false;
+let attFilterTimer = null;
+
+function fillFilterSelect(id, list, allLabel) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const prev = el.value;
+  el.innerHTML = '<option value="">' + allLabel + '</option>' + (list || []).map(function(v) { return '<option value="' + escAttr(v) + '">' + escAttr(v) + '</option>'; }).join('');
+  if (list && list.indexOf(prev) !== -1) el.value = prev;
+}
+
+function ensureFilterOptions() {
+  if (attFiltersReady) return;
+  attFiltersReady = true;
+  google.script.run
+    .withSuccessHandler(function(o) {
+      fillFilterSelect('afSite', o.sites, 'All Sites');
+      fillFilterSelect('afLob', o.lobs, 'All LOBs');
+      fillFilterSelect('afWorkflow', o.workflows, 'All Workflows');
+      fillFilterSelect('afSupervisor', o.supervisors, 'All Supervisors');
+      fillFilterSelect('afTeam', o.teams, 'All Teams');
+    })
+    .withFailureHandler(function() { attFiltersReady = false; })
+    .getFilterOptions();
+}
+
+function getAnalyticsFilters() {
+  const v = function(id) { const el = document.getElementById(id); return el ? el.value : ''; };
+  return { site: v('afSite'), lob: v('afLob'), workflow: v('afWorkflow'), supervisor: v('afSupervisor'), team: v('afTeam'), shiftType: v('afShiftType') };
+}
+
+function updateFilterBarForMode() {
+  document.querySelectorAll('#analyticsFilterBar [data-mode]').forEach(function(el) {
+    el.classList.toggle('hidden', el.dataset.mode !== analyticsMode);
+  });
+}
+
+function onAnalyticsFilterChange() {
+  if (analyticsMode === 'attendance') { attTablePage = 0; renderAttendance(); return; }
+  clearTimeout(attFilterTimer);
+  attFilterTimer = setTimeout(loadAnalytics, 300); // Production filters are applied on the server
+}
+
+function resetAnalyticsFilters() {
+  ['afSite', 'afLob', 'afWorkflow', 'afSupervisor', 'afTeam', 'afShiftType', 'afStatus', 'afSearch'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  onAnalyticsFilterChange();
+}
+
+// ===== ATTENDANCE =====
+let attData = null;
+let attView = 'daily';
+let attTablePage = 0;
+let attChartsOk = true;
+const ATT_PAGE_SIZE = 50;
+const ATT_STATE_CLASS = {
+  Present: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400',
+  Late: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400',
+  Partial: 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400',
+  Excused: 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-400',
+  Absent: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400'
+};
+const ATT_DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function attParse(d) { const p = d.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function attFmtDate(d) { return attParse(d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }); }
+function attFmtDay(d) { return attParse(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+function attHourLong(h) { return (h % 12 || 12) + ':00 ' + (h < 12 ? 'AM' : 'PM'); }
+function attHourShort(h) { return (h % 12 || 12) + (h < 12 ? 'a' : 'p'); }
+
+function loadAttendance(startDateStr, endDateStr) {
+  attLastRange = { s: startDateStr, e: endDateStr };
+  const kp = document.getElementById('attKpis');
+  if (kp) kp.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">Loading attendance...</div>';
+  google.script.run
+    .withSuccessHandler(function(data) {
+      if (!data || data.error) { showToast((data && data.error) || 'Unable to load attendance.', 'error'); return; }
+      attData = data;
+      attTablePage = 0;
+      ensureApex().then(function(ok) { renderAttendance(ok); });
+    })
+    .withFailureHandler(function(err) { showToast(err && err.message ? err.message : 'Error loading attendance.', 'error'); })
+    .getAttendanceData(startDateStr, endDateStr);
+}
+
+function setAttView(v) {
+  attView = v;
+  renderAttendance();
+}
+
+function setAttStatusFilter(v) {
+  const el = document.getElementById('afStatus');
+  el.value = (el.value === v) ? '' : v;
+  attTablePage = 0;
+  renderAttendance();
+}
+
+// forTable = also apply the Status filter (KPIs/charts ignore it so rates stay meaningful)
+function attFilteredRows(forTable) {
+  if (!attData) return [];
+  const f = getAnalyticsFilters();
+  const q = (document.getElementById('afSearch').value || '').trim().toLowerCase();
+  const status = forTable ? document.getElementById('afStatus').value : '';
+  return attData.rows.filter(function(r) {
+    const a = attData.agents[r.u] || {};
+    if (f.site && a.s !== f.site) return false;
+    if (f.lob && a.l !== f.lob) return false;
+    if (f.workflow && a.w !== f.workflow) return false;
+    if (f.supervisor && a.sp !== f.supervisor) return false;
+    if (f.team && a.t !== f.team) return false;
+    if (q && r.u.indexOf(q) === -1) return false;
+    if (status) {
+      if (status === 'AbsentUnverified') { if (!(r.s === 'Absent' && !r.c)) return false; }
+      else if (status === 'AbsentConfirmed') { if (!(r.s === 'Absent' && r.c)) return false; }
+      else if (status === 'Review') { if (!(r.rv > 0)) return false; }
+      else if (r.s !== status) return false;
+    }
+    return true;
+  });
+}
+
+function attAggregate(rows) {
+  const A = { n: rows.length, present: 0, late: 0, partial: 0, excused: 0, absent: 0, absentConf: 0, absentUnv: 0, lateCount: 0, lateSlots: 0, sch: 0, exc: 0, cov: 0, gap: 0, review: 0, agentsWithGaps: {} };
+  const dates = {};
+  rows.forEach(function(r) {
+    dates[r.d] = 1;
+    if (r.s === 'Present') A.present++;
+    else if (r.s === 'Late') A.late++;
+    else if (r.s === 'Partial') A.partial++;
+    else if (r.s === 'Excused') A.excused++;
+    else if (r.s === 'Absent') { A.absent++; if (r.c) A.absentConf++; else A.absentUnv++; }
+    if (r.l > 0) { A.lateCount++; A.lateSlots += r.l; }
+    A.sch += r.sc; A.exc += r.ex; A.cov += r.cv; A.gap += r.g;
+    if (r.g > 0) A.agentsWithGaps[r.u] = 1;
+    if (r.rv > 0) A.review++;
+  });
+  A.presentDays = A.present + A.late + A.partial;
+  A.days = Object.keys(dates).length;
+  const denomD = A.n - A.excused;
+  A.rate = denomD > 0 ? Math.round(A.presentDays * 1000 / denomD) / 10 : null;
+  const denomI = A.sch - A.exc;
+  A.coverage = denomI > 0 ? Math.round(A.cov * 1000 / denomI) / 10 : null;
+  return A;
+}
+
+function attKpiCard(label, icon, iconCls, value, sub) {
+  return '<div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">' +
+    '<span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] ' + iconCls + '">' + icon + '</span> ' + label + '</span>' +
+    '<span class="text-4xl font-normal text-gray-800 dark:text-gray-100">' + value + '</span>' +
+    '<span class="text-xs cell-muted mt-1">' + sub + '</span></div>';
+}
+
+function renderAttendance(ok) {
+  if (typeof ok === 'boolean') attChartsOk = ok;
+  if (!attData) return;
+  const rows = attFilteredRows(false);
+  const A = attAggregate(rows);
+  const daily = attView === 'daily';
+  const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+
+  document.getElementById('attViewDaily').className = analyticsModeBtnClass(daily);
+  document.getElementById('attViewInterval').className = analyticsModeBtnClass(!daily);
+  document.getElementById('attViewHint').textContent = daily
+    ? 'Daily: one verdict per scheduled agent per day. Excused days are left out of the rate.'
+    : 'Interval: hour-by-hour coverage across each shift. SOS/EOS hours and excused hours are left out.';
+
+  // KPI cards
+  const pct = function(v) { return v === null ? '--' : v + '%'; };
+  const perDay = function(v) { return A.days > 1 ? Math.round(v / A.days) : v; };
+  const sched = A.n - A.excused;
+  const avgLate = A.lateCount ? Math.round(A.lateSlots * 60 / A.lateCount) : 0;
+  const presentCard = attKpiCard('Agents Present', 'groups', 'text-theme-primary', perDay(A.presentDays), 'of ' + perDay(sched) + ' scheduled' + (A.days > 1 ? ' per day (avg)' : ''));
+  let cards;
+  if (daily) {
+    cards = attKpiCard('Attendance Rate', 'verified', 'text-google-green', pct(A.rate), A.presentDays + ' present &middot; ' + A.absent + ' absent &middot; ' + A.excused + ' excused') +
+      presentCard +
+      attKpiCard('Absent', 'person_off', 'text-red-500', A.absent, A.absentConf + ' confirmed &middot; ' + A.absentUnv + ' unverified') +
+      attKpiCard('Late Starts', 'schedule', 'text-amber-500', A.lateCount, (A.lateSlots * 60) + ' min total &middot; avg ' + avgLate + ' min');
+  } else {
+    cards = attKpiCard('Interval Coverage', 'verified', 'text-google-green', pct(A.coverage), A.cov + ' covered of ' + (A.sch - A.exc) + ' scheduled intervals') +
+      presentCard +
+      attKpiCard('Gap Intervals', 'event_busy', 'text-red-500', A.gap, Object.keys(A.agentsWithGaps).length + ' agents &middot; ' + A.exc + ' excused intervals') +
+      attKpiCard('Late Minutes', 'schedule', 'text-amber-500', (A.lateSlots * 60), A.lateCount + ' agents late &middot; interval-based');
+  }
+  document.getElementById('attKpis').innerHTML = cards;
+
+  // Clickable status chips
+  const active = document.getElementById('afStatus').value;
+  const chip = function(label, value, n, cls) {
+    return '<button type="button" onclick="setAttStatusFilter(\'' + value + '\')" class="px-3 py-1 rounded-full font-medium border transition ' +
+      (active === value ? 'bg-theme-primary text-white border-theme-primary' : cls + ' border-transparent hover:border-theme-primary') + '">' + label + ': ' + n + '</button>';
+  };
+  document.getElementById('attChips').innerHTML =
+    chip('All', '', A.n, 'bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary') +
+    chip('Present', 'Present', A.present, ATT_STATE_CLASS.Present) +
+    chip('Late', 'Late', A.late, ATT_STATE_CLASS.Late) +
+    chip('Partial', 'Partial', A.partial, ATT_STATE_CLASS.Partial) +
+    chip('Excused', 'Excused', A.excused, ATT_STATE_CLASS.Excused) +
+    chip('Absent', 'Absent', A.absent, ATT_STATE_CLASS.Absent) +
+    chip('Needs review', 'Review', A.review, 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300');
+
+  renderAttCharts(rows, daily, mode);
+  renderAttFollowUp(rows, daily);
+  renderAttTable();
+}
+
+function renderAttCharts(rows, daily, mode) {
+  document.getElementById('attTrendTitle').textContent = daily ? 'Attendance by Day' : 'Interval Coverage by Day';
+  document.getElementById('attSiteTitle').textContent = daily ? 'Attendance Rate by Site' : 'Interval Coverage by Site';
+  document.getElementById('attDowTitle').textContent = daily ? 'Attendance Rate by Day of Week' : 'Interval Coverage by Day of Week';
+  if (!attChartsOk) return;
+
+  const metric = function(list) { const a = attAggregate(list); const v = daily ? a.rate : a.coverage; return v === null ? 0 : v; };
+  const pctAxis = { min: 0, max: 100, labels: { formatter: function(v) { return Math.round(v) + '%'; } } };
+  const empty = rows.length === 0;
+  const emptyMsg = 'No scheduled agents in this range.';
+
+  // Trend by day
+  const byDate = {};
+  rows.forEach(function(r) { (byDate[r.d] = byDate[r.d] || []).push(r); });
+  const dates = Object.keys(byDate).sort();
+  const aggs = dates.map(function(d) { return attAggregate(byDate[d]); });
+  const labels = dates.map(attFmtDay);
+  const trendOpts = daily ? {
+    series: [
+      { name: 'Present', data: aggs.map(function(a) { return a.present; }) },
+      { name: 'Late', data: aggs.map(function(a) { return a.late; }) },
+      { name: 'Partial', data: aggs.map(function(a) { return a.partial; }) },
+      { name: 'Excused', data: aggs.map(function(a) { return a.excused; }) },
+      { name: 'Absent', data: aggs.map(function(a) { return a.absent; }) }
+    ],
+    theme: { mode: mode },
+    chart: { type: 'bar', stacked: true, height: 300, toolbar: { show: false }, background: 'transparent' },
+    colors: ['#34a853', '#fbbc04', '#f29900', '#8ab4f8', '#ea4335'],
+    plotOptions: { bar: { columnWidth: '70%', borderRadius: 2 } },
+    dataLabels: { enabled: false },
+    xaxis: { categories: labels, labels: { rotate: -45, hideOverlappingLabels: true, style: { fontSize: '11px' } } },
+    legend: { position: 'bottom' }
+  } : {
+    series: [{ name: 'Coverage', data: aggs.map(function(a) { return a.coverage === null ? 0 : a.coverage; }) }],
+    theme: { mode: mode },
+    chart: { type: 'area', height: 300, toolbar: { show: false }, background: 'transparent' },
+    colors: ['#1a73e8'],
+    stroke: { curve: 'smooth', width: 2 },
+    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.05, stops: [0, 90, 100] } },
+    dataLabels: { enabled: false },
+    yaxis: pctAxis,
+    xaxis: { categories: labels, labels: { rotate: -45, hideOverlappingLabels: true, style: { fontSize: '11px' } } }
+  };
+  expDrawChart('attTrend', 'attTrendChart', trendOpts, empty || dates.length === 0, emptyMsg);
+
+  // By site
+  const bySite = {};
+  rows.forEach(function(r) { const s = (attData.agents[r.u] || {}).s || 'Unknown'; (bySite[s] = bySite[s] || []).push(r); });
+  const sites = Object.keys(bySite).sort();
+  expDrawChart('attSite', 'attSiteChart', {
+    series: [{ name: daily ? 'Attendance' : 'Coverage', data: sites.map(function(s) { return metric(bySite[s]); }) }],
+    theme: { mode: mode },
+    chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent' },
+    colors: ['#1a73e8'],
+    plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
+    dataLabels: { enabled: true, formatter: function(v) { return v + '%'; } },
+    yaxis: pctAxis,
+    xaxis: { categories: sites }
+  }, empty || sites.length === 0, emptyMsg);
+
+  // By day of week
+  const byDow = [[], [], [], [], [], [], []];
+  rows.forEach(function(r) { byDow[attParse(r.d).getDay()].push(r); });
+  expDrawChart('attDow', 'attDowChart', {
+    series: [{ name: daily ? 'Attendance' : 'Coverage', data: byDow.map(function(l) { return l.length ? metric(l) : 0; }) }],
+    theme: { mode: mode },
+    chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent' },
+    colors: ['#34a853'],
+    plotOptions: { bar: { columnWidth: '50%', borderRadius: 4 } },
+    dataLabels: { enabled: true, formatter: function(v) { return v ? v + '%' : ''; } },
+    yaxis: pctAxis,
+    xaxis: { categories: ATT_DOW }
+  }, empty, emptyMsg);
+
+  // Gap intervals by clock hour
+  const gapByHour = new Array(24).fill(0);
+  rows.forEach(function(r) { (r.gh || []).forEach(function(h) { gapByHour[h]++; }); });
+  expDrawChart('attHour', 'attHourChart', {
+    series: [{ name: 'Gap intervals', data: gapByHour }],
+    theme: { mode: mode },
+    chart: { type: 'bar', height: 280, toolbar: { show: false }, background: 'transparent' },
+    colors: ['#ea4335'],
+    plotOptions: { bar: { columnWidth: '60%', borderRadius: 3 } },
+    dataLabels: { enabled: false },
+    xaxis: { categories: gapByHour.map(function(_, h) { return attHourShort(h); }), labels: { style: { fontSize: '11px' } } }
+  }, gapByHour.every(function(v) { return v === 0; }), 'No gap intervals in this range.');
+}
+
+function renderAttFollowUp(rows, daily) {
+  const el = document.getElementById('attFollowUp');
+  const by = {};
+  rows.forEach(function(r) {
+    const a = by[r.u] || (by[r.u] = { ldap: r.u, absent: 0, partial: 0, late: 0, gap: 0, total: 0, done: 0 });
+    if (attNeedsFollowUp(r, daily)) { a.total++; if (r.fu) a.done++; }
+    if (r.s === 'Absent') a.absent++;
+    if (r.s === 'Partial') a.partial++;
+    if (r.l > 0) a.late++;
+    a.gap += r.g;
+  });
+  let list = Object.keys(by).map(function(k) { return by[k]; }).filter(function(a) { return daily ? (a.absent + a.partial + a.late) > 0 : a.gap > 0; });
+  list.sort(daily
+    ? function(x, y) { return (y.absent - x.absent) || (y.partial - x.partial) || (y.late - x.late); }
+    : function(x, y) { return y.gap - x.gap; });
+  list = list.slice(0, 15);
+  if (list.length === 0) { el.innerHTML = '<div class="text-center text-gray-400 py-8">Nothing to follow up on in this range.</div>'; return; }
+  const top = daily ? Math.max(1, list[0].absent * 3 + list[0].partial * 2 + list[0].late) : Math.max(1, list[0].gap);
+  el.innerHTML = list.map(function(a, i) {
+    const score = daily ? a.absent * 3 + a.partial * 2 + a.late : a.gap;
+    const allDone = a.total > 0 && a.done >= a.total;
+    const detail = daily
+      ? '<span class="text-red-600 dark:text-red-400">' + a.absent + ' absent</span> &middot; <span class="text-orange-600 dark:text-orange-400">' + a.partial + ' partial</span> &middot; <span class="text-amber-600 dark:text-amber-400">' + a.late + ' late</span>'
+      : '<span class="text-red-600 dark:text-red-400">' + a.gap + ' gap intervals</span>';
+    return '<div class="flex items-center gap-4' + (allDone ? ' opacity-60' : '') + '">' +
+      '<span class="w-6 h-6 flex items-center justify-center text-xs font-medium text-gray-400">' + (i + 1) + '</span>' +
+      getMomaImgClass(a.ldap, 'w-8 h-8 rounded-full border border-gray-200 dark:border-gray-600 object-cover', 100) +
+      '<div class="flex-1 min-w-0"><div class="flex justify-between items-end mb-1"><span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">' + ldapLink(a.ldap) + '</span><span class="text-xs">' + detail + '</span></div>' +
+      '<div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5"><div class="bg-red-400 h-1.5 rounded-full" style="width:' + Math.max(5, score / top * 100) + '%"></div></div></div>' +
+      '<div class="flex items-center gap-1 shrink-0">' +
+        '<button type="button" onclick="quickCheckAttFollowUp(\'' + a.ldap + '\')" title="' + (allDone ? 'Undo follow-up' : 'Mark followed up') + '" class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center ' + (allDone ? 'text-emerald-500' : 'text-gray-400 hover:text-emerald-500') + '"><span class="material-symbols-outlined text-[20px]">' + (allDone ? 'check_circle' : 'radio_button_unchecked') + '</span></button>' +
+        '<button type="button" onclick="openAttFollowUp(\'' + a.ldap + '\')" title="Update / add note" class="p-1 rounded-full text-gray-400 hover:text-theme-primary hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center"><span class="material-symbols-outlined text-[20px]">edit_note</span></button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function attSeverity(r) { return { Absent: 0, Partial: 1, Late: 2, Excused: 3, Present: 4 }[r.s]; }
+
+function renderAttTable() {
+  const tbody = document.getElementById('attTableBody');
+  const pagination = document.getElementById('attPagination');
+  if (!tbody) return;
+  const rows = attFilteredRows(true).slice();
+  const sort = document.getElementById('attSort').value;
+  rows.sort(function(x, y) {
+    if (sort === 'newest') return y.d.localeCompare(x.d) || x.u.localeCompare(y.u);
+    if (sort === 'agent') return x.u.localeCompare(y.u) || y.d.localeCompare(x.d);
+    if (sort === 'gaps') return (y.g - x.g) || y.d.localeCompare(x.d);
+    return (attSeverity(x) - attSeverity(y)) || y.d.localeCompare(x.d) || x.u.localeCompare(y.u);
+  });
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400">No rows match this view.</td></tr>';
+    pagination.classList.add('hidden');
+    return;
+  }
+  const totalPages = Math.ceil(rows.length / ATT_PAGE_SIZE);
+  attTablePage = Math.max(0, Math.min(attTablePage, totalPages - 1));
+  const start = attTablePage * ATT_PAGE_SIZE;
+
+  tbody.innerHTML = rows.slice(start, start + ATT_PAGE_SIZE).map(function(r) {
+    const a = attData.agents[r.u] || {};
+    const denom = r.sc - r.ex;
+    const notes = [];
+    if (r.s === 'Absent') notes.push(r.c ? 'Confirmed by ' + escAttr(r.cb || 'POC') : 'Unverified');
+    if (r.s === 'Excused' && r.cb) notes.push('Excused by ' + escAttr(r.cb));
+    if (r.gh && r.gh.length && r.s !== 'Absent') notes.push('Gaps: ' + r.gh.map(attHourShort).join(', '));
+    if (r.pc) notes.push('POC: ' + escAttr(r.pc));
+    if (r.rv > 0) notes.push('&#9888; POC tag conflicts with submissions');
+    if (r.fu) notes.push('<span class="text-emerald-600 dark:text-emerald-400">&#10003; ' + escAttr(r.fu.r) + ' by ' + escAttr(r.fu.b) + (r.fu.n ? ' &ndash; ' + escAttr(r.fu.n) : '') + '</span>');
+    if (r.fu || attNeedsFollowUp(r, attView === 'daily')) notes.push('<button type="button" onclick="openAttFollowUp(\'' + escAttr(r.u) + '\',\'' + r.d + '\')" title="Follow up" class="align-middle text-gray-400 hover:text-theme-primary transition"><span class="material-symbols-outlined text-[14px]">edit_note</span></button>');
+    return '<tr class="row-hover transition">' +
+      '<td class="p-4 cell-muted whitespace-nowrap">' + escAttr(attFmtDate(r.d)) + '</td>' +
+      '<td class="p-4"><div class="flex items-center gap-2">' + getMomaImgClass(r.u, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50) + '<span class="font-medium">' + ldapLink(r.u) + '</span></div></td>' +
+      '<td class="p-4 cell-muted">' + escAttr(a.s || '') + '</td>' +
+      '<td class="p-4 cell-muted whitespace-nowrap">' + attHourLong(r.h) + '</td>' +
+      '<td class="p-4"><span class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full ' + ATT_STATE_CLASS[r.s] + '">' + r.s + '</span></td>' +
+      '<td class="p-4 text-center ' + (r.l > 0 ? 'text-amber-600 dark:text-amber-400 font-medium' : 'cell-faint') + '">' + (r.l > 0 ? (r.l * 60) + ' min' : '&ndash;') + '</td>' +
+      '<td class="p-4 text-center cell-muted">' + (denom > 0 ? r.cv + '/' + denom : '&ndash;') + '</td>' +
+      '<td class="p-4 text-xs cell-muted">' + notes.join(' &middot; ') + '</td></tr>';
+  }).join('');
+
+  document.getElementById('attPageInfo').textContent = 'Showing ' + (start + 1) + '-' + Math.min(start + ATT_PAGE_SIZE, rows.length) + ' of ' + rows.length;
+  document.getElementById('attPrevBtn').disabled = attTablePage === 0;
+  document.getElementById('attNextBtn').disabled = attTablePage >= totalPages - 1;
+  pagination.classList.remove('hidden');
+}
+function attPrevPage() { if (attTablePage > 0) { attTablePage--; renderAttTable(); } }
+
+// --- Attendance follow-ups ---
+let attLastRange = { s: null, e: null };
+let attFuLdap = '';
+
+function attNeedsFollowUp(r, daily) {
+  return daily ? (r.s === 'Absent' || r.s === 'Partial' || r.l > 0) : r.g > 0;
+}
+
+function attFuRows(ldap, onlyDate) {
+  const daily = attView === 'daily';
+  return attFilteredRows(false).filter(function(r) {
+    return r.u === ldap && (onlyDate ? r.d === onlyDate : attNeedsFollowUp(r, daily));
+  });
+}
+
+function openAttFollowUp(ldap, onlyDate) {
+  const list = attFuRows(ldap, onlyDate);
+  if (list.length === 0) return showToast('Nothing to follow up for this agent.', 'info');
+  attFuLdap = ldap;
+  document.getElementById('attFuName').textContent = ldap;
+  document.getElementById('attFuDays').innerHTML = list.map(function(r) {
+    return '<label class="flex items-center gap-2 text-sm cell-strong cursor-pointer">' +
+      '<input type="checkbox" class="att-fu-cb w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600" value="' + escAttr(r.d) + '" checked>' +
+      '<span>' + escAttr(attFmtDate(r.d)) + '</span>' +
+      '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ' + ATT_STATE_CLASS[r.s] + '">' + r.s + '</span>' +
+      (r.fu ? '<span class="text-[10px] cell-faint">' + escAttr(r.fu.r) + ' by ' + escAttr(r.fu.b) + '</span>' : '') +
+      '</label>';
+  }).join('');
+  document.getElementById('attFuResolution').value = (list[0].fu && list[0].fu.r) || 'Followed up';
+  document.getElementById('attFuNote').value = (list[0].fu && list[0].fu.n) || '';
+  document.getElementById('attFollowUpModal').classList.remove('hidden');
+}
+
+function closeAttFollowUp() {
+  document.getElementById('attFollowUpModal').classList.add('hidden');
+}
+
+function submitAttFollowUp() {
+  const dates = Array.from(document.querySelectorAll('.att-fu-cb:checked')).map(function(cb) { return cb.value; });
+  if (dates.length === 0) return showToast('Select at least one day.', 'warning');
+  const resolution = document.getElementById('attFuResolution').value;
+  const note = document.getElementById('attFuNote').value.trim();
+  closeAttFollowUp();
+  saveAttFollowUp(attFuLdap, dates, resolution, note);
+}
+
+function quickCheckAttFollowUp(ldap) {
+  const rows = attFuRows(ldap);
+  if (rows.length === 0) return;
+  const allDone = rows.every(function(r) { return !!r.fu; });
+  const dates = (allDone ? rows : rows.filter(function(r) { return !r.fu; })).map(function(r) { return r.d; });
+  saveAttFollowUp(ldap, dates, allDone ? 'Clear' : 'Followed up', '');
+}
+
+function saveAttFollowUp(ldap, dates, resolution, note) {
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) return showToast((res && res.error) || 'Failed to save follow-up.', 'error');
+      if (resolution === 'Clear') {
+        loadAttendance(attLastRange.s, attLastRange.e);
+      } else {
+        attData.rows.forEach(function(r) {
+          if (r.u !== ldap || dates.indexOf(r.d) === -1) return;
+          r.fu = { r: resolution, n: note, b: res.by, t: Date.now() };
+          if (r.s === 'Absent' && resolution === 'Excused') { r.s = 'Excused'; r.ex = r.sc; r.cv = 0; r.g = 0; r.gh = []; r.cb = res.by; }
+          else if (r.s === 'Absent' && resolution === 'Confirmed') { r.c = 1; r.cb = res.by; }
+        });
+        renderAttendance();
+      }
+      showToast(resolution === 'Clear' ? 'Follow-up cleared.' : 'Follow-up saved.', 'success');
+    })
+    .withFailureHandler(function() { showToast('Network error saving follow-up.', 'error'); })
+    .saveAttendanceFollowUp(ldap, dates, resolution, note);
+}
+function attNextPage() { attTablePage++; renderAttTable(); }
+
+// --- Attendance export ---
+function csvCell(v) {
+  const s = String(v === null || v === undefined ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function exportAttendanceCsv() {
+  if (!attData) return showToast('Nothing to export yet.', 'warning');
+  const rows = attFilteredRows(true);
+  if (rows.length === 0) return showToast('No rows match the current filters.', 'warning');
+  const head = ['Date', 'LDAP', 'Site', 'LOB', 'Workflow', 'Supervisor', 'Team', 'Shift Start', 'Status', 'Absence Verification', 'Late Intervals', 'Late Minutes', 'Scheduled Intervals', 'Excused Intervals', 'Covered Intervals', 'Gap Intervals', 'Gap Hours', 'Conflicting Tags'];
+  const lines = [head.join(',')];
+  rows.forEach(function(r) {
+    const a = attData.agents[r.u] || {};
+    lines.push([
+      r.d, r.u, a.s || '', a.l || '', a.w || '', a.sp || '', a.t || '', attHourLong(r.h), r.s,
+      r.s === 'Absent' ? (r.c ? 'Confirmed' : 'Unverified') : '',
+      r.l, r.l * 60, r.sc, r.ex, r.cv, r.g, (r.gh || []).map(attHourShort).join(' '), r.rv
+    ].map(csvCell).join(','));
+  });
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'attendance_' + attData.meta.start + '_to_' + attData.meta.end + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  showToast('Exported ' + rows.length + ' rows.', 'success');
+}
+
+function copyAttendanceSummary() {
+  if (!attData) return showToast('Nothing to copy yet.', 'warning');
+  const A = attAggregate(attFilteredRows(false));
+  const sel = document.getElementById('analyticsDateRange');
+  const pct = function(v) { return v === null ? 'n/a' : v + '%'; };
+  const lines = [
+    'Attendance \u2014 ' + sel.options[sel.selectedIndex].text + ' (' + attData.meta.start + ' to ' + attData.meta.end + ')',
+    'Attendance rate: ' + pct(A.rate) + ' | Present: ' + A.presentDays + ' (Present ' + A.present + ', Late ' + A.late + ', Partial ' + A.partial + ') | Absent: ' + A.absent + ' (' + A.absentConf + ' confirmed, ' + A.absentUnv + ' unverified) | Excused: ' + A.excused,
+    'Late starts: ' + A.lateCount + ' (' + (A.lateSlots * 60) + ' min total)',
+    'Interval coverage: ' + pct(A.coverage) + ' | Gap intervals: ' + A.gap + ' across ' + Object.keys(A.agentsWithGaps).length + ' agents'
+  ];
+  navigator.clipboard.writeText(lines.join('\n'))
+    .then(function() { showToast('Summary copied to clipboard!', 'success'); })
+    .catch(function() { showToast('Failed to copy. Please copy manually.', 'error'); });
+}
+
+// --- COPY REPORT LOGIC ---
     function copyIntervalReport() {
       const dateVal = document.getElementById('intervalDate').value;
       const timeSelect = document.getElementById('intervalHour');
