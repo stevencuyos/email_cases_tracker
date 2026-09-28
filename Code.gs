@@ -3686,7 +3686,7 @@ function rebuildDailyStats_(startDateStr, endDateStr, skipExtras) {
   // Calculate exact flagged from Audit Queue
   const auditSheet = ss.getSheetByName('Audit Queue');
   if (auditSheet && auditSheet.getLastRow() > 1) {
-    auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 9).getValues().forEach(function(r) {
+    auditSheet.getRange(2, 1, auditSheet.getLastRow() - 1, 10).getValues().forEach(function(r) {
       const status = String(r[0]).trim(); // e.g. "🔴 PENDING", "✅ APPROVED", "❌ REJECTED"
       if (status.indexOf('APPROVED') !== -1) return; // Approved doesn't count against agent
 
