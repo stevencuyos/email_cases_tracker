@@ -7,7 +7,7 @@
   
   <!-- Google Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
   
   <!-- Tailwind CSS (Server-Side Injected - Safe Mode) -->
   <script>
@@ -81,7 +81,7 @@
       --shadow-card: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
       --blur-card: 12px; /* backdrop-blur-md */
 
-      /* Status chip tokens (Interval View) — override per theme later if desired */
+      /* Status chip tokens (Interval View) - override per theme later if desired */
       --status-assigned7-bg: #1e8e3e; --status-assigned7-fg: #ffffff;
       --status-break3-bg: #f29900; --status-break3-fg: #ffffff;
       --status-vlsl-bg: #d2e3fc; --status-vlsl-fg: #1f2937;
@@ -207,7 +207,7 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.25) !important;
     }
 
-    /* Hairline borders instead of solid gray-200/300 lines — the macOS way */
+    /* Hairline borders instead of solid gray-200/300 lines - the macOS way */
     html.theme-hig .border,
     html.theme-hig .border-gray-100,
     html.theme-hig .border-gray-200,
@@ -223,7 +223,7 @@
       border-color: rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Flatten the multi-color gradient accent bars to a single Apple blue —
+    /* Flatten the multi-color gradient accent bars to a single Apple blue -
        a rainbow gradient reads as Material/SaaS, not Apple */
     html.theme-hig .bg-gradient-to-r.from-theme-primary,
     html.theme-hig .poc-guide-glow {
@@ -258,7 +258,7 @@
     }
 
     /* Interval table header: swap the dark admin-dashboard navy bar for a
-       light, frosted Finder-style column header — much closer to native
+       light, frosted Finder-style column header - much closer to native
        macOS table chrome than a heavy slate-900 bar */
     html.theme-hig .bg-slate-900 {
       background-color: rgba(242, 242, 247, 0.85) !important;
@@ -307,7 +307,7 @@
        backdrop-blur-md, bg-slate-900...) ignore the --radius-*/--shadow-*/
        --blur-card tokens, so switching the palette alone barely changed
        anything. These rules override those utilities directly whenever
-       the Fintech palette is active — crisp flat cards, tight corners,
+       the Fintech palette is active - crisp flat cards, tight corners,
        no blur, a system sans-serif, and a subtle diffuse shadow instead of
        Material drop-shadows. */
 
@@ -316,7 +316,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* Tight, crisp corners everywhere — the opposite instinct from HIG */
+    /* Tight, crisp corners everywhere - the opposite instinct from HIG */
     html.theme-fintech .rounded,
     html.theme-fintech .rounded-sm,
     html.theme-fintech .rounded-md,
@@ -335,10 +335,10 @@
       border-radius: 0 0 8px 8px;
     }
     html.theme-fintech .rounded-full {
-      border-radius: 6px; /* pill buttons/badges become tidy rounded-rects, not pills — reads more "dashboard," less "app" */
+      border-radius: 6px; /* pill buttons/badges become tidy rounded-rects, not pills - reads more "dashboard," less "app" */
     }
 
-    /* Flat cards: no blur anywhere, ever — Stripe's whole look is opaque, crisp panels */
+    /* Flat cards: no blur anywhere, ever - Stripe's whole look is opaque, crisp panels */
     html.theme-fintech .backdrop-blur-theme,
     html.theme-fintech .backdrop-blur-md,
     html.theme-fintech .backdrop-blur-sm,
@@ -369,7 +369,7 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2) !important;
     }
 
-    /* Crisp, defined borders — flat panels need a real edge since they have no blur/shadow depth to lean on */
+    /* Crisp, defined borders - flat panels need a real edge since they have no blur/shadow depth to lean on */
     html.theme-fintech .border,
     html.theme-fintech .border-gray-100,
     html.theme-fintech .border-gray-200,
@@ -400,7 +400,7 @@
       background: var(--color-primary) !important;
     }
 
-    /* Inputs: flat, crisp, no inset shadow — Stripe form fields are plain rectangles with a clean border */
+    /* Inputs: flat, crisp, no inset shadow - Stripe form fields are plain rectangles with a clean border */
     html.theme-fintech input[type="text"],
     html.theme-fintech input[type="date"],
     html.theme-fintech select,
@@ -431,7 +431,7 @@
       background-color: #232a4d !important;
     }
 
-    /* Thin, minimal scrollbars — no rounded pill thumb */
+    /* Thin, minimal scrollbars - no rounded pill thumb */
     html.theme-fintech ::-webkit-scrollbar { width: 7px; height: 7px; background: transparent; }
     html.theme-fintech ::-webkit-scrollbar-thumb {
       background-color: #c1c9d2;
@@ -594,7 +594,7 @@
     .sidebar-collapsed .identity-avatar { margin: 0 auto; }
 
     /* Collapsed header: the title hides (nav-text above), which used to leave
-       an invisible flex item still splitting the row via justify-between —
+       an invisible flex item still splitting the row via justify-between -
        that's what pushed the two icons apart unevenly. Stack logo + controls
        vertically and center each row instead. */
     .sidebar-collapsed #sidebarHeader {
@@ -641,7 +641,7 @@
     @keyframes viewFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .view-enter { animation: viewFadeIn 0.22s ease-out; }
 
-    /* POC Guide button — pulsing glow ring, follows whatever palette/primary color is active */
+    /* POC Guide button - pulsing glow ring, follows whatever palette/primary color is active */
     @keyframes pocGuidePulseGlow {
       0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 55%, transparent); }
       70%  { box-shadow: 0 0 0 10px transparent; }
@@ -670,32 +670,32 @@
         </div>
         <div class="header-controls flex items-center gap-1 shrink-0">
           <button onclick="toggleSidebar()" title="Collapse/expand sidebar" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-            <span class="material-symbols-outlined text-[20px]">menu</span>
+            <i data-lucide="menu" class="text-[20px]" ></i>
           </button>
           <button onclick="openHelpModal()" title="Help" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-            <span class="material-symbols-outlined text-[20px]">help</span>
+            <i data-lucide="help-circle" class="text-[20px]" ></i>
           </button>
         </div>
       </div>
       <!-- Navigation Links -->
       <nav class="flex flex-col mt-4 space-y-1">
         <button onclick="switchTab('submissionView')" id="tab-submissionView" title="Submit Cases" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-          <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">edit_square</span>
+          <i data-lucide="edit" class="text-[22px] nav-icon transition-colors" ></i>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Submit Cases</span>
         </button>
 
         <button onclick="switchTab('mySubmissionsView')" id="tab-mySubmissionsView" title="My Submissions" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-          <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">list_alt</span>
+          <i data-lucide="list" class="text-[22px] nav-icon transition-colors" ></i>
           <span class="ml-4 text-sm whitespace-nowrap nav-text" id="mySubmissionsNavText">My Submissions</span>
         </button>
 
         <button onclick="switchTab('caseLogView')" id="tab-caseLogView" title="Case Submission Log" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-          <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">fact_check</span>
+          <i data-lucide="check-square" class="text-[22px] nav-icon transition-colors" ></i>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Case Submission Log</span>
         </button>
         
         <button onclick="switchTab('leaderboardView')" id="tab-leaderboardView" title="Leaderboard" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-          <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">leaderboard</span>
+          <i data-lucide="award" class="text-[22px] nav-icon transition-colors" ></i>
           <span class="ml-4 text-sm whitespace-nowrap nav-text">Leaderboards</span>
         </button>
 
@@ -705,22 +705,22 @@
           </div>
 
           <button onclick="switchTab('analyticsView')" id="tab-analyticsView" title="Performance Analytics" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-            <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">insights</span>
+            <i data-lucide="line-chart" class="text-[22px] nav-icon transition-colors" ></i>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Performance Analytics</span>
           </button>
 
           <button onclick="switchTab('dashboardView')" id="tab-dashboardView" title="Manager Dashboard" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-            <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">dashboard</span>
+            <i data-lucide="layout-dashboard" class="text-[22px] nav-icon transition-colors" ></i>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Manager Dashboard</span>
           </button>
 
           <button onclick="switchTab('intervalView')" id="tab-intervalView" title="Interval View" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-            <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">view_timeline</span>
+            <i data-lucide="view-timeline" class="text-[22px] nav-icon transition-colors" ></i>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Interval View</span>
           </button>
 
           <button onclick="switchTab('expiringView')" id="tab-expiringView" title="Expired/Expiring Cases" class="flex items-center px-4 py-3 nav-inactive transition-colors text-left group">
-            <span class="material-symbols-outlined text-[22px] nav-icon transition-colors">event_busy</span>
+            <i data-lucide="calendar-off" class="text-[22px] nav-icon transition-colors" ></i>
             <span class="ml-4 text-sm whitespace-nowrap nav-text">Expired/Expiring Cases</span>
           </button>
         </div>
@@ -739,7 +739,7 @@
             Live POC
           </span>
           <button onclick="loadPOCSchedule()" title="Refresh POC Schedule" class="text-gray-400 hover:text-theme-primary transition p-1 rounded hover:bg-white/60 dark:hover:bg-gray-700">
-            <span class="material-symbols-outlined text-[15px]">sync</span>
+            <i data-lucide="sync" class="text-[15px]" ></i>
           </button>
         </div>
 
@@ -750,7 +750,7 @@
 
       <!-- Manager Only: POC Planner Shortcut -->
       <button onclick="switchTab('pocPlannerView')" id="pocPlannerBtn" class="hidden mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-theme-accent-muted/50 dark:bg-theme-accent-muted/20 text-theme-primary dark:text-theme-primary border border-theme-primary/20 rounded-theme-sm hover:bg-theme-primary hover:text-white dark:hover:bg-theme-primary dark:hover:text-white transition text-xs font-semibold shadow-sm">
-        <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
+        <i data-lucide="calendar-days" class="text-[16px]" ></i>
         Launch POC Planner
       </button>
     </div>
@@ -762,33 +762,33 @@
         <div class="flex items-center gap-1 relative">
           <!-- Palette Toggle -->
           <button onclick="togglePaletteDropdown(event)" title="Change Theme Palette" class="text-gray-400 hover:text-purple-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-            <span class="material-symbols-outlined text-[18px]">palette</span>
+            <i data-lucide="palette" class="text-[18px]" ></i>
           </button>
           <!-- Palette Dropdown -->
           <div id="paletteDropdown" class="hidden absolute bottom-8 right-0 mt-2 w-36 bg-theme-sidebar border border-theme-card-border rounded-theme shadow-theme overflow-hidden z-50 transition-opacity">
             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
               <li>
                 <button onclick="changeThemePalette('default')" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-theme-canvas transition">
-                  <span class="material-symbols-outlined text-[16px]">web</span> Default
+                  <i data-lucide="web" class="text-[16px]" ></i> Default
                 </button>
               </li>
               <li>
                 <button onclick="changeThemePalette('fintech')" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-theme-canvas transition">
-                  <span class="material-symbols-outlined text-[16px]">payments</span> Fintech
+                  <i data-lucide="payments" class="text-[16px]" ></i> Fintech
                 </button>
               </li>
               <li>
                 <button onclick="changeThemePalette('hig')" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-theme-canvas transition">
-                  <span class="material-symbols-outlined text-[16px]">laptop_mac</span> macOS
+                  <i data-lucide="laptop-mac" class="text-[16px]" ></i> macOS
                 </button>
               </li>
             </ul>
           </div>
           <button onclick="toggleTheme()" title="Toggle Dark/Light Mode" class="text-gray-400 hover:text-amber-500 transition p-1">
-            <span id="themeIcon" class="material-symbols-outlined text-[18px]">light_mode</span>
+            <i data-lucide="sun" class="text-[18px]" id="themeIcon" ></i>
           </button>
           <button onclick="refreshAccess()" title="Refresh my access/role" class="text-gray-400 hover:text-theme-primary transition p-1">
-            <span class="material-symbols-outlined text-[18px]">sync</span>
+            <i data-lucide="sync" class="text-[18px]" ></i>
           </button>
         </div>
       </div>
@@ -830,14 +830,14 @@
             <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Regular Shift" required onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">work</span>
+                <i data-lucide="briefcase" class="text-[24px] text-gray-400 peer-checked:text-theme-primary" ></i>
                 <span class="text-sm font-medium">Regular Shift</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="shiftType" value="Overtime" onchange="handleShiftTypeChange(); saveSelections()" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">timer</span>
+                <i data-lucide="clock" class="text-[24px] text-gray-400 peer-checked:text-amber-500" ></i>
                 <span class="text-sm font-medium">Overtime</span>
               </div>
             </label>
@@ -871,21 +871,21 @@
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Normal Production" required checked onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-emerald-500">task_alt</span>
+                <i data-lucide="check-circle-2" class="text-[24px] text-gray-400 peer-checked:text-emerald-500" ></i>
                 <span class="text-sm font-medium">Normal Production</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Break/Lunch" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-amber-500">coffee</span>
+                <i data-lucide="coffee" class="text-[24px] text-gray-400 peer-checked:text-amber-500" ></i>
                 <span class="text-sm font-medium">Break/Lunch</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="intervalActivity" value="Coaching/Training" onchange="handleActivityChange(); saveSelections()" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/30 peer-checked:text-purple-700 dark:peer-checked:text-purple-400 transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-purple-500">school</span>
+                <i data-lucide="school" class="text-[24px] text-gray-400 peer-checked:text-purple-500" ></i>
                 <span class="text-sm font-medium">Coaching/Training</span>
               </div>
             </label>
@@ -899,35 +899,35 @@
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Regular Email (Take Next)" required onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">mail</span>
+                <i data-lucide="mail" class="text-[24px] text-gray-400 peer-checked:text-theme-primary" ></i>
                 <span class="text-sm font-medium">Regular (Take Next)</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Reopened Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">refresh</span>
+                <i data-lucide="refresh" class="text-[24px] text-gray-400 peer-checked:text-theme-primary" ></i>
                 <span class="text-sm font-medium">Reopened Cases</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Telus Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">headset_mic</span>
+                <i data-lucide="headset-mic" class="text-[24px] text-gray-400 peer-checked:text-theme-primary" ></i>
                 <span class="text-sm font-medium">Telus Cases</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Manual Assignment" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">back_hand</span>
+                <i data-lucide="back-hand" class="text-[24px] text-gray-400 peer-checked:text-theme-primary" ></i>
                 <span class="text-sm font-medium">Manual Assignment</span>
               </div>
             </label>
             <label class="cursor-pointer group">
               <input type="radio" name="caseType" value="Cimba Cases" onchange="saveSelections(); focusCaseIds();" class="peer sr-only">
               <div class="px-4 py-3 rounded-theme border border-gray-200 dark:border-gray-700 bg-theme-sidebar hover:bg-theme-canvas dark:hover:bg-gray-700 peer-checked:border-theme-primary peer-checked:bg-theme-accent-muted dark:peer-checked:bg-theme-accent-muted/30 peer-checked:text-theme-primary dark:peer-checked:text-theme-primary peer-disabled:bg-gray-100 dark:peer-disabled:bg-gray-800 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed transition-all text-center h-full flex flex-col items-center justify-center gap-1 shadow-sm group-hover:shadow">
-                <span class="material-symbols-outlined text-[24px] text-gray-400 peer-checked:text-theme-primary">assignment</span>
+                <i data-lucide="clipboard-list" class="text-[24px] text-gray-400 peer-checked:text-theme-primary" ></i>
                 <span class="text-sm font-medium">Cimba Cases</span>
               </div>
             </label>
@@ -941,7 +941,9 @@
              <span id="caseIdDetectedBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors">0 IDs detected</span>
           </div>
           <textarea id="caseIds" rows="5" required oninput="updateCaseIdHints(); hideSubmitResult(); saveCaseIdsDraft();" onkeydown="handleCaseIdsKeydown(event)" placeholder="Example:&#10;1-12345678&#10;1-87654321" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-theme focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent text-sm resize-y shadow-inner bg-theme-sidebar text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"></textarea>
-          <div id="caseIdHints" class="mt-2 text-xs cell-muted min-h-[1rem]"></div>
+        <!-- Inline Error Container for Case IDs -->
+        <p id="caseIdsError" class="hidden text-red-500 text-xs mt-1"></p>
+<div id="caseIdHints" class="mt-2 text-xs cell-muted min-h-[1rem]"></div>
           <div id="submitResultPanel" class="hidden mt-4"></div>
         </div>
 
@@ -952,7 +954,7 @@
           </button>
           <button type="submit" id="submitBtn" class="bg-theme-primary hover:bg-theme-primary-hover text-white font-medium text-sm px-6 py-2.5 rounded-theme shadow  transition flex items-center gap-2">
             <span>Submit Cases</span>
-            <span id="spinner" class="material-symbols-outlined animate-spin hidden text-[20px]">progress_activity</span>
+            <i data-lucide="loader-2" class="animate-spin hidden text-[20px]" id="spinner" ></i>
           </button>
         </div>
       </form>
@@ -965,7 +967,7 @@
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-theme-canvas/50 dark:bg-gray-800/50">
           <div>
             <h2 id="mySubmissionsTitle" class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">list_alt</span>
+              <i data-lucide="list" class="text-theme-primary dark:text-theme-primary" ></i>
               My Submissions
             </h2>
             <p id="mySubmissionsDesc" class="text-sm text-gray-500 dark:text-gray-400 mt-1">View your tracked cases per interval for the selected date.</p>
@@ -977,7 +979,7 @@
             </div>
             <input type="date" id="mySubmissionsDate" onchange="syncDateAcrossTabs('mySubmissionsDate')" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
             <button onclick="loadMySubmissions()" id="mySubmissionsSearchBtn" class="bg-theme-primary text-white text-sm font-medium px-4 py-2 rounded-theme shadow-sm hover:bg-theme-primary-hover transition flex items-center gap-1">
-              <span class="material-symbols-outlined text-[18px]">search</span>
+              <i data-lucide="search" class="text-[18px]" ></i>
               Search
             </button>
           </div>
@@ -986,15 +988,15 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 0)"><div class="flex items-center gap-1">Interval <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 1)"><div class="flex items-center gap-1">Activity <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 2)"><div class="flex items-center gap-1">Case Type <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 3, true)"><div class="flex items-center justify-center gap-1">Valid Count <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 0)"><div class="flex items-center gap-1">Interval <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 1)"><div class="flex items-center gap-1">Activity <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 2)"><div class="flex items-center gap-1">Case Type <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('mySubmissionsTableBody', this, 3, true)"><div class="flex items-center justify-center gap-1">Valid Count <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 min-w-[250px]">Case IDs</th>
               </tr>
             </thead>
             <tbody id="mySubmissionsTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
-              <tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>
+              <tr><td colspan="100%" class="px-6 py-4"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-4 py-1"><div class="h-2 bg-theme-primary/20 rounded"></div><div class="space-y-3"><div class="grid grid-cols-3 gap-4"><div class="h-2 bg-theme-primary/20 rounded col-span-2"></div><div class="h-2 bg-theme-primary/20 rounded col-span-1"></div></div><div class="h-2 bg-theme-primary/20 rounded"></div></div></div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1011,22 +1013,22 @@
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">fact_check</span>
+                <i data-lucide="check-square" class="text-theme-primary dark:text-theme-primary" ></i>
                 Case Submission Log
               </h2>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Every Case ID logged by anyone for the selected date. Flagged duplicates are highlighted.</p>
             </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="shiftCaseLogDate(-1)" title="Previous day" class="p-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+              <button type="button" onclick="shiftCaseLogDate(-1)" title="Previous day" class="p-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><i data-lucide="chevron-left" class="text-[18px]" ></i></button>
               <input type="date" id="caseLogDate" onchange="loadCaseLog()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
-              <button type="button" onclick="shiftCaseLogDate(1)" title="Next day" class="p-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+              <button type="button" onclick="shiftCaseLogDate(1)" title="Next day" class="p-1.5 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><i data-lucide="chevron-right" class="text-[18px]" ></i></button>
             </div>
           </div>
 
           <!-- Row 2: filters -->
           <div class="flex flex-wrap items-center gap-3">
             <div class="relative flex-1 min-w-[220px]">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none">search</span>
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none" ></i>
               <input type="text" id="caseLogSearch" oninput="debounceCaseLogFilter()" placeholder="Search Case ID or agent" autocomplete="off" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
             </div>
             <select id="caseLogType" onchange="applyCaseLogFilter()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[160px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
@@ -1097,7 +1099,7 @@
               </tr>
             </thead>
             <tbody id="caseLogTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
-              <tr><td colspan="5" class="p-8 text-center text-gray-400">Loading case log...</td></tr>
+              <tr><td colspan="100%" class="px-6 py-4"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-4 py-1"><div class="h-2 bg-theme-primary/20 rounded"></div><div class="space-y-3"><div class="grid grid-cols-3 gap-4"><div class="h-2 bg-theme-primary/20 rounded col-span-2"></div><div class="h-2 bg-theme-primary/20 rounded col-span-1"></div></div><div class="h-2 bg-theme-primary/20 rounded"></div></div></div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1117,17 +1119,17 @@
     <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 bg-theme-canvas/50 dark:bg-gray-800/50 space-y-4">
       <div>
         <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-          <span class="material-symbols-outlined text-theme-primary">leaderboard</span> Leaderboards
+          <i data-lucide="award" class="text-theme-primary" ></i> Leaderboards
         </h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Rankings are built from Daily_Stats, which refreshes nightly.</p>
       </div>
       <div class="flex flex-wrap items-center gap-3">
         <div class="lb-seg">
-          <button type="button" class="lb-chip on" onclick="lbSetBoard(this,'Volume')"><span class="material-symbols-outlined">stacked_bar_chart</span>Volume</button>
-          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Cases per hour')"><span class="material-symbols-outlined">speed</span>Cases per hour</button>
-          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Streak')"><span class="material-symbols-outlined">local_fire_department</span>Streak</button>
-          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Most Improved')"><span class="material-symbols-outlined">trending_up</span>Most improved</button>
-          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Site vs Site')"><span class="material-symbols-outlined">domain</span>Site vs site</button>
+          <button type="button" class="lb-chip on" onclick="lbSetBoard(this,'Volume')"><i data-lucide="stacked-bar-chart" class="" ></i>Volume</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Cases per hour')"><i data-lucide="speed" class="" ></i>Cases per hour</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Streak')"><i data-lucide="flame" class="" ></i>Streak</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Most Improved')"><i data-lucide="trending-up" class="" ></i>Most improved</button>
+          <button type="button" class="lb-chip" onclick="lbSetBoard(this,'Site vs Site')"><i data-lucide="domain" class="" ></i>Site vs site</button>
         </div>
         <select id="lbBoardSelect" class="hidden">
           <option value="Volume">Volume</option>
@@ -1147,7 +1149,7 @@
           <input type="checkbox" id="lbIncludeOt" onchange="loadLeaderboard()" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600"> Include OT
         </label>
         <button onclick="loadLeaderboard()" title="Refresh" class="ml-auto p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center">
-          <span class="material-symbols-outlined text-[18px]">refresh</span>
+          <i data-lucide="refresh" class="text-[18px]" ></i>
         </button>
       </div>
     </div>
@@ -1180,20 +1182,20 @@
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-red-50/30 dark:bg-red-900/20 relative">
           <div>
             <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <span class="material-symbols-outlined text-red-500 dark:text-red-400">gavel</span>
+              <i data-lucide="gavel" class="text-red-500 dark:text-red-400" ></i>
               Action Required: Audit Queue
             </h2>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Review flagged duplicate submissions.</p>
           </div>
           <div class="flex items-center gap-3">
             <button onclick="handleBulkAudit('Approve')" class="hidden bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 text-sm font-medium px-3 py-1.5 rounded hover:bg-green-100 dark:hover:bg-green-900/50 transition items-center gap-1 bulk-audit-btn">
-              <span class="material-symbols-outlined text-[18px]">check</span> Approve Selected (<span class="bulk-audit-count">0</span>)
+              <i data-lucide="check" class="text-[18px]" ></i> Approve Selected (<span class="bulk-audit-count">0</span>)
             </button>
             <button onclick="handleBulkAudit('Reject')" class="hidden bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 text-sm font-medium px-3 py-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/50 transition items-center gap-1 bulk-audit-btn">
-              <span class="material-symbols-outlined text-[18px]">close</span> Reject Selected (<span class="bulk-audit-count">0</span>)
+              <i data-lucide="x" class="text-[18px]" ></i> Reject Selected (<span class="bulk-audit-count">0</span>)
             </button>
             <button onclick="loadDashboard()" class="text-gray-500 hover:text-theme-primary transition p-1" title="Refresh Data">
-              <span class="material-symbols-outlined">refresh</span>
+              <i data-lucide="refresh" class="" ></i>
             </button>
           </div>
         </div>
@@ -1204,15 +1206,15 @@
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 w-10">
                   <input type="checkbox" id="selectAllAudits" onchange="toggleAllAudits(this)" class="w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
                 </th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 1)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 2)"><div class="flex items-center gap-1">Time / Type <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 1)"><div class="flex items-center gap-1">Agent <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 2)"><div class="flex items-center gap-1">Time / Type <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 min-w-[180px]">Flagged IDs</th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 4)"><div class="flex items-center gap-1">Reason <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('auditTableBody', this, 4)"><div class="flex items-center gap-1">Reason <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
                 <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-right">Action</th>
               </tr>
             </thead>
             <tbody id="auditTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
-              <tr><td colspan="6" class="p-8 text-center text-gray-400">Loading audits...</td></tr>
+              <tr><td colspan="100%" class="px-6 py-4"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-4 py-1"><div class="h-2 bg-theme-primary/20 rounded"></div><div class="space-y-3"><div class="grid grid-cols-3 gap-4"><div class="h-2 bg-theme-primary/20 rounded col-span-2"></div><div class="h-2 bg-theme-primary/20 rounded col-span-1"></div></div><div class="h-2 bg-theme-primary/20 rounded"></div></div></div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1223,7 +1225,7 @@
         <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600"></div>
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700">
           <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <span class="material-symbols-outlined text-green-600 dark:text-green-400">bar_chart</span>
+            <i data-lucide="bar-chart-2" class="text-green-600 dark:text-green-400" ></i>
             Today's Live Metrics
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Valid tracked cases per agent for the current day.</p>
@@ -1232,9 +1234,9 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 0)"><div class="flex items-center gap-1">Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 1, true)"><div class="flex items-center justify-center gap-1">Valid Cases <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 2, true)"><div class="flex items-center justify-center gap-1">Pending Flags <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 0)"><div class="flex items-center gap-1">Agent <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 1, true)"><div class="flex items-center justify-center gap-1">Valid Cases <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('metricsTableBody', this, 2, true)"><div class="flex items-center justify-center gap-1">Pending Flags <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
               </tr>
             </thead>
             <tbody id="metricsTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
@@ -1251,8 +1253,8 @@
         <!-- Controls Header -->
         <div class="p-6 pt-8 border-b border-gray-100 dark:border-gray-700 flex flex-wrap gap-4 items-end bg-theme-accent-muted/30 dark:bg-theme-accent-muted/30 relative">
           <div class="flex flex-col justify-end">
-            <button onclick="openPocGuideModal()" id="pocGuideBtn" title="POC Interval Guide — how to work this tab" class="poc-guide-glow relative flex items-center gap-2 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 text-white font-medium text-sm px-4 py-2 rounded-full shadow-md hover:brightness-110 transition-all">
-              <span class="material-symbols-outlined text-[18px]">auto_stories</span>
+            <button onclick="openPocGuideModal()" id="pocGuideBtn" title="POC Interval Guide - how to work this tab" class="poc-guide-glow relative flex items-center gap-2 bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 text-white font-medium text-sm px-4 py-2 rounded-full shadow-md hover:brightness-110 transition-all">
+              <i data-lucide="auto-stories" class="text-[18px]" ></i>
               POC Guide
               <span class="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -1298,11 +1300,11 @@
               Load Interval
             </button>
             <button onclick="copyIntervalReport()" id="copyReportBtn" class="bg-theme-primary border border-theme-primary text-white font-medium text-sm px-4 py-2 rounded-full shadow-sm  transition flex items-center gap-2 hidden">
-              <span class="material-symbols-outlined text-[18px]">content_copy</span>
+              <i data-lucide="content-copy" class="text-[18px]" ></i>
               Copy Report
             </button>
             <button onclick="copyChatReport()" id="copyChatReportBtn" class="bg-emerald-600 border border-emerald-600 text-white font-medium text-sm px-4 py-2 rounded-full shadow-sm hover:bg-emerald-700 transition flex items-center gap-2 hidden">
-              <span class="material-symbols-outlined text-[18px]">forum</span>
+              <i data-lucide="message-square" class="text-[18px]" ></i>
               Copy Chat Report
             </button>
           </div>
@@ -1314,7 +1316,7 @@
           </div>
           <div class="ml-auto relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span class="material-symbols-outlined text-gray-400 text-[18px]">search</span>
+              <i data-lucide="search" class="text-gray-400 text-[18px]" ></i>
             </div>
             <input type="text" id="intervalFilterInput" oninput="debounceIntervalFilter()" placeholder="Filter by LDAP or site" class="pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none w-56 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
           </div>
@@ -1323,19 +1325,19 @@
         <!-- Summary Stats Bar -->
         <div id="intervalSummaryBar" class="hidden px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-theme-canvas/60 dark:bg-gray-800/60 flex flex-wrap items-center gap-3 text-xs">
           <div class="flex items-center gap-1.5 bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary dark:text-theme-primary px-3 py-1.5 rounded-full font-medium">
-             <span class="material-symbols-outlined text-[16px]">groups</span>
+             <i data-lucide="users" class="text-[16px]" ></i>
              <span id="summaryTotalAgents">0</span> scheduled
           </div>
           <div class="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-1.5 rounded-full font-medium">
-             <span class="material-symbols-outlined text-[16px]">warning</span>
+             <i data-lucide="alert-triangle" class="text-[16px]" ></i>
              <span id="summarySkipCount">0</span> flagged
           </div>
           <div class="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-3 py-1.5 rounded-full font-medium">
-             <span class="material-symbols-outlined text-[16px]">timer</span>
+             <i data-lucide="clock" class="text-[16px]" ></i>
              <span id="summaryOtCount">0</span> on OT
           </div>
           <div class="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full font-medium">
-             <span class="material-symbols-outlined text-[16px]">done_all</span>
+             <i data-lucide="check-check" class="text-[16px]" ></i>
              <span id="summaryTotalCases">0</span> cases logged
           </div>
 
@@ -1349,13 +1351,13 @@
           <!-- Check-In Area -->
           <div id="checkInArea" class="ml-auto flex items-center gap-2">
              <button type="button" id="selectFlaggedBtn" onclick="selectFlaggedIntervalRows()" title="Check the boxes for every row still needing attention" class="hidden bg-white dark:bg-gray-700 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px]">flag</span> Select Flagged
+                <i data-lucide="flag" class="text-[16px]" ></i> Select Flagged
              </button>
 
              <!-- Bulk Actions Dropdown -->
              <div class="relative">
                 <button id="bulkActionsBtn" onclick="toggleBulkActionsDropdown(event)" class="hidden bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center gap-1.5">
-                   <span class="material-symbols-outlined text-[16px]">format_list_bulleted</span> Bulk Actions <span class="material-symbols-outlined text-[14px]">expand_more</span>
+                   <i data-lucide="format-list-bulleted" class="text-[16px]" ></i> Bulk Actions <i data-lucide="chevron-down" class="text-[14px]" ></i>
                 </button>
                 <div id="bulkActionsDropdown" class="hidden absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-theme-sm shadow-theme-lg border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
                    <div class="py-1">
@@ -1369,7 +1371,7 @@
              </div>
 
              <button id="checkInBtn" onclick="handleCheckIn()" class="hidden bg-theme-primary text-white text-xs font-medium px-3 py-1.5 rounded shadow-sm hover:bg-theme-primary-hover transition flex items-center gap-1.5">
-               <span class="material-symbols-outlined text-[16px]">verified</span> Check In Interval
+               <i data-lucide="shield-check" class="text-[16px]" ></i> Check In Interval
              </button>
              <div id="checkInBadge" class="hidden flex items-center gap-2 px-3 py-1 rounded border">
                 <span id="checkInIcon" class="material-symbols-outlined text-[16px]"></span>
@@ -1381,7 +1383,7 @@
           </div>
 
           <span class="ml-4 italic text-gray-400 flex items-center gap-1">
-             <span class="material-symbols-outlined text-[14px]">cloud_done</span>
+             <i data-lucide="cloud-done" class="text-[14px]" ></i>
              Status edits saved
           </span>
         </div>
@@ -1389,11 +1391,11 @@
         <!-- New Data Available Banner -->
         <div id="intervalRefreshBanner" class="hidden px-6 py-3 border-b border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-900/20 flex items-center justify-between gap-3">
           <span class="text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px] animate-pulse">new_releases</span>
+            <i data-lucide="sparkles" class="text-[18px] animate-pulse" ></i>
             New submissions came in for this interval since you loaded it.
           </span>
           <button onclick="refreshIntervalFromBanner()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-sm transition flex items-center gap-1.5 shrink-0">
-            <span class="material-symbols-outlined text-[16px]">refresh</span>
+            <i data-lucide="refresh" class="text-[16px]" ></i>
             Refresh Now
           </button>
         </div>
@@ -1406,15 +1408,15 @@
                 <th class="p-4 font-medium sticky top-0 z-10 bg-slate-900 border-b border-slate-800 w-10">
                   <input type="checkbox" id="selectAllInterval" onchange="toggleAllIntervals(this)" class="w-4 h-4 text-theme-primary rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
                 </th>
-                <th class="p-4 font-medium text-left sticky top-0 z-10 bg-slate-900 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center gap-1"> Agent <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">SOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">EOS <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Site <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 5)"><div class="flex items-center justify-center gap-1">Status <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Regular <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Manual <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 8, true)"><div class="flex items-center justify-center gap-1">Reopened <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
-                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 9, true)"><div class="flex items-center justify-center gap-1">Total <span class="material-symbols-outlined text-[16px] sort-arrow text-slate-400">unfold_more</span></div></th>
+                <th class="p-4 font-medium text-left sticky top-0 z-10 bg-slate-900 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 1)"><div class="flex items-center gap-1"> Agent <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 2)"><div class="flex items-center justify-center gap-1">SOS <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 3)"><div class="flex items-center justify-center gap-1">EOS <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 4)"><div class="flex items-center justify-center gap-1">Site <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 5)"><div class="flex items-center justify-center gap-1">Status <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Regular <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Manual <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 8, true)"><div class="flex items-center justify-center gap-1">Reopened <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
+                <th class="p-4 font-medium text-center sticky top-0 z-10 bg-slate-900 cursor-pointer hover:bg-slate-800 transition" onclick="sortTable('intervalTableBody', this, 9, true)"><div class="flex items-center justify-center gap-1">Total <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-slate-400" ></i></div></th>
               </tr>
             </thead>
             <tbody id="intervalTableBody" class="text-sm divide-y divide-gray-200 dark:divide-gray-700">
@@ -1432,7 +1434,7 @@
         <div class="p-5 flex flex-wrap items-center justify-between gap-3">
           <div class="min-w-0">
             <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
-              <span class="material-symbols-outlined text-theme-primary">stacked_bar_chart</span> Pool Board
+              <i data-lucide="stacked-bar-chart" class="text-theme-primary" ></i> Pool Board
             </h3>
             <p id="expBoardSub" class="text-xs cell-muted mt-1">Loading...</p>
           </div>
@@ -1449,7 +1451,7 @@
               <option value="name">Sort: Pool name</option>
             </select>
             <button type="button" onclick="toggleExpBoard()" title="Show/hide board" class="p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center">
-              <span id="expBoardChevron" class="material-symbols-outlined text-[18px]">expand_less</span>
+              <i data-lucide="chevron-up" class="text-[18px]" id="expBoardChevron" ></i>
             </button>
           </div>
         </div>
@@ -1478,15 +1480,15 @@
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                <span class="material-symbols-outlined text-red-500 dark:text-red-400">event_busy</span>
+                <i data-lucide="calendar-off" class="text-red-500 dark:text-red-400" ></i>
                 Expired/Expiring Cases
               </h2>
               <p id="expMetaLine" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Loading...</p>
             </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="loadExpiringCases()" title="Reload" class="p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><span class="material-symbols-outlined text-[18px]">refresh</span></button>
+              <button type="button" onclick="loadExpiringCases()" title="Reload" class="p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition flex items-center"><i data-lucide="refresh" class="text-[18px]" ></i></button>
               <button type="button" id="expGrabBtn" onclick="grabExpiringNow()" class="bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[18px]">download</span>
+                <i data-lucide="download" class="text-[18px]" ></i>
                 Grab now
               </button>
             </div>
@@ -1495,7 +1497,7 @@
           <!-- Row 2: filters -->
           <div class="flex flex-wrap items-center gap-3">
             <div class="relative flex-1 min-w-[220px]">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none">search</span>
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none" ></i>
               <input type="text" id="expSearch" oninput="applyExpiringFilter()" placeholder="Search Case ID" autocomplete="off" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
             </div>
             <select id="expPool" onchange="applyExpiringFilter()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary min-w-[140px] bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100">
@@ -1535,7 +1537,7 @@
               </tr>
             </thead>
             <tbody id="expTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
-              <tr><td colspan="6" class="p-8 text-center text-gray-400">Loading cases...</td></tr>
+              <tr><td colspan="100%" class="px-6 py-4"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-4 py-1"><div class="h-2 bg-theme-primary/20 rounded"></div><div class="space-y-3"><div class="grid grid-cols-3 gap-4"><div class="h-2 bg-theme-primary/20 rounded col-span-2"></div><div class="h-2 bg-theme-primary/20 rounded col-span-1"></div></div><div class="h-2 bg-theme-primary/20 rounded"></div></div></div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1555,7 +1557,7 @@
       <div class="flex justify-between items-end mb-2">
         <div>
           <h2 class="text-2xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">insights</span>
+            <i data-lucide="line-chart" class="text-theme-primary dark:text-theme-primary" ></i>
             Performance Analytics
           </h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Review operational output, workflows, and top performers.</p>
@@ -1576,7 +1578,7 @@
             <input type="date" id="analyticsEndDate" onchange="loadAnalytics()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
           </div>
           <button onclick="loadAnalytics()" class="bg-theme-primary text-white font-medium text-sm px-4 py-2 rounded-theme shadow-sm hover:bg-theme-primary-hover transition flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]">refresh</span> Refresh
+            <i data-lucide="refresh" class="text-[18px]" ></i> Refresh
           </button>
         </div>
       </div>
@@ -1590,7 +1592,7 @@
 
         <!-- Analytics filters (Production + Attendance) -->
         <div id="analyticsFilterBar" class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-4 flex flex-wrap items-center gap-3">
-          <span class="text-xs font-semibold uppercase tracking-wide cell-muted flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">filter_alt</span> Filters</span>
+          <span class="text-xs font-semibold uppercase tracking-wide cell-muted flex items-center gap-1"><i data-lucide="filter-alt" class="text-[16px]" ></i> Filters</span>
           <select id="afSite" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[120px]"><option value="">All Sites</option></select>
           <select id="afLob" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[120px]"><option value="">All LOBs</option></select>
           <select id="afWorkflow" onchange="onAnalyticsFilterChange()" class="p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-theme-primary bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 min-w-[130px]"><option value="">All Workflows</option></select>
@@ -1613,7 +1615,7 @@
             <option value="Review">Needs review</option>
           </select>
           <div data-mode="attendance" class="hidden relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none">search</span>
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px] pointer-events-none" ></i>
             <input type="text" id="afSearch" oninput="onAnalyticsFilterChange()" placeholder="Search agent LDAP" autocomplete="off" class="pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-full text-sm w-48 focus:ring-2 focus:ring-theme-primary focus:outline-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500">
           </div>
           <button type="button" onclick="resetAnalyticsFilters()" class="ml-auto text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-1.5 rounded transition">Reset</button>
@@ -1631,10 +1633,10 @@
             </div>
             <div class="flex items-center gap-2">
               <button type="button" onclick="copyAttendanceSummary()" class="flex items-center gap-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition">
-                <span class="material-symbols-outlined text-[18px]">content_copy</span> Copy summary
+                <i data-lucide="content-copy" class="text-[18px]" ></i> Copy summary
               </button>
               <button type="button" onclick="exportAttendanceCsv()" class="flex items-center gap-1.5 bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition">
-                <span class="material-symbols-outlined text-[18px]">download</span> Export CSV
+                <i data-lucide="download" class="text-[18px]" ></i> Export CSV
               </button>
             </div>
           </div>
@@ -1668,7 +1670,7 @@
 
           <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
             <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-1 flex items-center gap-2">
-              <span class="material-symbols-outlined text-red-500">flag</span> Needs Follow-up
+              <i data-lucide="flag" class="text-red-500" ></i> Needs Follow-up
             </h3>
             <p class="text-xs cell-muted mb-4">Agents with the most absences, partial days and late starts in this range.</p>
             <div id="attFollowUp" class="space-y-4 max-h-[360px] overflow-y-auto pr-2"><div class="text-center text-gray-400 py-8">Loading...</div></div>
@@ -1724,10 +1726,10 @@
             <div id="expLiveStrip" class="flex flex-wrap items-center gap-2 text-xs"></div>
             <div class="flex items-center gap-2">
               <button type="button" onclick="copyExpiringSummary()" class="flex items-center gap-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-4 py-2 rounded-full shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition">
-                <span class="material-symbols-outlined text-[18px]">content_copy</span> Copy summary
+                <i data-lucide="content-copy" class="text-[18px]" ></i> Copy summary
               </button>
               <button type="button" onclick="switchTab('expiringView')" class="flex items-center gap-1.5 bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition">
-                <span class="material-symbols-outlined text-[18px]">event_busy</span> Open case list
+                <i data-lucide="calendar-off" class="text-[18px]" ></i> Open case list
               </button>
             </div>
           </div>
@@ -1735,22 +1737,22 @@
           <!-- KPI cards -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-google-green">verified</span> Saved Rate</span>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><i data-lucide="shield-check" class="text-[16px] text-google-green" ></i> Saved Rate</span>
               <span id="expKpiSaved" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
               <span id="expKpiSavedSub" class="text-xs cell-muted mt-1"></span>
             </div>
             <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-theme-primary">inbox</span> New Cases</span>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><i data-lucide="inbox" class="text-[16px] text-theme-primary" ></i> New Cases</span>
               <span id="expKpiNew" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
               <span id="expKpiNewSub" class="text-xs cell-muted mt-1"></span>
             </div>
             <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-google-yellow">timer</span> Median Time to Clear</span>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><i data-lucide="clock" class="text-[16px] text-google-yellow" ></i> Median Time to Clear</span>
               <span id="expKpiClear" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
               <span id="expKpiClearSub" class="text-xs cell-muted mt-1"></span>
             </div>
             <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-purple-500">fact_check</span> Agent-Logged</span>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><i data-lucide="check-square" class="text-[16px] text-purple-500" ></i> Agent-Logged</span>
               <span id="expKpiCoverage" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
               <span class="text-xs cell-muted mt-1">of resolved cases were logged by an agent</span>
             </div>
@@ -1778,14 +1780,14 @@
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-theme-canvas dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 0)"><div class="flex items-center gap-1">Pool <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 1, true)"><div class="flex items-center justify-center gap-1">New <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 2, true)"><div class="flex items-center justify-center gap-1">Saved <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 3, true)"><div class="flex items-center justify-center gap-1">Missed <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 4, true)"><div class="flex items-center justify-center gap-1">Arrived Expired <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 5, true)"><div class="flex items-center justify-center gap-1">Open Now <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Saved % <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
-                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Median Clear <span class="material-symbols-outlined text-[16px] sort-arrow text-gray-400">unfold_more</span></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 0)"><div class="flex items-center gap-1">Pool <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 1, true)"><div class="flex items-center justify-center gap-1">New <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 2, true)"><div class="flex items-center justify-center gap-1">Saved <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 3, true)"><div class="flex items-center justify-center gap-1">Missed <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 4, true)"><div class="flex items-center justify-center gap-1">Arrived Expired <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 5, true)"><div class="flex items-center justify-center gap-1">Open Now <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 6, true)"><div class="flex items-center justify-center gap-1">Saved % <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
+                    <th class="p-4 font-medium border-b border-gray-200 dark:border-gray-700 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition" onclick="sortTable('expPoolTableBody', this, 7, true)"><div class="flex items-center justify-center gap-1">Median Clear <i data-lucide="chevrons-up-down" class="text-[16px] sort-arrow text-gray-400" ></i></div></th>
                   </tr>
                 </thead>
                 <tbody id="expPoolTableBody" class="text-sm divide-y divide-gray-100 dark:divide-gray-700">
@@ -1804,7 +1806,7 @@
             </div>
             <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
               <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-1 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[#fbbc04]">social_leaderboard</span> Top Agents on Expiring Cases
+                <i data-lucide="social-leaderboard" class="text-[#fbbc04]" ></i> Top Agents on Expiring Cases
               </h3>
               <p class="text-xs cell-muted mb-4">Cases an agent logged in Submit Cases that were on this list.</p>
               <div id="expAgentBoard" class="space-y-4 max-h-[320px] overflow-y-auto pr-2">
@@ -1818,7 +1820,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px] text-google-green">done_all</span> Total Valid (<span id="kpi-range-label">Today</span>)
+            <i data-lucide="check-check" class="text-[16px] text-google-green" ></i> Total Valid (<span id="kpi-range-label">Today</span>)
           </span>
           <div class="flex items-end gap-2">
             <span id="kpi-valid-today" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
@@ -1828,17 +1830,17 @@
         </div>
         <div id="kpi-audits-card" onclick="switchTab('dashboardView')" class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition-all">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px] text-amber-500">pending_actions</span> Pending Audits
+            <i data-lucide="pending-actions" class="text-[16px] text-amber-500" ></i> Pending Audits
           </span>
           <div class="flex items-center justify-between">
             <span id="kpi-pending-audits" class="text-4xl font-normal text-gray-800 dark:text-gray-100">--</span>
-            <span id="kpi-audits-alert" class="hidden material-symbols-outlined text-amber-500 text-[26px]">gavel</span>
+            <i data-lucide="gavel" class="hidden  text-amber-500 text-[26px]" id="kpi-audits-alert" ></i>
           </div>
           <span class="text-[11px] cell-faint mt-1">Click to open the audit queue</span>
         </div>
         <div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px] text-theme-primary dark:text-theme-primary">group</span> Active Staff (<span id="kpi-range-label-2">Today</span> / Now)
+            <i data-lucide="users" class="text-[16px] text-theme-primary dark:text-theme-primary" ></i> Active Staff (<span id="kpi-range-label-2">Today</span> / Now)
           </span>
           <div class="flex items-end gap-2">
             <span class="text-4xl font-normal text-gray-800 dark:text-gray-100">
@@ -1852,8 +1854,8 @@
       <!-- Row 2: Agent Leaderboard -->
       <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
         <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2">
-          <span class="material-symbols-outlined text-[#fbbc04]">social_leaderboard</span> Top Performers
-          <button type="button" onclick="toggleTopPerformers()" title="Minimize / maximize" class="ml-auto p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center"><span id="topPerformersChevron" class="material-symbols-outlined text-[20px]">expand_less</span></button>
+          <i data-lucide="social-leaderboard" class="text-[#fbbc04]" ></i> Top Performers
+          <button type="button" onclick="toggleTopPerformers()" title="Minimize / maximize" class="ml-auto p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center"><i data-lucide="chevron-up" class="text-[20px]" id="topPerformersChevron" ></i></button>
         </h3>
         <div id="leaderboardContainer" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
           <div class="text-center text-gray-400 py-8">Loading leaderboard...</div>
@@ -1863,7 +1865,7 @@
       <!-- Row 3: Heatmap -->
       <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
         <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">grid_view</span> Hourly Productivity Heatmap
+          <i data-lucide="grid-view" class="text-theme-primary dark:text-theme-primary" ></i> Hourly Productivity Heatmap
         </h3>
         <div id="heatmapChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
       </div>
@@ -1872,13 +1874,13 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-purple-500">donut_small</span> Workflow Distribution
+            <i data-lucide="donut-small" class="text-purple-500" ></i> Workflow Distribution
           </h3>
           <div id="donutChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
         </div>
         <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-google-green">bar_chart</span> Site Throughput
+            <i data-lucide="bar-chart-2" class="text-google-green" ></i> Site Throughput
           </h3>
           <div id="barChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
         </div>
@@ -1888,14 +1890,14 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">show_chart</span> OT Spikes Timeline
+            <i data-lucide="show-chart" class="text-purple-600 dark:text-purple-400" ></i> OT Spikes Timeline
           </h3>
           <div id="otTimelineChart" class="w-full min-h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
         </div>
 
         <div class="bg-theme-card backdrop-blur-theme rounded-theme shadow-theme border border-theme-card-border p-6">
           <h3 class="text-base font-medium text-gray-700 dark:text-gray-200 mb-6 flex items-center gap-2">
-            <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">social_leaderboard</span> Top OT Performers
+            <i data-lucide="social-leaderboard" class="text-purple-600 dark:text-purple-400" ></i> Top OT Performers
           </h3>
           <div id="otLeaderboardContainer" class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
             <div class="text-center text-gray-400 py-8">Loading OT leaderboard...</div>
@@ -1908,7 +1910,7 @@
     <div id="profileView" class="hidden w-full max-w-5xl space-y-6 pb-12">
       <div id="profileManagerBar" class="hidden">
         <button type="button" onclick="toggleProfileLookup()" class="text-sm font-medium text-theme-primary dark:text-theme-primary hover:underline flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-[16px]">manage_search</span> Look up another agent
+          <i data-lucide="manage-search" class="text-[16px]" ></i> Look up another agent
         </button>
         <div id="profileLookupPanel" class="hidden mt-2 flex items-center gap-3 bg-theme-card border border-theme-card-border rounded-theme-sm shadow-sm px-4 py-3">
           <div class="relative flex-1">
@@ -1921,11 +1923,11 @@
 
       <div id="profileViewingBanner" class="hidden items-center justify-between bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-theme-sm px-4 py-2.5">
         <span class="text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">visibility</span>
+          <i data-lucide="visibility" class="text-[18px]" ></i>
           Viewing <strong id="profileViewingLdap"></strong>'s profile
         </span>
         <button onclick="loadMyProfile()" class="text-sm font-medium text-amber-800 dark:text-amber-300 hover:underline flex items-center gap-1">
-          <span class="material-symbols-outlined text-[16px]">arrow_back</span> Back to my profile
+          <i data-lucide="arrow-back" class="text-[16px]" ></i> Back to my profile
         </button>
       </div>
 
@@ -1938,8 +1940,8 @@
         <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start mb-4">
-              <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2"><span class="material-symbols-outlined text-orange-500">local_fire_department</span> Hot Streak</h3>
-              <span id="profFreezeIndicator" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"><span class="material-symbols-outlined text-[12px] align-middle">schedule</span> Late pass available</span>
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2"><i data-lucide="flame" class="text-orange-500" ></i> Hot Streak</h3>
+              <span id="profFreezeIndicator" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"><i data-lucide="calendar-clock" class="text-[12px] align-middle" ></i> Late pass available</span>
             </div>
             <div class="flex items-end gap-3">
               <span id="profCurrentStreak" class="text-4xl font-bold text-gray-800 dark:text-gray-100">--</span>
@@ -1951,7 +1953,7 @@
         
         <!-- Personal Bests Card -->
         <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border">
-           <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-yellow-500">workspace_premium</span> Personal Bests</h3>
+           <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><i data-lucide="workspace-premium" class="text-yellow-500" ></i> Personal Bests</h3>
            <div class="grid grid-cols-2 gap-y-4 gap-x-2">
              <div>
                <div class="text-[10px] uppercase cell-muted">Best Interval</div>
@@ -1974,7 +1976,7 @@
         
         <!-- Badges Card -->
         <div class="bg-theme-card p-6 rounded-theme shadow-md border border-theme-card-border md:col-span-2">
-           <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-purple-500">military_tech</span> Badges Earned</h3>
+           <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-4"><i data-lucide="award" class="text-purple-500" ></i> Badges Earned</h3>
            <div id="profBadgesContainer" class="flex flex-wrap gap-3">
               <div class="text-xs cell-faint">Loading badges...</div>
            </div>
@@ -2017,12 +2019,12 @@
         <div class="p-4 pt-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-theme-canvas/50 dark:bg-gray-800/50 shrink-0">
           <div>
             <h2 class="text-xl font-normal text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">edit_calendar</span>
+              <i data-lucide="calendar-days" class="text-theme-primary dark:text-theme-primary" ></i>
               Email POC Planner
             </h2>
           </div>
           <a href="https://script.google.com/a/macros/google.com/s/AKfycbzpFsp5ElMkJ6jwveJkoZJmBU1-YwhXKDCPHXyUh_TvCYNkiZ4UNs9Pn4ZBAleGR5YS/exec" target="_blank" class="text-xs flex items-center gap-1 text-gray-500 hover:text-theme-primary transition">
-            Open in new tab <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+            Open in new tab <i data-lucide="external-link" class="text-[14px]" ></i>
           </a>
         </div>
         <div class="flex-1 w-full bg-theme-canvas dark:bg-gray-900 rounded-b-theme overflow-hidden">
@@ -2037,7 +2039,7 @@
 
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded shadow-lg transition-opacity duration-300 opacity-0 hidden flex items-center gap-3 z-50">
-    <span id="toastIcon" class="material-symbols-outlined">info</span>
+    <i data-lucide="info" class="" id="toastIcon" ></i>
     <span id="toastMessage" class="text-sm">Message</span>
   </div>
 
@@ -2047,11 +2049,11 @@
     <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
       <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
-          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">history</span>
+          <i data-lucide="history" class="text-theme-primary dark:text-theme-primary" ></i>
           Case ID History
         </h2>
         <button onclick="closeCaseLookup()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-          <span class="material-symbols-outlined">close</span>
+          <i data-lucide="x" class="" ></i>
         </button>
       </div>
       <div class="p-5 overflow-y-auto">
@@ -2066,7 +2068,7 @@
     <div class="absolute inset-0 bg-black/40" onclick="closeConfirmModal()"></div>
     <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
       <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
-        <span id="confirmModalIcon" class="material-symbols-outlined text-red-500">warning</span>
+        <i data-lucide="alert-triangle" class="text-red-500" id="confirmModalIcon" ></i>
         <h2 id="confirmModalTitle" class="text-lg font-medium text-theme-primary">Confirm Action</h2>
       </div>
       <div class="p-5">
@@ -2090,20 +2092,20 @@
     <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-fade-in">
       <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
-          <span class="material-symbols-outlined text-red-500">error</span>
+          <i data-lucide="alert-circle" class="text-red-500" ></i>
           Flagged Submissions: <span id="agentFlaggedName" class="font-bold"></span>
         </h2>
         <button onclick="closeAgentFlaggedModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition focus:outline-none">
-          <span class="material-symbols-outlined">close</span>
+          <i data-lucide="x" class="" ></i>
         </button>
       </div>
       <div class="p-5 overflow-y-auto flex-1 custom-scrollbar">
         <div class="flex items-center gap-2 mb-4">
           <button onclick="handleAgentFlaggedBulkAudit('Approve')" id="agentFlaggedBulkApproveBtn" disabled class="px-3 py-1.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded text-sm font-medium hover:bg-green-100 dark:hover:bg-green-900/50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px]">check</span> Approve Selected
+            <i data-lucide="check" class="text-[16px]" ></i> Approve Selected
           </button>
           <button onclick="handleAgentFlaggedBulkAudit('Reject')" id="agentFlaggedBulkRejectBtn" disabled class="px-3 py-1.5 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px]">close</span> Reject Selected
+            <i data-lucide="x" class="text-[16px]" ></i> Reject Selected
           </button>
         </div>
         <div class="overflow-x-auto">
@@ -2133,10 +2135,10 @@
     <div class="bg-theme-canvas border border-theme dark:border-gray-700 w-full max-w-md rounded-theme-lg shadow-theme-xl overflow-hidden relative z-10 animate-fade-in text-theme-primary">
       <div class="flex items-center justify-between p-4 border-b border-theme dark:border-gray-700">
         <h3 class="font-semibold flex items-center gap-2">
-          <span class="material-symbols-outlined text-amber-500">warning</span> Action Required
+          <i data-lucide="alert-triangle" class="text-amber-500" ></i> Action Required
         </h3>
         <button onclick="closeCheckInModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-          <span class="material-symbols-outlined">close</span>
+          <i data-lucide="x" class="" ></i>
         </button>
       </div>
       <div class="p-4 space-y-4">
@@ -2162,11 +2164,11 @@
     <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
       <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
-          <span class="material-symbols-outlined text-red-500">flag</span>
+          <i data-lucide="flag" class="text-red-500" ></i>
           Follow-up: <span id="attFuName" class="font-bold"></span>
         </h2>
         <button onclick="closeAttFollowUp()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-          <span class="material-symbols-outlined">close</span>
+          <i data-lucide="x" class="" ></i>
         </button>
       </div>
       <div class="p-5 space-y-4">
@@ -2201,20 +2203,20 @@
     <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
       <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <h2 class="text-lg font-medium flex items-center gap-2 cell-strong">
-          <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary">help</span>
+          <i data-lucide="help-circle" class="text-theme-primary dark:text-theme-primary" ></i>
           Help &amp; Guide
         </h2>
         <button onclick="closeHelpModal()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-          <span class="material-symbols-outlined">close</span>
+          <i data-lucide="x" class="" ></i>
         </button>
       </div>
       <div class="p-5 overflow-y-auto space-y-2">
         <button onclick="closeHelpModal(); startTutorial();" class="w-full flex items-center justify-between bg-theme-accent-muted dark:bg-theme-accent-muted/30 border border-theme-primary dark:border-theme-primary text-theme-primary dark:text-theme-primary rounded-theme-sm p-4 hover:bg-theme-accent-muted dark:hover:bg-theme-accent-muted/50 transition text-left mb-2">
           <span class="font-medium flex items-center gap-2">
-            <span class="material-symbols-outlined text-[20px]">play_circle</span>
+            <i data-lucide="play-circle" class="text-[20px]" ></i>
             Take the guided tour
           </span>
-          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          <i data-lucide="arrow-forward" class="text-[18px]" ></i>
         </button>
         <div id="helpAccordion" class="divide-y divide-gray-100 dark:divide-gray-700 border border-theme-card-border rounded-theme-sm overflow-hidden"></div>
       </div>
@@ -2227,11 +2229,11 @@
     <div class="relative bg-theme-sidebar rounded-theme shadow-2xl w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden">
       <div class="p-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-theme-primary via-indigo-500 to-purple-600 shrink-0">
         <h2 class="text-lg font-medium flex items-center gap-2 text-white">
-          <span class="material-symbols-outlined">auto_stories</span>
+          <i data-lucide="auto-stories" class="" ></i>
           POC Interval Guide
         </h2>
         <button onclick="closePocGuideModal()" class="text-white/80 hover:text-white p-1 rounded hover:bg-white/10">
-          <span class="material-symbols-outlined">close</span>
+          <i data-lucide="x" class="" ></i>
         </button>
       </div>
 
@@ -2239,15 +2241,15 @@
         <!-- Why this tab exists -->
         <div class="bg-theme-accent-muted dark:bg-theme-accent-muted/20 border border-theme-primary/20 rounded-theme-sm p-4">
           <p class="text-sm cell-strong leading-relaxed">
-            <span class="font-semibold">Your job here:</span> make sure every agent scheduled this hour either logged cases, or has a clear, honest reason on record for why they didn't &mdash; break, coaching, leave, absence, pulled to another channel, etc. This tab isn't about catching people out; it's about having a real answer ready if someone later asks "what happened at 3 PM?"
+            <span class="font-semibold">Your job here:</span> make sure every agent scheduled this hour either logged cases, or has a clear, honest reason on record for why they didn't - break, coaching, leave, absence, pulled to another channel, etc. This tab isn't about catching people out; it's about having a real answer ready if someone later asks "what happened at 3 PM?"
           </p>
         </div>
 
         <!-- Quick Start Steps -->
         <div>
           <h3 class="text-sm font-semibold cell-strong mb-3 uppercase tracking-wide flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px] text-theme-primary">checklist</span>
-            Quick Start &mdash; do this every interval
+            <i data-lucide="checklist" class="text-[18px] text-theme-primary" ></i>
+            Quick Start - do this every interval
           </h3>
           <div class="space-y-3" id="pocGuideSteps"></div>
         </div>
@@ -2255,7 +2257,7 @@
         <!-- Deep dive accordion -->
         <div>
           <h3 class="text-sm font-semibold cell-strong mb-3 uppercase tracking-wide flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px] text-theme-primary">menu_book</span>
+            <i data-lucide="menu-book" class="text-[18px] text-theme-primary" ></i>
             Details &amp; Reference
           </h3>
           <div id="pocGuideAccordion" class="divide-y divide-gray-100 dark:divide-gray-700 border border-theme-card-border rounded-theme-sm overflow-hidden"></div>
@@ -2275,7 +2277,7 @@
       <div class="flex items-center justify-between mb-2">
         <span id="tutorialStepCount" class="text-xs font-medium cell-muted uppercase tracking-wide"></span>
         <button onclick="endTutorial()" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-          <span class="material-symbols-outlined text-[18px]">close</span>
+          <i data-lucide="x" class="text-[18px]" ></i>
         </button>
       </div>
       <h3 id="tutorialTitle" class="font-medium mb-1 cell-strong"></h3>
@@ -2310,7 +2312,7 @@
         let cleanId = escAttr(id.trim());
         let html = `<a href="http://cases.connect.corp.google.com/${cleanId}" target="_blank" class="case-link hover:underline whitespace-nowrap">${cleanId}</a>`;
         if (showHistory) {
-          html += ` <button type="button" onclick="openCaseLookup('${cleanId}')" title="See every time this ID was logged" class="align-middle text-gray-400 hover:text-theme-primary transition ml-1"><span class="material-symbols-outlined text-[14px]">history</span></button>`;
+          html += ` <button type="button" onclick="openCaseLookup('${cleanId}')" title="See every time this ID was logged" class="align-middle text-gray-400 hover:text-theme-primary transition ml-1"><i data-lucide="history" class="text-[14px]" ></i></button>`;
         }
         return html;
       }).join(', ');
@@ -2531,15 +2533,92 @@ function refreshAccess() {
 
     // 1. App Initialization (Run on load)
     document.addEventListener("DOMContentLoaded", function() {
+  if (typeof google !== 'undefined' && google.script && google.script.history) {
+    google.script.history.setChangeHandler(function(e) {
+      if (e.state && e.state.tab) {
+        if (e.state.tab === 'searchView' && e.state.q) {
+            document.getElementById('searchQuery').value = e.state.q;
+            if (e.state.by) document.getElementById('searchBy').value = e.state.by;
+            setTimeout(searchCases, 500);
+        }
+        const views = ['submissionView', 'searchView', 'analyticsView', 'profileView', 'settingsView', 'mySubmissionsView', 'caseLogView', 'leaderboardView', 'intervalView', 'expiringView'];
+        if (views.includes(e.state.tab)) {
+          views.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+          });
+          const activeEl = document.getElementById(e.state.tab);
+          if (activeEl) activeEl.classList.remove('hidden');
+
+          // Update Nav Active State
+          document.querySelectorAll('.nav-active').forEach(btn => {
+            btn.classList.remove('nav-active');
+            btn.classList.add('nav-inactive');
+          });
+          const activeNavBtn = document.getElementById('tab-' + e.state.tab);
+          if (activeNavBtn) {
+            activeNavBtn.classList.remove('nav-inactive');
+            activeNavBtn.classList.add('nav-active');
+          }
+        }
+      }
+    });
+  }
+
+  // Parse initial URL params for routing
+  if (typeof google !== 'undefined' && google.script && google.script.url) {
+      google.script.url.getLocation(function(location) {
+          if (location.parameters && location.parameters.tab && location.parameters.tab[0]) {
+              const tabId = location.parameters.tab[0];
+              window.initialUrlTabLoaded = true;
+
+              // Update Nav Active State
+              document.querySelectorAll('.nav-active').forEach(btn => {
+                btn.classList.remove('nav-active');
+                btn.classList.add('nav-inactive');
+              });
+              const activeNavBtn = document.getElementById('tab-' + tabId);
+              if (activeNavBtn) {
+                activeNavBtn.classList.remove('nav-inactive');
+                activeNavBtn.classList.add('nav-active');
+              }
+              if (tabId === 'searchView' && location.parameters.q) {
+                  document.getElementById('searchQuery').value = location.parameters.q[0];
+                  if (location.parameters.by) document.getElementById('searchBy').value = location.parameters.by[0];
+                  setTimeout(searchCases, 500); // Trigger search
+              }
+              const views = ['submissionView', 'searchView', 'analyticsView', 'profileView', 'settingsView', 'mySubmissionsView', 'caseLogView', 'leaderboardView', 'intervalView', 'expiringView'];
+              if (views.includes(tabId)) {
+                  views.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                  });
+                  const activeEl = document.getElementById(tabId);
+                  if (activeEl) activeEl.classList.remove('hidden');
+              }
+          }
+      });
+  }
+
       // Initialize Theme
       initTheme();
       initSidebar();
 
       // Call backend to get role and LDAP
-      google.script.run
-        .withSuccessHandler(initializeUserUI)
-        .withFailureHandler(function(err){ showToast("Failed to load profile", "error"); })
-        .getUserProfile();
+      const cachedProfile = sessionStorage.getItem('getUserProfile');
+      if (cachedProfile) {
+          try {
+              initializeUserUI(JSON.parse(cachedProfile));
+          } catch(e) {}
+      } else {
+          google.script.run
+            .withSuccessHandler(function(profile) {
+                sessionStorage.setItem('getUserProfile', JSON.stringify(profile));
+                initializeUserUI(profile);
+            })
+            .withFailureHandler(function(err){ showToast("Failed to load profile", "error"); })
+            .getUserProfile();
+      }
 
       // Load user preferences from local storage
       loadSelections();
@@ -2562,7 +2641,7 @@ function refreshAccess() {
     // --- POC SCHEDULE LOGIC ---
     function loadPOCSchedule() {
       const pocContainer = document.getElementById('pocContainer');
-      pocContainer.innerHTML = '<div class="text-xs text-center text-gray-400 py-2 flex items-center justify-center gap-1"><span class="material-symbols-outlined animate-spin text-[14px]">progress_activity</span></div>';
+      pocContainer.innerHTML = '<div class="text-xs text-center text-gray-400 py-2 flex items-center justify-center gap-1"><i data-lucide="loader-2" class="animate-spin text-[14px]" ></i></div>';
 
       google.script.run
         .withSuccessHandler(renderPOCSchedule)
@@ -2682,7 +2761,55 @@ function refreshAccess() {
     }
 
     // 2. Setup UI based on profile
-    function initializeUserUI(profile) {
+
+  // Dynamic Icon Mapping Dictionary
+  window.iconMap = {
+    'person': 'user', 'search': 'search', 'bar_chart': 'bar-chart-2', 'inbox': 'inbox',
+    'settings': 'settings', 'menu': 'menu', 'close': 'x', 'help': 'help-circle',
+    'info': 'info', 'work': 'briefcase', 'timer': 'clock', 'add': 'plus',
+    'delete': 'trash-2', 'edit': 'edit-2', 'check_circle': 'check-circle',
+    'cancel': 'x-circle', 'unfold_more': 'chevrons-up-down', 'edit_square': 'edit',
+    'leaderboard': 'award', 'light_mode': 'sun', 'list_alt': 'list',
+    'event_busy': 'calendar-off', 'award': 'award', 'insights': 'line-chart',
+    'task_alt': 'check-circle-2', 'progress_activity': 'loader-2', 'verified': 'shield-check',
+    'error': 'alert-circle', 'open_in_new': 'external-link', 'edit_note': 'file-edit',
+    'radio_button_unchecked': 'circle', 'expand_more': 'chevron-down', 'expand_less': 'chevron-up',
+    'flag': 'flag', 'warning': 'alert-triangle', 'schedule': 'calendar-clock',
+    'local_fire_department': 'flame', 'trending_up': 'trending-up', 'dashboard': 'layout-dashboard',
+    'analytics': 'bar-chart', 'forum': 'message-square', 'account_circle': 'user-circle',
+    'logout': 'log-out', 'new_releases': 'sparkles', 'manage_accounts': 'users',
+    'tune': 'sliders', 'assignment': 'clipboard-list', 'history': 'history',
+    'bug_report': 'bug', 'support_agent': 'headset', 'keyboard_arrow_down': 'chevron-down',
+    'keyboard_arrow_right': 'chevron-right', 'keyboard_arrow_up': 'chevron-up',
+    'star': 'star', 'notifications': 'bell', 'event': 'calendar', 'group': 'users',
+    'fact_check': 'check-square', 'edit_calendar': 'calendar-days', 'groups': 'users',
+    'done_all': 'check-check'
+  };
+
+  // Lucide Icons Auto-updater
+  const observer = new MutationObserver((mutations) => {
+    let shouldUpdate = false;
+    for (const m of mutations) {
+      if (m.addedNodes.length > 0) {
+         for (const node of m.addedNodes) {
+           if (node.nodeType === 1 && (node.hasAttribute('data-lucide') || node.querySelector('[data-lucide]'))) {
+             shouldUpdate = true;
+             break;
+           }
+         }
+      }
+      if (shouldUpdate) break;
+    }
+    if (shouldUpdate && window.lucide && window.lucide.createIcons) {
+      lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  if (window.lucide && window.lucide.createIcons) {
+    lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
+  }
+
+function initializeUserUI(profile) {
       currentUserIsManager = !!profile.isManager;
       const chip = document.getElementById('identityChip');
       
@@ -2716,7 +2843,7 @@ function refreshAccess() {
        document.getElementById('mySubmissionsNavText').innerText = 'Agent Submissions';
         document.getElementById('tab-mySubmissionsView').title = 'Agent Submissions';
         document.getElementById('mySubmissionsTitle').innerHTML = `
-          <span class="material-symbols-outlined text-theme-primary">manage_search</span>
+          <i data-lucide="manage-search" class="text-theme-primary" ></i>
           Agent Submissions
         `;
         document.getElementById('mySubmissionsDesc').innerText = "View tracked cases per interval for any agent.";
@@ -2738,10 +2865,10 @@ function refreshAccess() {
           .getAllAgents();
 
         // Smart Routing: Managers land on Analytics
-        switchTab('analyticsView');
+        if (!window.initialUrlTabLoaded) switchTab('analyticsView');
       } else {
         // Smart Routing: Agents land on Submission Form
-        switchTab('submissionView');
+        if (!window.initialUrlTabLoaded) switchTab('submissionView');
       }
       
       // Set default date for my submissions
@@ -2815,6 +2942,21 @@ function refreshAccess() {
 
     // 3. Tab Switching Logic
     function switchTab(viewId) {
+      document.querySelectorAll('.nav-active').forEach(btn => {
+        btn.classList.remove('nav-active');
+        btn.classList.add('nav-inactive');
+      });
+      const activeNavBtn = document.getElementById('tab-' + viewId);
+      if (activeNavBtn) {
+        activeNavBtn.classList.remove('nav-inactive');
+        activeNavBtn.classList.add('nav-active');
+      }
+
+  if (typeof google !== 'undefined' && google.script && google.script.history) {
+    var params = {};
+    if (viewId) params.tab = viewId;
+    google.script.history.push({tab: viewId}, params, viewId);
+  }
       ['submissionView', 'mySubmissionsView', 'caseLogView', 'leaderboardView', 'dashboardView', 'intervalView', 'expiringView', 'analyticsView', 'profileView', 'pocPlannerView'].forEach(id => {
         let el = document.getElementById(id);
         let tabEl = document.getElementById('tab-' + id);
@@ -2976,6 +3118,15 @@ function refreshAccess() {
       const activity = document.querySelector('input[name="intervalActivity"]:checked').value;
       const caseIdsText = document.getElementById('caseIds').value;
       
+      // Inline Validation Reset
+      const caseIdsEl = document.getElementById('caseIds');
+      const caseIdsError = document.getElementById('caseIdsError');
+      if (caseIdsError) {
+        caseIdsEl.classList.remove('border-red-500', 'ring-red-500');
+        caseIdsError.classList.add('hidden');
+        caseIdsError.textContent = '';
+      }
+
       // Strict Frontend Case ID Validation
       if (activity !== 'Coaching/Training' && caseIdsText.trim() !== '') {
         let rawIds = caseIdsText.split(/[\n,;\s]+/).map(id => id.trim()).filter(id => id !== '');
@@ -2983,8 +3134,12 @@ function refreshAccess() {
         let invalidIds = rawIds.filter(id => !CASE_ID_PATTERN.test(id));
 
         if (invalidIds.length > 0) {
-          document.getElementById('caseIds').focus();
-          showToast(`Invalid Case ID format detected: ${invalidIds.slice(0, 3).join(', ')}${invalidIds.length > 3 ? '...' : ''}. Format must be like 1-12345678`, 'error');
+          if (caseIdsError) {
+            caseIdsEl.classList.add('border-red-500', 'ring-red-500');
+            caseIdsError.textContent = `Invalid Case IDs format: ${invalidIds.slice(0, 3).join(', ')}${invalidIds.length > 3 ? '...' : ''}. Must be X-XXXXXXXX.`;
+            caseIdsError.classList.remove('hidden');
+          }
+          caseIdsEl.focus();
           return;
         }
       }
@@ -3083,7 +3238,7 @@ function refreshAccess() {
       const hasTotals = res && res.intervalTotal !== null && res.intervalTotal !== undefined;
       const summaryHtml = `
         <div class="border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-900/20 rounded-theme-sm p-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-          <div class="text-sm font-medium text-emerald-800 dark:text-emerald-300 flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check_circle</span>${res.valid} logged</div>
+          <div class="text-sm font-medium text-emerald-800 dark:text-emerald-300 flex items-center gap-2"><i data-lucide="check-circle" class="text-[18px]" ></i>${res.valid} logged</div>
           ${hasTotals ? `<div class="text-xs cell-muted"><span class="font-semibold cell-strong">${res.intervalTotal}</span> this interval (${escAttr(res.interval)})</div><div class="text-xs cell-muted"><span class="font-semibold cell-strong">${res.todayTotal}</span> today</div>` : ''}
         </div>`;
       if (flagged.length === 0) { el.innerHTML = summaryHtml; el.classList.remove('hidden'); return; }
@@ -3091,11 +3246,11 @@ function refreshAccess() {
         ${summaryHtml}
         <div class="mt-3 border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 rounded-theme-sm p-4">
           <div class="text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center gap-2 mb-2">
-            <span class="material-symbols-outlined text-[18px]">warning</span>
+            <i data-lucide="alert-triangle" class="text-[18px]" ></i>
             ${flagged.length} ID(s) flagged for manager review
           </div>
           <ul class="text-xs space-y-1 cell-muted">
-            ${flagged.map(f => `<li><span class="font-mono cell-strong">${escAttr(f.id)}</span> &mdash; ${escAttr(f.reason)}${f.firstBy ? ' (first logged by ' + escAttr(f.firstBy) + (f.firstOn ? ' on ' + escAttr(f.firstOn) : '') + ')' : ''}</li>`).join('')}
+            ${flagged.map(f => `<li><span class="font-mono cell-strong">${escAttr(f.id)}</span> - ${escAttr(f.reason)}${f.firstBy ? ' (first logged by ' + escAttr(f.firstBy) + (f.firstOn ? ' on ' + escAttr(f.firstOn) : '') + ')' : ''}</li>`).join('')}
           </ul>
           <p class="text-xs cell-muted mt-2">The review result shows up next to the submission under My Submissions.</p>
         </div>`;
@@ -3123,20 +3278,29 @@ function refreshAccess() {
 
       const toast = document.getElementById('toast');
       const toastMsg = document.getElementById('toastMessage');
-      const toastIcon = document.getElementById('toastIcon');
+      const toastIconContainer = document.getElementById('toastIconContainer') || document.getElementById('toastIcon')?.parentElement || toast;
 
       toastMsg.textContent = message;
+      let iconHtml = '';
 
       if (type === 'success') {
         toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 transition-opacity duration-300";
-        toastIcon.textContent = "check_circle";
+        iconHtml = '<i data-lucide="check-circle" class="w-6 h-6"></i>';
       } else if (type === 'warning') {
         toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-amber-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 transition-opacity duration-300";
-        toastIcon.textContent = "warning";
+        iconHtml = '<i data-lucide="alert-triangle" class="w-6 h-6"></i>';
       } else {
         toast.className = "fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 z-50 transition-opacity duration-300";
-        toastIcon.textContent = "error";
+        iconHtml = '<i data-lucide="alert-circle" class="w-6 h-6"></i>';
       }
+
+      const iconEl = document.getElementById('toastIcon');
+      if (iconEl) {
+          iconEl.outerHTML = `<span id="toastIcon">${iconHtml}</span>`;
+      } else {
+          toastMsg.insertAdjacentHTML('beforebegin', `<span id="toastIcon">${iconHtml}</span>`);
+      }
+      if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
 
       const holdMs = (type === 'error') ? 8000 : 5000;
 
@@ -3159,7 +3323,7 @@ function refreshAccess() {
       const soon = minsLeft <= 5;
       chip.className = 'inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full transition-colors ' +
         (soon ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400' : 'bg-theme-accent-muted dark:bg-theme-accent-muted/30 text-theme-primary');
-      chip.innerHTML = '<span class="material-symbols-outlined text-[14px]">schedule</span>Logging for ' + currentIntervalLabel() + ' interval' +
+      chip.innerHTML = '<i data-lucide="calendar-clock" class="text-[14px]" ></i>Logging for ' + currentIntervalLabel() + ' interval' +
         (soon ? ' &middot; next hour starts in ' + minsLeft + ' min' : '');
     }
 
@@ -3463,7 +3627,7 @@ function refreshAccess() {
         let opacityClass = '';
         let pillStyle = '';
         if (allCount === 0 && hasAbsent) {
-          // Zero cases AND tagged Absent for at least one interval — distinct
+          // Zero cases AND tagged Absent for at least one interval - distinct
           // from an ordinary zero-case day (rest day, VL, etc.) which carries
           // no tag at all.
           opacityClass = 'bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400';
@@ -3474,7 +3638,7 @@ function refreshAccess() {
         } else if (caseCount <= t2) {
           // Tailwind's `/70` opacity modifier can't apply to a CSS-variable
           // color like var(--color-primary), so it silently produced no
-          // background — leaving white text on a white pill. color-mix()
+          // background - leaving white text on a white pill. color-mix()
           // via inline style always works.
           opacityClass = 'text-white';
           pillStyle = 'background-color: color-mix(in srgb, var(--color-primary) 70%, white);';
@@ -3502,7 +3666,7 @@ function refreshAccess() {
         html += `
           <div onclick="goToIntervalFromCalendar('${dStr}')" class="h-20 bg-theme-sidebar rounded-theme ${borderClass} shadow-sm relative flex items-center justify-center transition hover:shadow-md hover:border-theme-primary cursor-pointer group" title="${tooltipText}">
             <span class="absolute top-1 left-2 text-[10px] font-semibold text-gray-400 dark:text-gray-500">${day}</span>
-            ${hasLate && allCount > 0 ? '<span class="material-symbols-outlined absolute top-1 right-1.5 text-[13px] text-amber-500" title="Started Late">schedule</span>' : ''}
+            ${hasLate && allCount > 0 ? '<i data-lucide="calendar-clock" class="absolute top-1 right-1.5 text-[13px] text-amber-500"  title="Started Late"></i>' : ''}
             <div class="px-3 py-1 rounded-full ${opacityClass} font-bold text-sm" style="${pillStyle}">
                ${(allCount === 0 && hasAbsent) ? '\u00d7' : (caseCount > 0 ? caseCount : '-')}
             </div>
@@ -3540,8 +3704,20 @@ function refreshAccess() {
       banner.classList.remove('flex');
 
       container.innerHTML = '<div class="text-center text-gray-400 py-12">Loading profile...</div>';
+      const cacheKey = 'getMyProfileData_' + (targetLdap || 'null');
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+         try {
+            renderMyProfile(JSON.parse(cached));
+            return;
+         } catch(e) {}
+      }
+
       google.script.run
-        .withSuccessHandler(renderMyProfile)
+        .withSuccessHandler(function(data) {
+           try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
+           renderMyProfile(data);
+        })
         .withFailureHandler(err => {
           container.innerHTML = '<div class="text-center text-red-400 py-12">Failed to load profile.</div>';
           showToast(err && err.message ? err.message : "Failed to load profile.", 'error');
@@ -3592,10 +3768,10 @@ function refreshAccess() {
          document.getElementById('profLongestStreak').textContent = data.streak.longest || '0';
          const freezeEl = document.getElementById('profFreezeIndicator');
          if (data.streak.freezeAvailable) {
-            freezeEl.innerHTML = '<span class="material-symbols-outlined text-[12px] align-middle">schedule</span> Late pass available';
+            freezeEl.innerHTML = '<i data-lucide="calendar-clock" class="text-[12px] align-middle" ></i> Late pass available';
             freezeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
          } else {
-            freezeEl.innerHTML = '<span class="material-symbols-outlined text-[12px] align-middle">history_toggle_off</span> Late pass used';
+            freezeEl.innerHTML = '<i data-lucide="history-toggle-off" class="text-[12px] align-middle" ></i> Late pass used';
             freezeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400';
          }
       }
@@ -3615,7 +3791,7 @@ function refreshAccess() {
             let unseen = (!data.isOwnProfile || b.seen) ? '' : '<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-theme-card"></span>';
             html += `<div class="relative px-3 py-2 rounded-lg border border-theme-card-border flex items-center gap-2 shadow-sm ${col}">
                         ${unseen}
-                        <span class="material-symbols-outlined text-[22px]">${escAttr(b.icon || 'military_tech')}</span>
+                        <i data-lucide="${escAttr((window.iconMap && window.iconMap[b.icon]) || 'award')}" class="text-[22px]" ></i>
                         <div class="font-bold text-sm leading-none flex flex-col">
                            <span>${escAttr(b.tier)}</span>
                            <span class="text-[10px] uppercase opacity-80">${escAttr(b.name || b.id)}</span>
@@ -3750,7 +3926,7 @@ function refreshAccess() {
               <div class="text-[10px] uppercase font-semibold cell-faint mb-1">My Pending Audits</div>
               <div class="text-3xl font-bold ${data.stats.pendingAudits > 0 ? 'text-amber-600 dark:text-amber-400' : 'cell-strong'}">${data.stats.pendingAudits}</div>
             </div>
-            ${data.stats.pendingAudits > 0 ? '<span class="material-symbols-outlined text-amber-500 text-[28px]">gavel</span>' : ''}
+            ${data.stats.pendingAudits > 0 ? '<i data-lucide="gavel" class="text-amber-500 text-[28px]" ></i>' : ''}
           </div>
         </div>
 
@@ -3773,16 +3949,16 @@ function refreshAccess() {
 
         <button onclick="switchTab('mySubmissionsView')" class="w-full flex items-center justify-between bg-theme-card p-4 rounded-theme shadow-sm border border-theme-card-border hover:border-theme-primary transition text-left">
           <span class="text-sm font-medium flex items-center gap-2 cell-strong">
-            <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[20px]">list_alt</span>
+            <i data-lucide="list" class="text-theme-primary dark:text-theme-primary text-[20px]" ></i>
             View my full submissions
           </span>
-          <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
+          <i data-lucide="arrow-forward" class="text-gray-400" ></i>
         </button>
 
         <div class="bg-theme-card p-5 rounded-theme shadow-sm border border-theme-card-border mt-6">
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-theme-primary dark:text-theme-primary text-[20px]">calendar_month</span>
+              <i data-lucide="calendar-month" class="text-theme-primary dark:text-theme-primary text-[20px]" ></i>
               <h3 class="text-sm font-medium cell-strong" id="calendarStripLabel">Last 8 weeks</h3>
             </div>
             <div class="flex items-center gap-2">
@@ -3806,10 +3982,10 @@ function refreshAccess() {
             <div class="flex items-center gap-1 mb-3">
               <span class="text-sm font-medium cell-strong" id="calendarMonthLabel">Loading...</span>
               <button onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-l-lg transition text-gray-500 dark:text-gray-300">
-                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                <i data-lucide="chevron-left" class="text-[18px]" ></i>
               </button>
               <button onclick="changeCalendarMonth(1)" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-r-lg transition text-gray-500 dark:text-gray-300">
-                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                <i data-lucide="chevron-right" class="text-[18px]" ></i>
               </button>
             </div>
             <div id="calendarHeatmapGrid" class="grid grid-cols-7 gap-2 text-center text-xs">
@@ -3856,7 +4032,7 @@ function refreshAccess() {
         <div>
           <button onclick="toggleHelpItem(${i})" class="w-full flex items-center justify-between p-4 text-left hover:bg-theme-canvas dark:hover:bg-gray-700/50 transition">
             <span class="text-sm font-medium cell-strong">${s.title}</span>
-            <span class="material-symbols-outlined text-[18px] cell-faint help-chevron-${i}">expand_more</span>
+            <i data-lucide="chevron-down" class="text-[18px] cell-faint help-chevron-${i}" ></i>
           </button>
           <div id="helpItem-${i}" class="hidden px-4 pb-4 text-sm cell-muted">${s.body}</div>
         </div>
@@ -3881,11 +4057,11 @@ function refreshAccess() {
 
     // --- POC INTERVAL GUIDE ---
     const POC_GUIDE_STEPS = [
-      { title: 'Load the interval', text: 'Pick the date and hour, click "Load Interval." Check the summary bar at the top &mdash; scheduled, flagged, on OT, cases logged &mdash; for a quick read on how busy this hour is.' },
-      { title: 'Find the red rows', text: 'Rows highlighted in light red have no status and zero cases logged &mdash; those are the only ones that actually need you. Everything else (green Assigned-7, teal SKIP-EOS, etc.) is already accounted for automatically.' },
-      { title: 'Investigate, then tag', text: 'Not sure why someone shows no activity? Check "Agent Submissions" for that LDAP to see if they logged under a different case type. Once you know the reason, set their Status dropdown accordingly &mdash; Absent, VL/SL, on Live Channel, whatever fits.' },
+      { title: 'Load the interval', text: 'Pick the date and hour, click "Load Interval." Check the summary bar at the top - scheduled, flagged, on OT, cases logged - for a quick read on how busy this hour is.' },
+      { title: 'Find the red rows', text: 'Rows highlighted in light red have no status and zero cases logged - those are the only ones that actually need you. Everything else (green Assigned-7, teal SKIP-EOS, etc.) is already accounted for automatically.' },
+      { title: 'Investigate, then tag', text: 'Not sure why someone shows no activity? Check "Agent Submissions" for that LDAP to see if they logged under a different case type. Once you know the reason, set their Status dropdown accordingly - Absent, VL/SL, on Live Channel, whatever fits.' },
       { title: 'Use Bulk Actions for groups', text: 'If several agents were pulled for the same reason at once (e.g. a floor meeting), check their boxes and use "Bulk Actions" instead of tagging one by one.' },
-      { title: 'Check In the interval', text: 'Once you\u2019ve worked through the red rows, click "Check In Interval." If anything is still unresolved, it will ask you for a short note before letting you proceed &mdash; that note is your record of why.' }
+      { title: 'Check In the interval', text: 'Once you\u2019ve worked through the red rows, click "Check In Interval." If anything is still unresolved, it will ask you for a short note before letting you proceed - that note is your record of why.' }
     ];
 
     function renderPocGuideSteps() {
@@ -3905,37 +4081,37 @@ function refreshAccess() {
       {
         title: 'What actually counts as "Unresolved"?',
         body: `An agent is flagged (red row) only when <b>all three</b> are true: no manual status has been set, nothing was auto-computed for them, and they logged zero valid cases this hour.
-        <br><br>Important: the moment you set <b>any</b> status &mdash; even "Absent" &mdash; that agent is resolved. The tool doesn't judge whether the reason is a good one; it just needs a reason on record. Use your judgment on what to actually tag.`
+        <br><br>Important: the moment you set <b>any</b> status - even "Absent" - that agent is resolved. The tool doesn't judge whether the reason is a good one; it just needs a reason on record. Use your judgment on what to actually tag.`
       },
       {
         title: 'Status cheat-sheet',
         body: `
           <div class="space-y-2 text-sm">
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#1e8e3e] text-white w-32 text-center shrink-0">Assigned - 7</span><span class="cell-muted">Auto &mdash; hit 7+ valid cases this hour.</span></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#f29900] text-white w-32 text-center shrink-0">Break - 3</span><span class="cell-muted">Auto &mdash; on Break/Lunch but still logged 3+ cases.</span></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#5d4037] text-white w-32 text-center shrink-0">Closing Reopens</span><span class="cell-muted">Auto &mdash; all logged cases this hour were Reopened (7+).</span></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#fce8e6] text-red-900 w-32 text-center shrink-0">SKIP SOS</span><span class="cell-muted">Auto &mdash; this is their Start-of-Shift hour.</span></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#cbf0f8] text-teal-900 w-32 text-center shrink-0">SKIP - EOS</span><span class="cell-muted">Auto &mdash; this is their End-of-Shift hour.</span></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#681da8] text-white w-32 text-center shrink-0">on Coaching/Training</span><span class="cell-muted">Auto &mdash; logged this interval's activity as Coaching/Training.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#1e8e3e] text-white w-32 text-center shrink-0">Assigned - 7</span><span class="cell-muted">Auto - hit 7+ valid cases this hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#f29900] text-white w-32 text-center shrink-0">Break - 3</span><span class="cell-muted">Auto - on Break/Lunch but still logged 3+ cases.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#5d4037] text-white w-32 text-center shrink-0">Closing Reopens</span><span class="cell-muted">Auto - all logged cases this hour were Reopened (7+).</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#fce8e6] text-red-900 w-32 text-center shrink-0">SKIP SOS</span><span class="cell-muted">Auto - this is their Start-of-Shift hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#cbf0f8] text-teal-900 w-32 text-center shrink-0">SKIP - EOS</span><span class="cell-muted">Auto - this is their End-of-Shift hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#681da8] text-white w-32 text-center shrink-0">on Coaching/Training</span><span class="cell-muted">Auto - logged this interval's activity as Coaching/Training.</span></div>
             <div class="border-t border-gray-100 dark:border-gray-700 my-2"></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#d2e3fc] text-gray-800 w-32 text-center shrink-0">VL/SL</span><span class="cell-muted">Manual only &mdash; approved leave. Tag it yourself.</span></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#f3e8fd] text-purple-900 w-32 text-center shrink-0">on Live Channel</span><span class="cell-muted">Manual only &mdash; pulled onto Chat/Phone for the hour.</span></div>
-            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#d93025] text-white w-32 text-center shrink-0">Absent</span><span class="cell-muted">Manual only &mdash; no-show, no excuse logged yet.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#d2e3fc] text-gray-800 w-32 text-center shrink-0">VL/SL</span><span class="cell-muted">Manual only - approved leave. Tag it yourself.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#f3e8fd] text-purple-900 w-32 text-center shrink-0">on Live Channel</span><span class="cell-muted">Manual only - pulled onto Chat/Phone for the hour.</span></div>
+            <div class="flex items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-[#d93025] text-white w-32 text-center shrink-0">Absent</span><span class="cell-muted">Manual only - no-show, no excuse logged yet.</span></div>
           </div>
-          <p class="text-xs cell-faint mt-3">The top six are computed automatically by the system. The bottom three only ever appear because a POC set them &mdash; that's you.</p>
+          <p class="text-xs cell-faint mt-3">The top six are computed automatically by the system. The bottom three only ever appear because a POC set them - that's you.</p>
         `
       },
       {
         title: 'Why does Check In sometimes ask for a note?',
-        body: `If you try to check in while red rows still remain, the system won't let you proceed silently. You'll be asked for a short note explaining the gap. This is intentional &mdash; it means every unresolved interval has a written reason attached, even if you genuinely couldn't get a status for everyone in time.`
+        body: `If you try to check in while red rows still remain, the system won't let you proceed silently. You'll be asked for a short note explaining the gap. This is intentional - it means every unresolved interval has a written reason attached, even if you genuinely couldn't get a status for everyone in time.`
       },
       {
         title: 'What happens if I don\u2019t check in at all?',
-        body: `About 30 minutes after an hour ends, an automated sweep checks for intervals that still have unresolved agents and no check-in on record. If it finds one, it emails the whole roster (and the scheduled POC) flagging it. Checking in as you go means you'll simply never see that email for your own intervals &mdash; it only fires on slots that got missed entirely.`
+        body: `About 30 minutes after an hour ends, an automated sweep checks for intervals that still have unresolved agents and no check-in on record. If it finds one, it emails the whole roster (and the scheduled POC) flagging it. Checking in as you go means you'll simply never see that email for your own intervals - it only fires on slots that got missed entirely.`
       },
       {
         title: 'My edits disappeared when I came back from another tab!',
-        body: `This shouldn't happen anymore &mdash; status changes save to the sheet the moment you make them, and switching tabs and back will reload the latest saved values. If you ever do see an edit revert, it likely means the save hadn't finished before you switched away; give it a second after changing a dropdown before navigating off.`
+        body: `This shouldn't happen anymore - status changes save to the sheet the moment you make them, and switching tabs and back will reload the latest saved values. If you ever do see an edit revert, it likely means the save hadn't finished before you switched away; give it a second after changing a dropdown before navigating off.`
       }
     ];
 
@@ -3945,7 +4121,7 @@ function refreshAccess() {
         <div>
           <button onclick="togglePocGuideItem(${i})" class="w-full flex items-center justify-between p-4 text-left hover:bg-theme-canvas dark:hover:bg-gray-700/50 transition">
             <span class="text-sm font-medium cell-strong">${s.title}</span>
-            <span class="material-symbols-outlined text-[18px] cell-faint poc-guide-chevron-${i}">expand_more</span>
+            <i data-lucide="chevron-down" class="text-[18px] cell-faint poc-guide-chevron-${i}" ></i>
           </button>
           <div id="pocGuideItem-${i}" class="hidden px-4 pb-4 text-sm cell-muted leading-relaxed">${s.body}</div>
         </div>
@@ -4121,10 +4297,10 @@ function refreshAccess() {
           <td class="p-4 text-right">
             <div class="flex items-center justify-end gap-2">
               <button onclick="handleAgentFlaggedAudit(${a.row}, ${a.rawRowRef}, 'Approve')" class="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded transition" title="Approve">
-                <span class="material-symbols-outlined text-[20px]">check</span>
+                <i data-lucide="check" class="text-[20px]" ></i>
               </button>
               <button onclick="handleAgentFlaggedAudit(${a.row}, ${a.rawRowRef}, 'Reject')" class="text-red-600 bg-red-50 hover:bg-red-100 p-1.5 rounded transition" title="Reject">
-                <span class="material-symbols-outlined text-[20px]">close</span>
+                <i data-lucide="x" class="text-[20px]" ></i>
               </button>
             </div>
           </td>
@@ -4327,7 +4503,7 @@ function refreshAccess() {
             const r = res.rows[idx];
             const h = idx === 0 ? 'h-40' : (idx === 1 ? 'h-32' : 'h-24');
             const col = idx === 0 ? 'bg-yellow-400 dark:bg-yellow-600' : (idx === 1 ? 'bg-gray-300 dark:bg-gray-500' : 'bg-amber-600 dark:bg-amber-700');
-            const crown = idx === 0 ? '<span class="material-symbols-outlined text-yellow-500 absolute -top-8 text-[32px]">crown</span>' : '';
+            const crown = idx === 0 ? '<i data-lucide="crown" class="text-yellow-500 absolute -top-8 text-[32px]" ></i>' : '';
             
             pHTML += `<div class="flex flex-col items-center flex-1 max-w-[140px] relative">
                ${crown}
@@ -4344,7 +4520,7 @@ function refreshAccess() {
            var r = res.rows[idx];
            if (!r) return '';
            return '<div class="lb-pod lb-pod-' + (idx + 1) + '">' +
-             (idx === 0 ? '<span class="material-symbols-outlined lb-crown">crown</span>' : '') +
+             (idx === 0 ? '<i data-lucide="crown" class="lb-crown" ></i>' : '') +
              '<div class="lb-pod-av">' + lbAvatar(r.ldap, r.name, idx === 0 ? 84 : 68) + '</div>' +
              '<div class="lb-pod-name" title="' + escAttr(r.name) + '">' + escAttr(r.ldap || r.name) + '</div>' +
              lbBadgeIcons(r.badges) +
@@ -4363,7 +4539,7 @@ function refreshAccess() {
          const tr = document.createElement('tr');
          tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/50 transition';
          
-         const badgeHtml = (r.badges && r.badges.length > 0) ? `<div class="flex gap-1 mt-1">` + r.badges.map(b => `<span class="material-symbols-outlined text-[14px] text-purple-500" title="${escAttr(b.tier + ' ' + b.id)}">military_tech</span>`).join('') + `</div>` : '';
+         const badgeHtml = (r.badges && r.badges.length > 0) ? `<div class="flex gap-1 mt-1">` + r.badges.map(b => `<i data-lucide="award" class="text-[14px] text-purple-500"  title="${escAttr(b.tier + ' ' + b.id)}"></i>`).join('') + `</div>` : '';
          
          tr.innerHTML = `
            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">#${r.rank}</td>
@@ -4414,7 +4590,7 @@ function refreshAccess() {
     function lbBadgeIcons(list) {
       if (!list || !list.length) return '';
       return '<div class="lb-badges">' + list.map(b =>
-        '<span class="material-symbols-outlined" style="color:' + (LB_TIER_COLOR[b.tier] || '#e8c468') + '" title="' + escAttr((b.name || b.id) + ' · ' + b.tier) + '">' + escAttr(b.icon || 'military_tech') + '</span>'
+        '<i data-lucide="' + escAttr((window.iconMap && window.iconMap[b.icon]) || 'award') + '" class=""  style="color:' + (LB_TIER_COLOR[b.tier] || '#e8c468') + '" title="' + escAttr((b.name || b.id) + ' · ' + b.tier) + '"></i>'
       ).join('') + '</div>';
     }
 
@@ -4454,7 +4630,7 @@ function refreshAccess() {
 
       function rowHtml(r, pinned) {
         const badges = (r.badges && r.badges.length)
-          ? '<div class="flex gap-1 mt-0.5">' + r.badges.map(b => '<span class="material-symbols-outlined text-[14px]" style="color:#d4af37" title="' + escAttr(b.tier + ' ' + b.id) + '">military_tech</span>').join('') + '</div>'
+          ? '<div class="flex gap-1 mt-0.5">' + r.badges.map(b => '<i data-lucide="award" class="text-[14px]"  style="color:#d4af37" title="' + escAttr(b.tier + ' ' + b.id) + '"></i>').join('') + '</div>'
           : '';
         return '<tr class="lb-row' + ((r.ldap && r.ldap === me) ? ' lb-me' : '') + (pinned ? ' lb-pinned' : '') + '">' +
           '<td class="lb-rank">#' + r.rank + '</td>' +
@@ -4539,10 +4715,10 @@ function refreshAccess() {
             <td class="p-4 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button onclick="handleAudit(${a.row}, ${a.rawRowRef}, 'Approve')" class="text-green-600 bg-green-50 hover:bg-green-100 p-1.5 rounded transition" title="Approve">
-                  <span class="material-symbols-outlined text-[20px]">check</span>
+                  <i data-lucide="check" class="text-[20px]" ></i>
                 </button>
                 <button onclick="handleAudit(${a.row}, ${a.rawRowRef}, 'Reject')" class="text-red-600 bg-red-50 hover:bg-red-100 p-1.5 rounded transition" title="Reject">
-                  <span class="material-symbols-outlined text-[20px]">close</span>
+                  <i data-lucide="x" class="text-[20px]" ></i>
                 </button>
               </div>
             </td>
@@ -4601,7 +4777,7 @@ function refreshAccess() {
       if (targetLdap) localStorage.setItem('lastSearchedLdap', targetLdap);
 
       document.getElementById('mySubmissionsTableBody').innerHTML =
-        '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading submissions...</td></tr>';
+        '<tr><td colspan="100%" class="px-6 py-4"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-4 py-1"><div class="h-2 bg-theme-primary/20 rounded"></div><div class="space-y-3"><div class="grid grid-cols-3 gap-4"><div class="h-2 bg-theme-primary/20 rounded col-span-2"></div><div class="h-2 bg-theme-primary/20 rounded col-span-1"></div></div><div class="h-2 bg-theme-primary/20 rounded"></div></div></div></div></td></tr>';
 
       // Convert HTML YYYY-MM-DD to Apps Script M/d/yyyy
       const [year, month, day] = dateVal.split('-');
@@ -4610,9 +4786,19 @@ function refreshAccess() {
       const thisRequestId = ++mySubmissionsRequestId;
       setMySubmissionsLoading(true);
 
+      const cacheKey = 'getMySubmissions_' + formattedDate + '_' + targetLdap;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+         try {
+           renderMySubmissions(JSON.parse(cached));
+           setMySubmissionsLoading(false);
+         } catch(e) {}
+      }
+
       google.script.run
         .withSuccessHandler(function(data) {
           if (thisRequestId !== mySubmissionsRequestId) return; // stale response, ignore
+          try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
           setMySubmissionsLoading(false);
           renderMySubmissions(data);
         })
@@ -4656,7 +4842,7 @@ function refreshAccess() {
           return `
         <tr class="row-hover transition ${breakLunchShort ? 'bg-amber-50/40 dark:bg-amber-900/10' : ''}">
           <td class="p-4 whitespace-nowrap cell-strong">${escAttr(interval)}</td>
-          <td class="p-4 cell-muted">${escAttr(activity)}${breakLunchShort ? ' <span class="material-symbols-outlined text-[14px] text-amber-500 align-middle" title="Below the 3-case minimum for Break/Lunch">warning</span>' : ''}</td>
+          <td class="p-4 cell-muted">${escAttr(activity)}${breakLunchShort ? ' <i data-lucide="alert-triangle" class="text-[14px] text-amber-500 align-middle"  title="Below the 3-case minimum for Break/Lunch"></i>' : ''}</td>
           <td class="p-4 cell-muted">${escAttr(caseType)}</td>
           <td class="p-4 text-center font-medium ${validCount > 0 ? 'text-green-600 dark:text-green-400' : 'cell-faint'}">${validCount}${auditBadgeHtml(sub)}</td>
           <td class="p-4 align-top">
@@ -4693,7 +4879,7 @@ function refreshAccess() {
       const [year, month, day] = dateVal.split('-');
       const formattedDate = `${parseInt(month)}/${parseInt(day)}/${year}`;
 
-      document.getElementById('caseLogTableBody').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Loading case log...</td></tr>';
+      document.getElementById('caseLogTableBody').innerHTML = '<tr><td colspan="100%" class="px-6 py-4"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-4 py-1"><div class="h-2 bg-theme-primary/20 rounded"></div><div class="space-y-3"><div class="grid grid-cols-3 gap-4"><div class="h-2 bg-theme-primary/20 rounded col-span-2"></div><div class="h-2 bg-theme-primary/20 rounded col-span-1"></div></div><div class="h-2 bg-theme-primary/20 rounded"></div></div></div></div></td></tr>';
       document.getElementById('caseLogPagination').classList.add('hidden');
 
       google.script.run
@@ -4743,7 +4929,7 @@ function refreshAccess() {
 
       tbody.innerHTML = pageRows.map(r => `
         <tr class="row-hover transition ${r.flagged ? 'bg-red-50/50 dark:bg-red-900/15' : ''}">
-          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId, true)}${r.flagged ? ' <span class="material-symbols-outlined text-[14px] text-red-500 align-middle ml-1" title="Flagged as a duplicate">error</span>' : ''}</td>
+          <td class="p-4 font-mono text-xs">${formatCaseIdsAsLinks(r.caseId, true)}${r.flagged ? ' <i data-lucide="alert-circle" class="text-[14px] text-red-500 align-middle ml-1"  title="Flagged as a duplicate"></i>' : ''}</td>
           <td class="p-4 cell-muted">${escAttr(r.caseType)}</td>
           <td class="p-4 cell-muted whitespace-nowrap">${escAttr(r.timestamp)}</td>
           <td class="p-4 cell-muted whitespace-nowrap">${escAttr(r.interval)}</td>
@@ -5048,7 +5234,7 @@ function refreshAccess() {
       btn.disabled = true;
       btn.classList.add('opacity-50', 'cursor-not-allowed');
       const originalHtml = btn.innerHTML;
-      btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Processing...';
+      btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin text-[16px]" ></i> Processing...';
 
       let updates = []; // Array of {ldap, status}
 
@@ -5223,16 +5409,19 @@ function refreshAccess() {
     let pendingConfirmAction = null;
 
     function showConfirmModal(title, message, confirmBtnText, confirmBtnClass, iconName, iconClass, onConfirm) {
-      document.getElementById('confirmModalTitle').innerText = title;
-      document.getElementById('confirmModalMessage').innerHTML = message;
+      const isDestructive = confirmBtnClass && confirmBtnClass.includes('bg-red');
+      if (isDestructive) { message += '<br><br>Type <b>DELETE</b> to confirm.'; }
+      const confirmInputHtml = isDestructive ? '<input type="text" id="destructiveConfirmInput" class="w-full mt-4 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-theme-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:outline-none" placeholder="DELETE">' : '';
+document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalMessage').innerHTML = message + confirmInputHtml;
 
       const actionBtn = document.getElementById('confirmModalActionBtn');
       actionBtn.innerText = confirmBtnText;
       actionBtn.className = `px-4 py-2 text-sm font-medium text-white rounded-theme transition ${confirmBtnClass}`;
 
       const iconEl = document.getElementById('confirmModalIcon');
-      iconEl.innerText = iconName;
-      iconEl.className = `material-symbols-outlined ${iconClass}`;
+      iconEl.outerHTML = `<i id="confirmModalIcon" data-lucide="${iconName}" class="${iconClass}"></i>`;
+      if(window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
 
       pendingConfirmAction = onConfirm;
 
@@ -5243,7 +5432,30 @@ function refreshAccess() {
       const newActionBtn = actionBtn.cloneNode(true);
       actionBtn.parentNode.replaceChild(newActionBtn, actionBtn);
 
+      if (isDestructive) {
+        newActionBtn.disabled = true;
+        newActionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        setTimeout(() => {
+          const input = document.getElementById('destructiveConfirmInput');
+          if(input) {
+            input.addEventListener('input', (e) => {
+              if (e.target.value === 'DELETE') {
+                newActionBtn.disabled = false;
+                newActionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+              } else {
+                newActionBtn.disabled = true;
+                newActionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+              }
+            });
+          }
+        }, 100);
+      }
+
       newActionBtn.addEventListener('click', () => {
+        if (isDestructive) {
+            const input = document.getElementById('destructiveConfirmInput');
+            if (!input || input.value !== 'DELETE') return; // Enforce friction
+        }
         if (pendingConfirmAction) pendingConfirmAction();
         closeConfirmModal();
       });
@@ -5280,13 +5492,13 @@ function refreshAccess() {
       const btn = document.getElementById('checkInBtn');
       btn.disabled = true;
       btn.classList.add('opacity-50', 'cursor-not-allowed');
-      btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Processing...';
+      btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin text-[16px]" ></i> Processing...';
 
       google.script.run
         .withSuccessHandler((res) => {
           btn.disabled = false;
           btn.classList.remove('opacity-50', 'cursor-not-allowed');
-          btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">verified</span> Check In Interval';
+          btn.innerHTML = '<i data-lucide="shield-check" class="text-[16px]" ></i> Check In Interval';
 
           if (res.error) {
              showToast(res.error, "error");
@@ -5301,7 +5513,7 @@ function refreshAccess() {
         .withFailureHandler((err) => {
           btn.disabled = false;
           btn.classList.remove('opacity-50', 'cursor-not-allowed');
-          btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">verified</span> Check In Interval';
+          btn.innerHTML = '<i data-lucide="shield-check" class="text-[16px]" ></i> Check In Interval';
           showToast("Network error checking in.", "error");
         })
         .checkInInterval(formattedDate, h, overrideNote);
@@ -5369,7 +5581,7 @@ function refreshAccess() {
 
     // Snapshots the current interval's activity right after a load, then starts
     // background polling against that snapshot. We deliberately don't auto-reload
-    // on a mismatch — this view has checkboxes, filters, and editable dropdowns
+    // on a mismatch - this view has checkboxes, filters, and editable dropdowns
     // in flight, so silently re-rendering under the manager's cursor is worse
     // than a dismissible "new data" banner.
     function captureIntervalBaseline() {
@@ -5481,7 +5693,7 @@ function refreshAccess() {
                 ${getMomaImgClass(a.ldap, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50)}
                 <span class="font-medium text-theme-primary whitespace-nowrap">${ldapLink(a.ldap)}</span>
                 ${a.isOT ? '<span class="text-[10px] bg-amber-200 text-amber-800 px-1.5 rounded">OT</span>' : ''}
-                ${a.pendingAudits && a.pendingAudits.length > 0 ? `<span class="material-symbols-outlined text-[16px] text-red-500 cursor-pointer hover:text-red-700 transition" title="${a.pendingAudits.length} flagged case(s) pending approval" data-audits="${escAttr(JSON.stringify(a.pendingAudits))}" onclick="openAgentFlaggedModal('${a.ldap}', this.getAttribute('data-audits'))">error</span>` : ''}
+                ${a.pendingAudits && a.pendingAudits.length > 0 ? `<i data-lucide="alert-circle" class="text-[16px] text-red-500 cursor-pointer hover:text-red-700 transition"  title="${a.pendingAudits.length} flagged case(s) pending approval" data-audits="${escAttr(JSON.stringify(a.pendingAudits))}" onclick="openAgentFlaggedModal('${a.ldap}', this.getAttribute('data-audits'))"></i>` : ''}
               </div>
             </td>
             <td class="p-3 text-center cell-muted">${a.sos}</td>
@@ -5525,7 +5737,7 @@ function refreshAccess() {
         if (needsAttention.length > 0) {
           html += `<tr data-group-header="1"><td colspan="10" class="px-3 py-2 bg-red-50/70 dark:bg-red-900/20 border-y border-red-100 dark:border-red-800/40">
             <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">
-              <span class="material-symbols-outlined text-[16px]">flag</span> Needs Attention — ${needsAttention.length}
+              <i data-lucide="flag" class="text-[16px]" ></i> Needs Attention - ${needsAttention.length}
             </span>
           </td></tr>`;
           html += needsAttention.map(a => buildIntervalRowHtml(a, false)).join('');
@@ -5533,7 +5745,7 @@ function refreshAccess() {
         if (resolved.length > 0) {
           html += `<tr data-group-header="1"><td colspan="10" class="px-3 py-2 bg-theme-canvas dark:bg-gray-700/40 border-y border-gray-100 dark:border-gray-700 cursor-pointer" onclick="toggleResolvedGroup()">
             <span class="inline-flex items-center gap-1.5 text-xs font-semibold cell-muted uppercase tracking-wide">
-              <span class="material-symbols-outlined text-[16px]">${intervalResolvedCollapsed ? 'expand_more' : 'expand_less'}</span> Resolved — ${resolved.length}
+              <i data-lucide="${intervalResolvedCollapsed ? 'expand-more' : 'expand-less'}" class="text-[16px]" ></i> Resolved - ${resolved.length}
             </span>
           </td></tr>`;
           html += resolved.map(a => buildIntervalRowHtml(a, intervalResolvedCollapsed)).join('');
@@ -5864,7 +6076,7 @@ function refreshAccess() {
         heatmapChartInstance.render();
       }
 
-      // 3. Render Donut (Workflows) — drop zero-count entries so the legend matches the chart
+      // 3. Render Donut (Workflows) - drop zero-count entries so the legend matches the chart
       const workflowEntries = Object.entries(data.workflows).filter(function(e) { return e[1] > 0; });
       const workflowLabels = workflowEntries.map(function(e) { return e[0]; });
       const workflowSeries = workflowEntries.map(function(e) { return e[1]; });
@@ -5888,7 +6100,7 @@ function refreshAccess() {
         donutChartInstance.render();
       }
 
-      // 4. Render Bar Chart (Sites) — sorted descending, top site gets the accent color
+      // 4. Render Bar Chart (Sites) - sorted descending, top site gets the accent color
       const siteEntries = Object.entries(data.sites).sort(function(a, b) { return b[1] - a[1]; });
       const siteLabels = siteEntries.map(function(e) { return e[0]; });
       const siteValues = siteEntries.map(function(e) { return e[1]; });
@@ -5952,7 +6164,7 @@ function refreshAccess() {
         }).join('');
       }
 
-      // 6. Render OT Timeline Line Chart — backend now returns a chronological,
+      // 6. Render OT Timeline Line Chart - backend now returns a chronological,
       // zero-filled {x: epoch ms, y: count} series plus a granularity flag.
       const otTimelineSeriesData = (data && Array.isArray(data.otTimeline)) ? data.otTimeline : [];
       const otTimelineHourly = data && data.otTimelineGranularity === 'hourly';
@@ -6036,7 +6248,7 @@ function refreshAccess() {
     let expGrabbing = false;
 
     function loadExpiringCases() {
-      document.getElementById('expTableBody').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Loading cases...</td></tr>';
+      document.getElementById('expTableBody').innerHTML = '<tr><td colspan="100%" class="px-6 py-4"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-4 py-1"><div class="h-2 bg-theme-primary/20 rounded"></div><div class="space-y-3"><div class="grid grid-cols-3 gap-4"><div class="h-2 bg-theme-primary/20 rounded col-span-2"></div><div class="h-2 bg-theme-primary/20 rounded col-span-1"></div></div><div class="h-2 bg-theme-primary/20 rounded"></div></div></div></div></td></tr>';
       google.script.run
         .withSuccessHandler(renderExpiring)
         .withFailureHandler(err => {
@@ -6157,7 +6369,7 @@ function refreshAccess() {
           ? 'Assign via CaseConnect (' + chunk.length + ')'
           : 'Assign via CaseConnect: ' + (i * EXP_LINK_CAP + 1) + '&ndash;' + (i * EXP_LINK_CAP + chunk.length);
         html += '<a href="' + buildCaseConnectUrl(chunk) + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 bg-theme-primary hover:bg-theme-primary-hover text-white text-sm font-medium px-4 py-2 rounded-full shadow-sm transition">' +
-                '<span class="material-symbols-outlined text-[18px]">open_in_new</span>' + label + '</a>';
+                '<i data-lucide="external-link" class="text-[18px]" ></i>' + label + '</a>';
       }
       if (batches > 1) html += '<span class="text-[11px] cell-faint">Each link holds up to ' + EXP_LINK_CAP + ' cases</span>';
       el.innerHTML = html;
@@ -6686,7 +6898,7 @@ function attAggregate(rows) {
 
 function attKpiCard(label, icon, iconCls, value, sub) {
   return '<div class="bg-theme-card backdrop-blur-md p-6 rounded-theme shadow-lg border border-theme-card-border flex flex-col justify-center">' +
-    '<span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px] ' + iconCls + '">' + icon + '</span> ' + label + '</span>' +
+    '<span class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1"><i data-lucide="' + icon + '" class="text-[16px] ' + iconCls + '" ></i> ' + label + '</span>' +
     '<span class="text-4xl font-normal text-gray-800 dark:text-gray-100">' + value + '</span>' +
     '<span class="text-xs cell-muted mt-1">' + sub + '</span></div>';
 }
@@ -6863,8 +7075,8 @@ function renderAttFollowUp(rows, daily) {
       '<div class="flex-1 min-w-0"><div class="flex justify-between items-end mb-1"><span class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">' + ldapLink(a.ldap) + '</span><span class="text-xs">' + detail + '</span></div>' +
       '<div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5"><div class="bg-red-400 h-1.5 rounded-full" style="width:' + Math.max(5, score / top * 100) + '%"></div></div></div>' +
       '<div class="flex items-center gap-1 shrink-0">' +
-        '<button type="button" onclick="quickCheckAttFollowUp(\'' + a.ldap + '\')" title="' + (allDone ? 'Undo follow-up' : 'Mark followed up') + '" class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center ' + (allDone ? 'text-emerald-500' : 'text-gray-400 hover:text-emerald-500') + '"><span class="material-symbols-outlined text-[20px]">' + (allDone ? 'check_circle' : 'radio_button_unchecked') + '</span></button>' +
-        '<button type="button" onclick="openAttFollowUp(\'' + a.ldap + '\')" title="Update / add note" class="p-1 rounded-full text-gray-400 hover:text-theme-primary hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center"><span class="material-symbols-outlined text-[20px]">edit_note</span></button>' +
+        '<button type="button" onclick="quickCheckAttFollowUp(\'' + a.ldap + '\')" title="' + (allDone ? 'Undo follow-up' : 'Mark followed up') + '" class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center ' + (allDone ? 'text-emerald-500' : 'text-gray-400 hover:text-emerald-500') + '"><i data-lucide="' + (allDone ? 'check-circle' : 'circle') + '" class="text-[20px]" ></i></button>' +
+        '<button type="button" onclick="openAttFollowUp(\'' + a.ldap + '\')" title="Update / add note" class="p-1 rounded-full text-gray-400 hover:text-theme-primary hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center"><i data-lucide="file-edit" class="text-[20px]" ></i></button>' +
       '</div></div>';
   }).join('');
 }
@@ -6903,7 +7115,7 @@ function renderAttTable() {
     if (r.pc) notes.push('POC: ' + escAttr(r.pc));
     if (r.rv > 0) notes.push('&#9888; POC tag conflicts with submissions');
     if (r.fu) notes.push('<span class="text-emerald-600 dark:text-emerald-400">&#10003; ' + escAttr(r.fu.r) + ' by ' + escAttr(r.fu.b) + (r.fu.n ? ' &ndash; ' + escAttr(r.fu.n) : '') + '</span>');
-    if (r.fu || attNeedsFollowUp(r, attView === 'daily')) notes.push('<button type="button" onclick="openAttFollowUp(\'' + escAttr(r.u) + '\',\'' + r.d + '\')" title="Follow up" class="align-middle text-gray-400 hover:text-theme-primary transition"><span class="material-symbols-outlined text-[14px]">edit_note</span></button>');
+    if (r.fu || attNeedsFollowUp(r, attView === 'daily')) notes.push('<button type="button" onclick="openAttFollowUp(\'' + escAttr(r.u) + '\',\'' + r.d + '\')" title="Follow up" class="align-middle text-gray-400 hover:text-theme-primary transition"><i data-lucide="file-edit" class="text-[14px]" ></i></button>');
     return '<tr class="row-hover transition">' +
       '<td class="p-4 cell-muted whitespace-nowrap">' + escAttr(attFmtDate(r.d)) + '</td>' +
       '<td class="p-4"><div class="flex items-center gap-2">' + getMomaImgClass(r.u, 'w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600', 50) + '<span class="font-medium">' + ldapLink(r.u) + '</span></div></td>' +
