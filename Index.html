@@ -2570,6 +2570,18 @@ function refreshAccess() {
       google.script.url.getLocation(function(location) {
           if (location.parameters && location.parameters.tab && location.parameters.tab[0]) {
               const tabId = location.parameters.tab[0];
+              window.initialUrlTabLoaded = true;
+
+              // Update Nav Active State
+              document.querySelectorAll('.nav-active').forEach(btn => {
+                btn.classList.remove('nav-active');
+                btn.classList.add('nav-inactive');
+              });
+              const activeNavBtn = document.getElementById('tab-' + tabId);
+              if (activeNavBtn) {
+                activeNavBtn.classList.remove('nav-inactive');
+                activeNavBtn.classList.add('nav-active');
+              }
               if (tabId === 'searchView' && location.parameters.q) {
                   document.getElementById('searchQuery').value = location.parameters.q[0];
                   if (location.parameters.by) document.getElementById('searchBy').value = location.parameters.by[0];
@@ -2588,84 +2600,25 @@ function refreshAccess() {
       });
   }
 
-  // --- Caching and Server Call Proxy Wrapper ---
-  if (typeof google !== 'undefined' && google.script && google.script.run) {
-    const originalRun = google.script.run;
-    const noCacheEndpoints = ['deleteSubmission', 'markBadgesSeen', 'recordUserAction', 'logAuth'];
-
-    const runProxyHandler = {
-      get(target, prop) {
-        if (prop === 'withSuccessHandler') {
-          return function(handler) {
-            const newRun = target.withSuccessHandler(handler);
-            newRun._successHandler = handler;
-            newRun._failureHandler = target._failureHandler;
-            newRun._userObject = target._userObject;
-            return new Proxy(newRun, runProxyHandler);
-          };
-        }
-        if (prop === 'withFailureHandler') {
-           return function(handler) {
-            const newRun = target.withFailureHandler(handler);
-            newRun._failureHandler = handler;
-            newRun._successHandler = target._successHandler;
-            newRun._userObject = target._userObject;
-            return new Proxy(newRun, runProxyHandler);
-           };
-        }
-        if (prop === 'withUserObject') {
-           return function(obj) {
-            const newRun = target.withUserObject(obj);
-            newRun._userObject = obj;
-            newRun._successHandler = target._successHandler;
-            newRun._failureHandler = target._failureHandler;
-            return new Proxy(newRun, runProxyHandler);
-           };
-        }
-
-        if (typeof target[prop] === 'function' && !['withSuccessHandler', 'withFailureHandler', 'withUserObject'].includes(prop)) {
-           return function(...args) {
-              const isMutation = noCacheEndpoints.includes(prop) || prop.startsWith('save') || prop.startsWith('update') || prop.startsWith('delete');
-              const cacheKey = prop + '_' + JSON.stringify(args);
-
-              if (!isMutation) {
-                 try {
-                   const cachedData = JSON.parse(sessionStorage.getItem(cacheKey));
-                   if (cachedData && target._successHandler) {
-                      setTimeout(() => target._successHandler(cachedData), 0);
-                      return;
-                   }
-                 } catch(e) {}
-              }
-
-              if (!isMutation && target._successHandler) {
-                 const originalSuccess = target._successHandler;
-                 target = target.withSuccessHandler(function(res) {
-                    try { sessionStorage.setItem(cacheKey, JSON.stringify(res)); } catch(e) {}
-                    originalSuccess(res);
-                 });
-              }
-
-              return target[prop](...args);
-           };
-        }
-        return target[prop];
-      }
-    };
-
-    google.script.run = new Proxy(originalRun, runProxyHandler);
-  }
-  // ---------------------------------------------
-
       // Initialize Theme
       initTheme();
       initSidebar();
 
       // Call backend to get role and LDAP
-      google.script.run
-        .withSuccessHandler(initializeUserUI)
-        .withFailureHandler(function(err){ showToast("Failed to load profile", "error"); })
-        .getUserProfile();
+      const cachedProfile = sessionStorage.getItem('getUserProfile');
+      if (cachedProfile) {
+          try {
+              initializeUserUI(JSON.parse(cachedProfile));
+          } catch(e) {}
+      } else {
+          google.script.run
+            .withSuccessHandler(function(profile) {
+                sessionStorage.setItem('getUserProfile', JSON.stringify(profile));
+                initializeUserUI(profile);
+            })
+            .withFailureHandler(function(err){ showToast("Failed to load profile", "error"); })
+            .getUserProfile();
+      }
 
       // Load user preferences from local storage
       loadSelections();
@@ -2912,10 +2865,10 @@ function initializeUserUI(profile) {
           .getAllAgents();
 
         // Smart Routing: Managers land on Analytics
-        switchTab('analyticsView');
+        if (!window.initialUrlTabLoaded) switchTab('analyticsView');
       } else {
         // Smart Routing: Agents land on Submission Form
-        switchTab('submissionView');
+        if (!window.initialUrlTabLoaded) switchTab('submissionView');
       }
       
       // Set default date for my submissions
@@ -3349,6 +3302,14 @@ function initializeUserUI(profile) {
       }
       if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
 
+      const iconEl = document.getElementById('toastIcon');
+      if (iconEl) {
+          iconEl.outerHTML = `<span id="toastIcon">${iconHtml}</span>`;
+      } else {
+          toastMsg.insertAdjacentHTML('beforebegin', `<span id="toastIcon">${iconHtml}</span>`);
+      }
+      if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
+
       const holdMs = (type === 'error') ? 8000 : 5000;
 
       toast.classList.remove('hidden', 'opacity-0');
@@ -3751,8 +3712,20 @@ function initializeUserUI(profile) {
       banner.classList.remove('flex');
 
       container.innerHTML = '<div class="text-center text-gray-400 py-12">Loading profile...</div>';
+      const cacheKey = 'getMyProfileData_' + (targetLdap || 'null');
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+         try {
+            renderMyProfile(JSON.parse(cached));
+            return;
+         } catch(e) {}
+      }
+
       google.script.run
-        .withSuccessHandler(renderMyProfile)
+        .withSuccessHandler(function(data) {
+           try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
+           renderMyProfile(data);
+        })
         .withFailureHandler(err => {
           container.innerHTML = '<div class="text-center text-red-400 py-12">Failed to load profile.</div>';
           showToast(err && err.message ? err.message : "Failed to load profile.", 'error');
@@ -4821,9 +4794,19 @@ function initializeUserUI(profile) {
       const thisRequestId = ++mySubmissionsRequestId;
       setMySubmissionsLoading(true);
 
+      const cacheKey = 'getMySubmissions_' + formattedDate + '_' + targetLdap;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+         try {
+           renderMySubmissions(JSON.parse(cached));
+           setMySubmissionsLoading(false);
+         } catch(e) {}
+      }
+
       google.script.run
         .withSuccessHandler(function(data) {
           if (thisRequestId !== mySubmissionsRequestId) return; // stale response, ignore
+          try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
           setMySubmissionsLoading(false);
           renderMySubmissions(data);
         })
