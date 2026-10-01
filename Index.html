@@ -3302,6 +3302,14 @@ function initializeUserUI(profile) {
       }
       if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
 
+      const iconEl = document.getElementById('toastIcon');
+      if (iconEl) {
+          iconEl.outerHTML = `<span id="toastIcon">${iconHtml}</span>`;
+      } else {
+          toastMsg.insertAdjacentHTML('beforebegin', `<span id="toastIcon">${iconHtml}</span>`);
+      }
+      if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: '1em', height: '1em' } });
+
       const holdMs = (type === 'error') ? 8000 : 5000;
 
       toast.classList.remove('hidden', 'opacity-0');
